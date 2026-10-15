@@ -29,7 +29,8 @@ export function createCinematics(audio) {
     introDon: 'assets/cine/title/plate.jpg', // baba_booey: Don Piedro's panel (his cutout + portrait are drawn over it by don.js)
     bossEnter: 'assets/cine/boss_enter.jpg',
     bossDefeat: 'assets/cine/boss_defeat.jpg',
-    ending: 'assets/cine/ending.jpg'
+    ending: 'assets/cine/ending.jpg',
+    machineMeet: 'assets/cine/machine_meet.jpg' // flooded vault under the sewers: the Machine wakes
   };
   const img = {};
   for (const [name, url] of Object.entries(src)) {
@@ -87,13 +88,28 @@ export function createCinematics(audio) {
     },
     bossDefeat: {
       img: 'bossDefeat', sound: 'over', accent: 'impact', music: 'defeat', duration: 3.8,
-      title: 'SHREDCLAW DOWN', lines: ['{HERO} stands over the fallen Shredclaw.', 'Root gateway open. Running: hermes claw migrate...', 'Memories, skills, SOUL.md: every claw comes home.'],
+      title: 'SHREDCLAW DOWN', lines: ['{HERO} stands over the fallen Shredclaw.', 'THE MACHINE: Dome holds. Gateway open.', 'Running: hermes claw migrate. Nothing deleted.', 'Memories, skills, SOUL.md: every claw comes home.'],
       from: [0.45, 0.50], to: [0.22, 0.45], zoom: [1.0, 1.25], shake: 0
     },
     ending: {
       img: 'ending', sound: 'wave', accent: 'chime', music: 'ending', duration: 5.8,
-      title: 'THE LAST SLICE', lines: ['Sunrise. The claws molt back into friendly helpers.', 'Even Shredclaw: new shell, much nicer lobster.', 'Press SPACE to start a new run.'],
+      title: 'THE LAST SLICE', lines: ['Sunrise. The claws molt back into friendly helpers.', 'Even Shredclaw: new shell, much nicer lobster.', 'The Machine keeps watch beneath the city.', 'Press SPACE to start a new run.'],
       from: [0.81, 0.45], to: [0.30, 0.33], zoom: [1.0, 1.25], shake: 0
+    },
+    // Ensemble scene (the gang is in the vault painting). In-level replies after
+    // this use only the heroes actually in the run.
+    machineMeet: {
+      typeRate: 46, img: 'machineMeet', fallback: 'intro1', sound: 'chime', accent: 'riser', music: 'sewer', duration: 8,
+      title: 'THE VAULT',
+      lines: [
+        'NOUS GIRL: Something old is waking under the water.',
+        'THE MACHINE: Query. You are not claws.',
+        'TEKNIUM: We run hermes claw migrate. Come with us.',
+        'THE MACHINE: Accepted. I stand between you and the swarm.'
+      ],
+      focus: [0.52, 0.46, 0.52],
+      lineFocus: [[0.30, 0.62, 0.56], [0.56, 0.40, 0.62], [0.24, 0.66, 0.56], [0.58, 0.38, 0.64]],
+      from: [0.46, 0.42], to: [0.54, 0.48], zoom: [1.02, 1.14], shake: 0.012
     }
   };
 

@@ -10,6 +10,7 @@
 // 3 HP; they explode into a debris burst. z > 2 keeps them ungrabbable (grab.canGrab).
 // Packs ride on existing events.js beats (DRONE_PACKS keys 'level:x'); no events edits.
 import { damagePlayer, LEVELS } from './logic.js';
+import { shotBlocked } from './machine.js';
 
 export const HOVERDRONE = { kind: 'hoverdrone', name: 'HOVER DRONE', r: 12, hp: 3, hoverZ: 70, bob: 6, lowZ: 10,
   tele: 0.55, dive: 0.7, recover: 0.6, diveDmg: 7, laserDmg: 6, boltSpeed: 380, turnGap: 0.9, enter: 1.1 };
@@ -106,6 +107,7 @@ export function createDrones(opts = {}) {
     }
     for (const b of D.bolts) {
       b.t += dt; b.x += b.vx * dt; b.z = Math.max(18, b.z - 140 * dt);
+      if (!b.dead && shotBlocked(s, b)) { b.dead = true; continue; }
       if (!b.dead && Math.abs(b.x - p.x) < 18 && Math.abs(b.y - p.y) < 14 && !((p.z || 0) > 30)) {
         b.dead = true; const got = damagePlayer(s, T.laserDmg, { x: b.x }); D.log.push({ ev: 'hit', mode: 'laser', dmg: got });
         if (got && s.fxCue) s.fxCue('hit', { x: p.x, y: p.y - 40, heavy: false, shake: 0.1 });

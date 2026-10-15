@@ -70,6 +70,19 @@ for (const hero of ['teknium', 'nous_girl', 'turbofit']) {
   }
 }
 
+for (const hero of ['teknium', 'nous_girl', 'turbofit']) for (const move of Object.values(GRAB_MOVES)) for (const facing of [-1, 1]) {
+  const s = createState(); Object.assign(s, { hero, hpMode: true, coopSecondary: true }); createCombat(s);
+  const n = { x: s.player.x + facing * 30, y: s.player.y, r: 16, hp: 100, maxHp: 100, kind: 'brawler', grabbed: true, stun: 1, z: 0 };
+  s.ninjas = [n];
+  Object.assign(s.combat, { facing, attackFacing: facing, attack: move, phase: 'active', timer: move.active, grab: { n, t: 2, knees: 1 } });
+  const hits = []; s.fxCue = (type, data) => { if (type === 'hit') hits.push(data); };
+  combatStep(s, 1 / 120);
+  assert.ok(n.hp < 100, `${hero}/${move.label}: pinned target did not take damage`);
+  assert.ok(hits[0] && hits[0].y < s.player.y - 20, `${hero}/${move.label}: impact spark is at the floor instead of the held body`);
+  assert.ok(s.combat.hitStop > 0, `${hero}/${move.label}: missing contact stop`);
+}
+console.log('Held contact: 24 knee/throw cases, both facings; raised-body impact and hit-stop.');
+
 for (const hero of ['teknium', 'nous_girl', 'turbofit']) for (const move of [MOVES.dash, MOVES.dodgeRoll]) {
   const s = createState(); Object.assign(s, { hero, hpMode: true, coopSecondary: true, level: null }); createCombat(s);
   const n = { x: s.player.x + 20, y: s.player.y, r: 16, hp: 100, maxHp: 100, kind: 'brawler' }; s.ninjas = [n];

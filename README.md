@@ -32,6 +32,33 @@ the `.txt` extension is a hosting workaround, the bytes are plain Ogg.
 None. The game uses only relative paths and has no server API calls or host-specific globals, so it runs
 unmodified on GitHub Pages. (`.nojekyll` is present so Pages serves every file as-is.)
 
+## Local play and rig/layout verification
+
+```sh
+python3 -m http.server 48791
+# Open http://localhost:48791/index.html
+```
+
+The game still needs no npm packages or build step. Developer checks use Node 22+:
+
+```sh
+npm ci                             # browser-test dependency only
+npm test                           # geometry, animation, contacts, level routes
+CHROMIUM_PATH=/snap/bin/chromium npm run test:browser
+# Or: npx playwright install chromium && npm run test:browser
+node tools/render-rigs.mjs after    # Chromium; after/ + comparison/ sheets
+node tools/render-levels.mjs after  # collision/layout maps for all eight stages
+```
+
+The contact-sheet tools use installed Chromium (`CHROMIUM=/path/to/chromium` to
+override their default). `before/` references original game revision `bcec2ee`;
+its hero sheet manifest records checksums and capture provenance. Never recapture
+it from modified game code. See [rig notes](RIG-ANIMATION.md),
+[rig checks](tests/RIG-CHECKS.md), and [layout notes](docs/LEVEL-LAYOUTS.md).
+
 ## Deploying
 
 `./deploy.sh` copies the game from its working folder, commits with a timestamp, and pushes to `main`.
+
+For development, use a feature branch and a pull request instead. **Do not run
+`deploy.sh` to publish a review branch**: `main` is served by GitHub Pages.

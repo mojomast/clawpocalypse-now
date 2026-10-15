@@ -37,6 +37,19 @@ export function addRunPoses(poses, hero) {
   }
 }
 
+export function addDownPoses(poses, hero) {
+  // The original knockdown curled around a low boot, leaving the torso hovering
+  // like a flying kick. Tuck both knees above the hips and rest on the shoulder
+  // and torso silhouette instead. The bo lies along the floor, not through it.
+  const base = poses[`${hero}_down`];
+  poses[`${hero}_down`] = { ...base, torso: 88, head: -38,
+    uarm: 68, farm: -45, uarm_b: 35, farm_b: -62,
+    thigh: -8, shin: 72, thigh_b: 10, shin_b: 82,
+    ...(hero === 'turtle_purple' ? { weapon: -61 } : {}) };
+  poses[`${hero}_downB`] = { ...poses[`${hero}_down`], torso: 86,
+    head: -40, uarm: 66, farm: -47, shin: 74, shin_b: 84 };
+}
+
 export function addDonPoses(poses) {
   const set = (name, overrides) => poses[`don_piedro_${name}`] = { ...poses.don_piedro_idleA, ...overrides };
   set('idleA', { torso: 13, head: -6, uarm: 12, farm: -76, uarm_b: -8, farm_b: -62,
@@ -77,4 +90,5 @@ export function addDonPoses(poses) {
   // objects (editing one hero must never silently edit another hero).
   for (const name of Object.keys(poses)) if (name.startsWith('don_piedro_') && name.endsWith('_recover')) poses[name] = { ...poses.don_piedro_idleA };
   addRunPoses(poses, 'don_piedro');
+  addDownPoses(poses, 'don_piedro');
 }

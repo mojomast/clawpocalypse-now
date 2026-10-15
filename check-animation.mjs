@@ -81,3 +81,17 @@ for (const { id: hero } of HEROES) for (const flip of [false, true]) for (const 
   }
 }
 console.log(`World contacts passed: ${contacts} walking/running supports, both facings; maximum X drift ${maxDrift.toFixed(4)}px.`);
+
+for (const { id: hero } of HEROES) {
+  const locks = createFootLocks(), anim = createAnim();
+  let time = 0, previous;
+  for (const state of ['idleA', 'down', 'wake', 'idleA']) for (let frame = 0; frame < 30; frame++) {
+    const name = `${hero}_${state}`;
+    const pose = locks.place(hero, hero, anim.step(hero, name, {}, 1 / 60, time += 1 / 60), { x: 0, y: 0 });
+    const sol = solve(hero, pose, { poseName: name, animated: true, footTargets: pose.__footTargets, rootDy: pose.__rootDy });
+    if (previous) assert.ok(Math.abs(sol.M.torso[5] - previous.M.torso[5]) <= 7.51, `${name}: get-up root snapped`);
+    if (sol.ground) assert.ok(sol.ground.residual <= 1, `${name}: recovery lost floor contact`);
+    previous = sol;
+  }
+}
+console.log('Down/get-up transitions passed: no root teleport, reachable support contacts.');

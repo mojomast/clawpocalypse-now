@@ -18,11 +18,6 @@ export function createFootLocks() {
     if (!base.contacts.length) track.anchors = {};
     const gettingUp = name => /(^|_)(down|downB|wake)$/.test(name || '');
     if (pose.__pose !== track.pose && (gettingUp(pose.__pose) || gettingUp(track.pose))) track.settle = 0.32;
-    if (track.settle > 0 && track.rootDy != null) {
-      const delta = (base.M.torso[5] - track.rootDy) * (1 - Math.exp(-dt / 0.07));
-      pose.__rootDy = track.rootDy + Math.max(-450 * dt, Math.min(450 * dt, delta));
-      track.settle -= dt;
-    }
     const sign = flip ? -1 : 1, targets = {};
     for (const side of Object.keys(track.anchors)) if (!base.contacts.includes(side)) delete track.anchors[side];
     for (const side of base.contacts) {
@@ -34,7 +29,13 @@ export function createFootLocks() {
       }
       targets[side] = [(track.anchors[side] - x) * sign / scale - (pose.dx || 0), FOOT_Y];
     }
-    const locked = solve(kind, pose, { poseName: pose.__pose, animated: true, footTargets: targets, rootDy: pose.__rootDy });
+    const free = solve(kind, pose, { poseName: pose.__pose, animated: true, footTargets: targets });
+    if (track.settle > 0 && track.rootDy != null) {
+      const delta = (free.M.torso[5] - track.rootDy) * (1 - Math.exp(-dt / 0.07));
+      pose.__rootDy = track.rootDy + Math.max(-450 * dt, Math.min(450 * dt, delta));
+      track.settle = Math.max(track.settle - dt, Math.abs(free.M.torso[5] - pose.__rootDy) > 0.5 ? dt : 0);
+    }
+    const locked = pose.__rootDy == null ? free : solve(kind, pose, { poseName: pose.__pose, animated: true, footTargets: targets, rootDy: pose.__rootDy });
     // Release an unreachable contact as a new step, never stretch a limb or drag
     // an invalid anchor indefinitely (teleports, recoil and large lunges).
     if (locked.ground?.residual > 0.75) {

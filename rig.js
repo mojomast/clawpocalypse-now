@@ -7,7 +7,7 @@
 // their sprite/primitives fallback, so publishing without the art never breaks.
 import { ENEMY_RIGS } from './enemy-rigs.js';
 import { HERO_RIGS } from './hero-rigs.js';
-import { addRunPoses } from './hero-motion.js';
+import { addRunPoses, addDownPoses } from './hero-motion.js';
 import { constrainHeroAngles, footContacts, limbVectors, plantFeet } from './rig-geometry.js';
 import { HERO_SUPPORT } from './hero-support.js';
 
@@ -801,6 +801,7 @@ for (const [h, st] of Object.entries(HERO_STYLE)) {
     set('walk' + (i + 1), o);
   });
   addRunPoses(POSES, h);
+  addDownPoses(POSES, h);
   set('turn', { ...POSES.turn, weapon: POSES[K('idleA')].weapon });
   for (const [mv, [wd, ac, fo]] of Object.entries(st.moves)) {
     set(`${mv}_wind`, hp(h, wd, { air: wd.air })); set(`${mv}_active`, hp(h, ac, { air: ac.air })); set(`${mv}_follow`, hp(h, fo, { air: fo.air }));

@@ -1,4 +1,4 @@
-# Pizza Panic audio credits
+# AGENT ARMEGEDDON: CLAWPOCALYPSE NOW audio credits
 
 All music and sound effects are free assets released under **CC0 1.0** (public domain dedication,
 https://creativecommons.org/publicdomain/zero/1.0/). No attribution is legally required; credit is given anyway.

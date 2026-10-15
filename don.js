@@ -15,9 +15,12 @@ export const DON_PORTRAIT = 'assets/heroes/portraits/don_piedro.png';
 // Readability rule for every Don line: on screen >= 2.5 s + 50 ms per character, then a short pause.
 export const readFor = line => 2.5 + 0.05 * String(line).length;
 export const DON_PAUSE = 0.6;
+// story-v2: his catchphrase is exactly "Hello I Hermes biggest fanboi". These talk beats are his alone, so they
+// only play when Don is in the run (P1 or P2): events.js skips a beat whose `only` hero is absent.
+export const DON_CATCHPHRASE = 'Hello I Hermes biggest fanboi';
 export const DON_LINES = {
-  intro: ['DON PIEDRO: Don Piedro is here! Hermes, you see me? You see?', 'DON PIEDRO: Hermes is best agent, I am spoon for him!'],
-  sewer: 'This spoon, it is very big. For justice and for soup.',
+  intro: ['DON PIEDRO: ' + DON_CATCHPHRASE + '.', 'DON PIEDRO: Claw boss want migrate Hermes? I bring spoon.'],
+  sewer: DON_CATCHPHRASE,
   gate: 'Claw man, you no touch Hermes. I spoon you!',
 };
 
@@ -30,14 +33,14 @@ function register() {
   HERO_MOVES[DON] = { ...HERO_MOVES[BASE] };
   HERO_SPECIALS[DON] = [{ move: 'slashSpin', name: 'Soup Tornado', rootSpin: 360, hits: 6, dmg: 2, knock: 280 }];
   if (!RIG_HEROES.includes(DON)) RIG_HEROES.push(DON);
-  SOLES[DON] = [[4, 55], [34, 55]];   // boot heel / toe in shin px (slice_don.py)
+  SOLES[DON] = [[5, 48], [41, 48]];   // boot heel / toe in shin px (slice_don_v2.py)
   if (WRIST[BASE]) WRIST[DON] = { ...WRIST[BASE] };
   HERO_MOVES_COMBAT[DON] = {
     finisher: { name: 'slashUp', label: 'Spoon Uppercut', dmg: 2, range: 58, wind: 0.12, active: 0.13, rec: 0.28, knock: 380, react: 'launch', stop: 0.12, shake: 0.3, heavy: true, pierceGuard: true },
     special: { name: 'slashSpin', label: 'Soup Tornado', dmg: 2, range: 82, wind: 0.1, active: 0.3, rec: 0.28, knock: 320, react: 'knockdown', stop: 0.13, shake: 0.42, heavy: true, around: true, cost: 8, invuln: 0.7, multi: 3, tick: 0.09 },
   };
   // level cutscene beats with his portrait (letterboxed events line); durations follow the readability rule
-  const beat = (level, x, text) => { if (!TRIGGERS.some(t => t.level === level && t.x === x)) TRIGGERS.push({ level, x, type: 'talk', kinds: [], speaker: 'DON PIEDRO', portrait: DON_PORTRAIT, line: text, lineDur: readFor(text) + DON_PAUSE }); };
+  const beat = (level, x, text) => { if (!TRIGGERS.some(t => t.level === level && t.x === x)) TRIGGERS.push({ level, x, type: 'talk', kinds: [], only: DON, speaker: 'DON PIEDRO', portrait: DON_PORTRAIT, line: text, lineDur: readFor(text) + DON_PAUSE }); };
   beat(0, 560, DON_LINES.sewer);
   beat(0, 4980, DON_LINES.gate);
 }

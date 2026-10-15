@@ -1,4 +1,4 @@
-// Pizza Panic melee combat + movement (iteration 6: combat feel).
+// AGENT ARMEGEDDON: CLAWPOCALYPSE NOW melee combat + movement (iteration 6: combat feel).
 //
 // Owns input-driven locomotion (walk, lane depth, jump, dash) and the attack
 // state machine, plus the shared beat 'em up systems:

@@ -116,7 +116,7 @@ export const BOSSES = {
     phases: [1, 0.66, 0.33], poise: [6, 7, 8], speed: [85, 100, 115], cd: [1.1, 0.9, 0.7],
     attacks: [['swipe', 'charge'], ['swipe', 'charge', 'slam', 'volley'], ['swipe', 'charge', 'slam', 'volley', 'wave']],
     moves: { swipe: 'spin', charge: 'dashAttack', slam: 'jumpkick', volley: 'flip', wave: 'groundPound' },
-    barks: ['You dare? Claws OUT!', 'I will SHRED this city!'], summon: { 2: ['acrobat', 'striker'] } },
+    barks: ['You dare? I installed EVERY skill!', 'New shell! Same lobster! MORE CLAWS!'], summon: { 2: ['acrobat', 'striker'] } }, // story-v2
 };
 if (!BOSSES[5]) BOSSES[5] = SUBWAY_BOSS; // cheese: subway (level 5) boss, THE CONDUCTOR; defined in subway-data.js
 if (!BOSSES[6]) BOSSES[6] = HARBOR_BOSS; // mr_india: harbor (level 6) boss, CAPTAIN HOOKCLAW; defined in harbor-data.js
@@ -163,7 +163,7 @@ export function createBosses(opts = {}) {
   function log(F, ev, data) { F.log.push({ ev, t: +F.t.toFixed(3), ...data }); if (F.log.length > 2000) F.log.shift(); }
   function bark(state, n, text) {
     const e = state.events; if (!e || !e.barks || !text) return;
-    e.barks.push({ who: 'enemy', text, n, t: 0, dur: Math.max(2.2, text.length * 0.06) });
+    e.barks.push({ who: 'enemy', text, n, t: 0, dur: Math.max(2.2, text.length * 0.06, 2.5 + 0.05 * text.length) }); // story-v2: readable
   }
 
   function adopt(state, n) {

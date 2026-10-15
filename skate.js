@@ -4,7 +4,7 @@
 // barriers (a hit costs health and knocks you down), fight claw drones and
 // skater goons that ride in, then beat the Claw Rider mini-boss to finish.
 import { W, H, SKATE_LEVEL, damagePlayer, spawnPowerup } from './logic.js';
-import { KIND_R, KIND_HP } from './events.js';
+import { KIND_R, KIND_HP, speakLine, heroBark } from './events.js'; // story-v2: hero lines come from the hero(es) in the run
 
 export const SKATE = { speed: 150, length: 9000, band: [392, 488] };
 
@@ -17,11 +17,11 @@ export const SKATE = { speed: 150, length: 9000, band: [392, 488] };
 // claw roadblock (the scroll stops, an arena lock until the convoy is down,
 // then GO) and the Claw Rider gate, with barks from goons and heroes.
 export const BEATS = [
-  { at: 0, line: 'OPENCLAW HIGHWAY: the overlords\u2019 patrol rides out. L to ollie the cones and barriers!' },
+  { at: 0, say: 'enter', banner: 'CLAW HIGHWAY — L TO OLLIE' },
   { at: 250, obstacles: [['cone', 0.3], ['cone', 0.75]] },
   { at: 550, spawn: [['drone', 'right'], ['drone', 'right']] },
   { at: 900, obstacles: [['barrier', 0.5]] },
-  { at: 1150, spawn: [['skater', 'right'], ['skater', 'left']], line: 'Claw goons on boards \u2014 both sides! Knock them off.', event: 'ambushBoth', barks: [{ who: 'enemy', text: 'Nice board. Shame about the rider!' }] },
+  { at: 1150, spawn: [['skater', 'right'], ['skater', 'left']], say: 'surround', event: 'ambushBoth', barks: [{ who: 'enemy', text: 'Nice board! Listing it on Moltbook!' }] },
   { at: 1500, obstacles: [['cone', 0.2], ['cone', 0.5], ['cone', 0.85]], pickup: true, breather: true },
   { at: 1850, spawn: [['drone', 'right'], ['brawler', 'right']], obstacles: [['barrier', 0.5]] },
   { at: 2300, spawn: [['skater', 'left'], ['striker', 'right'], ['drone', 'right']] },
@@ -29,21 +29,21 @@ export const BEATS = [
   { at: 3050, spawn: [['drone', 'right'], ['acrobat', 'right'], ['skater', 'left']] },
   { at: 3500, obstacles: [['cone', 0.7], ['barrier', 0.5]] },
   // Iteration 7: the highway runs on past the overpass (about 2x longer).
-  { at: 3900, line: 'Breather. The overpass \u2014 keep rolling.', obstacles: [['cone', 0.5]], breather: true, barks: [{ who: 'hero', text: 'Cowabunga... catch your breath!' }] },
-  { at: 4300, line: 'ROADWORKS! Ollie the gauntlet!', event: 'hazardRun', obstacles: [['cone', 0.15], ['cone', 0.45], ['cone', 0.8]] },
+  { at: 3900, say: 'ride', obstacles: [['cone', 0.5]], breather: true, barks: [{ who: 'hero', say: 'onward' }] },
+  { at: 4300, say: 'hazard', banner: 'ROADWORKS — OLLIE!', event: 'hazardRun', obstacles: [['cone', 0.15], ['cone', 0.45], ['cone', 0.8]] },
   { at: 4420, obstacles: [['barrier', 0.5]] },
   { at: 4540, obstacles: [['cone', 0.3], ['cone', 0.65]] },
   { at: 4660, obstacles: [['barrier', 0.5]] },
-  { at: 4900, spawn: [['skater', 'right'], ['thrower', 'right'], ['drone', 'right']], line: 'Patrol squad on the overpass!' },
+  { at: 4900, spawn: [['skater', 'right'], ['thrower', 'right'], ['drone', 'right']], say: 'ahead' },
   { at: 5150, obstacles: [['barrier', 0.5]], pickup: true, breather: true },
-  { at: 5500, spawn: [['drone', 'sky'], ['drone', 'sky'], ['drone', 'sky']], line: 'Drone swarm overhead!', event: 'flyover', barks: [{ who: 'hero', text: 'Drones! Swat them!' }] },
+  { at: 5500, spawn: [['drone', 'sky'], ['drone', 'sky'], ['drone', 'sky']], say: 'drones', event: 'flyover', barks: [{ who: 'hero', say: 'hype' }] },
   { at: 5950, obstacles: [['cone', 0.25], ['barrier', 0.5]] },
   { at: 6300, spawn: [['skater', 'left'], ['striker', 'left'], ['skater', 'right']] },
   { at: 6750, obstacles: [['barrier', 0.5], ['cone', 0.7], ['cone', 0.3]], pickup: true, breather: true },
-  { at: 7150, spawn: [['charger', 'right'], ['skater', 'left'], ['brawler', 'right'], ['drone', 'right']], line: 'CLAW ROADBLOCK! The convoy stops us \u2014 clear it!', event: 'roadblock', lock: true, barks: [{ who: 'enemy', text: 'End of the road, turtles!' }] },
+  { at: 7150, spawn: [['charger', 'right'], ['skater', 'left'], ['brawler', 'right'], ['drone', 'right']], say: 'breach', banner: 'CLAW ROADBLOCK', event: 'roadblock', lock: true, barks: [{ who: 'enemy', text: 'End of the road! The claw is the law!' }] },
   { at: 7700, obstacles: [['barrier', 0.5]] },
   { at: 8100, obstacles: [['cone', 0.5]], pickup: true, breather: true },
-  { at: 8500, spawn: [['rider', 'right']], line: 'The CLAW RIDER! OpenClaw\u2019s highway boss wants your pizza.', event: 'gate', banner: 'CLAW RIDER', barks: [{ who: 'enemy', text: 'Your pizza. My highway.' }] },
+  { at: 8500, spawn: [['rider', 'right']], say: 'gate', event: 'gate', banner: 'CLAW RIDER', barks: [{ who: 'enemy', text: 'Your pizza. My highway. My skill now.' }] },
 ];
 
 // Bodies come from the shared tables in events.js (the same r/HP on every level).
@@ -111,7 +111,8 @@ export function stepSkate(state, dt) {
   p.x = Math.max(sk.cam + 40, Math.min(sk.cam + W - 90, p.x));
   while (sk.beat < BEATS.length && sk.dist >= BEATS[sk.beat].at) {
     const b = BEATS[sk.beat++];
-    if (b.line) say(state, b.line);
+    const spoke = b.say && state.events ? speakLine(state, b.say, { level: SKATE_LEVEL, boss: b.event === 'gate' ? b.banner : null }) : null;
+    if (!b.say && b.line) say(state, b.line);
     for (const [type, f] of b.obstacles || []) {
       sk.obstacles.push(type === 'barrier'
         ? { type, x: sk.cam + W + 60, y: laneY(0.5), w: 48, clear: 24 }
@@ -123,8 +124,9 @@ export function stepSkate(state, dt) {
       if (b.event) e.log.push({ type: 'skate', event: b.event, at: b.at, kinds: (b.spawn || []).map(([w]) => w) });
       if (b.banner) e.banner = { text: b.banner, t: 0, dur: 2.2 };
       if (e.barks) for (const bk of b.barks || []) {
+        if (bk.who === 'hero' && bk.say) { const said = heroBark(state, bk.say, spoke && spoke.hero); e.log.push({ type: 'bark', who: 'hero', level: SKATE_LEVEL, text: said }); continue; }
         const n = bk.who === 'hero' ? null : group.find(m => m.kind !== 'drone') || group[0] || null;
-        e.barks.push({ who: bk.who, text: bk.text, n, t: 0, dur: Math.max(2.2, bk.text.length * 0.06) });
+        e.barks.push({ who: bk.who, text: bk.text, n, t: 0, dur: Math.max(2.2, bk.text.length * 0.06, 2.5 + 0.05 * bk.text.length) }); // story-v2: readable
         e.log.push({ type: 'bark', who: bk.who, level: SKATE_LEVEL, text: bk.text });
       }
     }

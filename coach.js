@@ -51,6 +51,8 @@ export function createCoach(opts = {}) {
   // Per frame (game.js loop). env.live = gameplay is visible and running (no cinema / card / pause / shop).
   function update(s, dt, env = {}) {
     if (st.fade > 0) st.fade = Math.max(0, st.fade - dt);
+    // Queue coach cards behind scripted-event dialogue so they can never overlap.
+    if (st.on && s && s.events && s.events.line) return;
     if (!st.on || s !== st.owner || !env.live || s.over) return;
     const c = s.combat || {}, p = s.player || { x: 0, y: 0 }, card = CARDS[st.i];
     if (!st.base) st.base = { x: p.x, y: p.y, moved: 0 };
@@ -75,6 +77,7 @@ export function createCoach(opts = {}) {
 
   function draw(ctx, W, H) {
     if (!st.on || !st.seen) return;
+    if (st.owner && st.owner.events && st.owner.events.line) return;
     const card = CARDS[st.i], k = Math.min(1, st.t * 5), bw = 500, bh = 66, x = (W - bw) / 2, y = H - 128 + (1 - k) * 16;
     ctx.save(); ctx.globalAlpha = k; ctx.textAlign = 'center';
     const icon = icons[card.id], ix = icon ? x - 62 : x, iw = bw + (icon ? 62 : 0); // the icon gets its own panel at the card's left

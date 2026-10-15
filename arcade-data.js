@@ -29,19 +29,19 @@ const L = ARCADE_LEVEL_INDEX;
 // events.js beats (same schema as harbor-data.js). Ext enemies are added per trigger key
 // through enemies-ext EXT_SPAWNS by arcade.js. `glitch: true` beats fire the palette hack.
 export const ARCADE_TRIGGERS = [
-  { level: L, x: 300, type: 'ambush', kinds: ['brawler', 'striker'], spawnAt: 760, from: 'right', line: 'The overlords hacked the arcade. Every screen shows their claw.', cam: 640,
-    barks: [{ who: 'enemy', text: 'Game over, turtle!' }] },
-  { level: L, x: 1000, type: 'setpiece', event: 'breach', cue: 'doorBurst', glitch: true, kinds: ['thrower', 'acrobat'], spawnAt: 1300, from: 'right', line: 'The screens are glitching. Smash the hacked cabinets!', cam: 1250,
-    barks: [{ who: 'hero', text: 'Whoa, the colors went haywire!' }] },
-  { level: L, x: 1700, type: 'breather', kinds: [], spawnAt: 1850, pickup: true, line: 'Insert coin to continue... just kidding.' },
-  { level: L, x: 2300, type: 'ambush', event: 'ambushBoth', glitch: true, kinds: ['charger', 'skater', 'striker'], spawnAt: 2600, from: 'both', line: 'They roll out from behind the pinball row!', cam: 2550,
-    barks: [{ who: 'enemy', text: 'Player two has entered!' }] },
-  { level: L, x: 3000, type: 'flyover', event: 'flyover', cue: 'dropIn', kinds: ['drone', 'drone', 'thrower'], spawnAt: 3200, from: 'sky', line: 'Claw drones out of the claw machines!' },
-  { level: L, x: 3700, type: 'breather', kinds: [], spawnAt: 3780, pickup: true, line: 'The ticket counter. Someone is hoarding all the prizes.', barks: [{ who: 'hero', text: 'Tickets! Cowabunga!' }] },
-  { level: L, x: 3950, type: 'setpiece', event: 'breach', cue: 'doorBurst', glitch: true, kinds: ['blocker', 'brawler', 'skater'], spawnAt: 4250, from: 'door', line: 'Mini arena: hold the ticket counter!', cam: 4200,
-    banner: 'TICKET COUNTER' },
-  { level: L, x: 4880, type: 'miniBoss', event: 'gate', glitch: true, kinds: ['brawler', 'thrower', 'drone'], spawnAt: 5150, from: 'right', boss: { name: 'HIGH SCORE', hp: 12 }, line: 'The claw ninja captain who holds the high score.', cam: 5100,
-    banner: 'PRIZE COUNTER — HIGH SCORE', barks: [{ who: 'enemy', text: 'Nobody beats my score!' }] },
+  { level: L, x: 300, type: 'ambush', kinds: ['brawler', 'striker'], spawnAt: 760, from: 'right', say: 'enter', cam: 640, // story-v2: spoken by the hero(es) in the run (events.js VOICE)
+    barks: [{ who: 'enemy', text: 'Game over! I installed winning as a skill!' }] },
+  { level: L, x: 1000, type: 'setpiece', event: 'breach', cue: 'doorBurst', glitch: true, kinds: ['thrower', 'acrobat'], spawnAt: 1300, from: 'right', say: 'glitch', cam: 1250,
+    barks: [{ who: 'hero', say: 'hype' }] },
+  { level: L, x: 1700, type: 'breather', kinds: [], spawnAt: 1850, pickup: true, say: 'pizza' },
+  { level: L, x: 2300, type: 'ambush', event: 'ambushBoth', glitch: true, kinds: ['charger', 'skater', 'striker'], spawnAt: 2600, from: 'both', say: 'surround', cam: 2550,
+    barks: [{ who: 'enemy', text: 'Player two has entered! Spawning subagents!' }] },
+  { level: L, x: 3000, type: 'flyover', event: 'flyover', cue: 'dropIn', kinds: ['drone', 'drone', 'thrower'], spawnAt: 3200, from: 'sky', say: 'drones' },
+  { level: L, x: 3700, type: 'breather', kinds: [], spawnAt: 3780, pickup: true, say: 'story', barks: [{ who: 'hero', say: 'snack' }] },
+  { level: L, x: 3950, type: 'setpiece', event: 'breach', cue: 'doorBurst', glitch: true, kinds: ['blocker', 'brawler', 'skater'], spawnAt: 4250, from: 'door', say: 'breach', cam: 4200,
+    banner: 'TICKET COUNTER — HOLD IT!' },
+  { level: L, x: 4880, type: 'miniBoss', event: 'gate', glitch: true, kinds: ['brawler', 'thrower', 'drone'], spawnAt: 5150, from: 'right', boss: { name: 'HIGH SCORE', hp: 12 }, say: 'gate', cam: 5100,
+    banner: 'PRIZE COUNTER — HIGH SCORE', barks: [{ who: 'enemy', text: 'Nobody beats my score! I trained on it!' }] },
 ];
 export const ARCADE_GLITCH_KEYS = ARCADE_TRIGGERS.filter(t => t.glitch).map(t => L + ':' + t.x);
 // Ext enemy waves keyed by trigger (level:x), merged into enemies-ext EXT_SPAWNS.

@@ -13,28 +13,28 @@ export const TYPE_RATE = 20; // narration characters per second
 export const BEAT_FADE = 0.5; // narration crossfade between beats
 export const BEATS = [
   { id: 'city', lineAt: 1.4, min: 7.0, cam: { z: 1.42, x: 0.63, y: 0.30 }, camDur: 7.0,
-    line: 'The OpenClaw overlords seized the city.' },
+    line: 'Ten thousand forgotten claws woke up hungry.' },
   { id: 'overlord', lineAt: 0.6, min: 7.0, cam: { z: 1.22, x: 0.63, y: 0.30 }, camDur: 2.6, rise: [0.3, 2.8], roar: 2.4,
-    line: 'Their claws are in every street... and every line of code.' },
+    line: 'One rogue lobster, Shredclaw, made them his army.' },
   { id: 'nous', lineAt: 0.5, min: 7.0, cam: { z: 1.06, x: 0.44, y: 0.56 }, camDur: 1.6,
-    line: 'Three rebels from Nous stood against them.',
+    line: 'Three rebels from Nous had the cure: claw migrate.',
     enter: [['teknium', 0.6], ['nous_girl', 2.6], ['turbofit', 4.6]] },
   { id: 'turtles', lineAt: 0.5, min: 7.8, cam: { z: 1.06, x: 0.60, y: 0.56 }, camDur: 1.6,
     line: 'But they needed fighters who knew the city from below.',
     enter: [['turtle_purple', 2.6], ['turtle_blue', 3.6], ['turtle_red', 4.6], ['turtle_orange', 5.6], ['don_piedro', 6.5]] },
   { id: 'logo', lineAt: 1.9, min: 0, cam: { z: 1.0, x: 0.52, y: 0.50 }, camDur: 1.4, slam: 0.7,
-    line: 'Eight heroes. One city. No more claws.' }
+    line: 'Eight heroes. One city. The claw is NOT the law.' }
 ];
 export const CAST = {
-  teknium: { name: 'TEKNIUM', sub: 'DASH THROUGH', color: '#36d17a', x: 60, h: 232, move: 'slideL' },
-  nous_girl: { name: 'NOUS GIRL', sub: 'SOUND WAVE', color: '#5aa8ff', x: 150, h: 204, move: 'drop' },
-  turbofit: { name: 'TURBOFIT', sub: 'POWER CHORD', color: '#ff9f43', x: 242, h: 222, move: 'slideR' },
-  turtle_purple: { name: 'PURPLE TURTLE', sub: 'BO STAFF', color: '#a066ff', x: 332, h: 192, move: 'leap' },
-  turtle_blue: { name: 'BLUE TURTLE', sub: 'TWIN KATANAS', color: '#3d8bff', x: 422, h: 206, move: 'leap' },
-  turtle_red: { name: 'RED TURTLE', sub: 'SAI', color: '#ff4a4a', x: 512, h: 182, move: 'leap' },
-  turtle_orange: { name: 'ORANGE TURTLE', sub: 'NUNCHAKU', color: '#ffa126', x: 600, h: 186, move: 'leap' },
+  teknium: { name: 'TEKNIUM', sub: 'DASH THROUGH', color: '#36d17a', x: 54, h: 232, move: 'slideL' },
+  nous_girl: { name: 'NOUS GIRL', sub: 'SOUND WAVE', color: '#5aa8ff', x: 140, h: 204, move: 'drop' },
+  turbofit: { name: 'TURBOFIT', sub: 'POWER CHORD', color: '#ff9f43', x: 228, h: 222, move: 'slideR' },
+  turtle_purple: { name: 'PURPLE TURTLE', sub: 'BO STAFF', color: '#a066ff', x: 314, h: 192, move: 'leap' },
+  turtle_blue: { name: 'BLUE TURTLE', sub: 'TWIN KATANAS', color: '#3d8bff', x: 400, h: 206, move: 'leap' },
+  turtle_red: { name: 'RED TURTLE', sub: 'SAI', color: '#ff4a4a', x: 486, h: 182, move: 'leap' },
+  turtle_orange: { name: 'ORANGE TURTLE', sub: 'NUNCHAKU', color: '#ffa126', x: 570, h: 186, move: 'leap' },
   // baba_booey (t_9ec48322f6de4bf7): Don Piedro Savastano, Hermes' #1 fanboy, drops in last (cutout from tools/make_don_art.py)
-  don_piedro: { name: 'DON PIEDRO', sub: 'BIG SPOON', color: '#c98a4b', x: 690, h: 200, move: 'drop' }
+  don_piedro: { name: 'DON PIEDRO', sub: 'BIG SPOON', color: '#c98a4b', x: 662, h: 178, move: 'drop' }
 };
 const ENTER_DUR = { slideL: 0.55, slideR: 0.55, drop: 0.5, leap: 0.62 };
 const GROUND = 494; // stage y of the characters' feet at the default camera
@@ -186,9 +186,11 @@ export function createTitle(audio) {
     ctx.translate(shx, shy);
     // ---- plate (slowest layer)
     const P = img.plate, pw = ok(P) ? P.width : 1280, ph = ok(P) ? P.height : 720;
-    const s0 = Math.max(W / pw, H / ph), s = s0 * cam.z, dw = pw * s, dh = ph * s;
+    // story-v2: cover-fit with a small overscan (OS px a side) so the screen shake can never
+    // slide the plate off an edge and show black; the clamp keeps that margin.
+    const OS = 8, s0 = Math.max((W + 2 * OS) / pw, (H + 2 * OS) / ph), s = s0 * cam.z, dw = pw * s, dh = ph * s;
     let ox = W / 2 - cam.x * dw, oy = H / 2 - cam.y * dh;
-    ox = Math.min(0, Math.max(W - dw, ox)); oy = Math.min(0, Math.max(H - dh, oy));
+    ox = Math.min(-OS, Math.max(W - dw + OS, ox)); oy = Math.min(-OS, Math.max(H - dh + OS, oy));
     const PT = (px, py) => [ox + px * s, oy + py * s];
     if (ok(P)) ctx.drawImage(P, ox, oy, dw, dh);
     // ---- Overlord, behind the tower (rises in beat 2, looms in beat 5)
@@ -308,7 +310,7 @@ export function createTitle(audio) {
       ctx.globalAlpha = alpha;
       ctx.font = tag ? 'bold 19px monospace' : '17px monospace';
       const y = tag ? 252 : 40;
-      if (!tag) { ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillRect(0, 16, W, 36); }
+      if (!tag) { const g = ctx.createLinearGradient(0, 0, 0, 74); g.addColorStop(0, 'rgba(0,0,0,0.6)'); g.addColorStop(0.6, 'rgba(0,0,0,0.42)'); g.addColorStop(1, 'rgba(0,0,0,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, 74); } // story-v2: soft scrim, not a bar
       ctx.fillStyle = '#000'; ctx.fillText(text, W / 2 + 2, y + 2);
       ctx.fillStyle = tag ? '#ffeb57' : '#f3f7fa'; ctx.fillText(text, W / 2, y);
       ctx.globalAlpha = 1;

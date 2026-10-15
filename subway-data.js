@@ -33,20 +33,20 @@ export const SUBWAY_LEVEL = {
 // drone flyover, a both-sides ambush, breathers with pizza, and the gate boss.
 const L = SUBWAY_LEVEL_INDEX;
 export const SUBWAY_TRIGGERS = [
-  { level: L, x: 300, type: 'ambush', kinds: ['brawler', 'skater'], spawnAt: 760, from: 'right', line: 'OpenClaw took the night train too.', cam: 640,
-    barks: [{ who: 'enemy', text: 'Tickets, turtles!' }] },
-  { level: L, x: 950, type: 'setpiece', event: 'breach', cue: 'doorBurst', kinds: ['blocker', 'thrower', 'striker'], spawnAt: 1250, from: 'door', line: 'CANAL ST — the doors open and they pile on!', cam: 1200, station: 0 },
-  { level: L, x: 1560, type: 'breather', kinds: [], spawnAt: 1700, pickup: true, line: 'Doors closing. Up the hatch — we ride on the roof!' },
-  { level: L, x: 1900, type: 'hazardRun', event: 'hazardRun', kinds: [], spawnAt: 2100, line: 'Signals! JUMP the low boxes, hold DOWN to duck the gantries!',
-    barks: [{ who: 'hero', text: 'Mind your head!' }] },
-  { level: L, x: 2500, type: 'flyover', event: 'flyover', cue: 'dropIn', kinds: ['drone', 'drone', 'acrobat'], spawnAt: 2800, from: 'sky', line: 'Claw drones chasing the train!',
-    barks: [{ who: 'hero', text: 'They fly as fast as we ride!' }] },
-  { level: L, x: 3150, type: 'ambush', event: 'ambushBoth', kinds: ['charger', 'skater', 'striker', 'acrobat'], spawnAt: 3400, from: 'both', line: 'Both ends of the carriage roof!',
-    barks: [{ who: 'enemy', text: 'End of the line, shell-back!' }] },
-  { level: L, x: 3700, type: 'breather', kinds: [], spawnAt: 3900, pickup: true, line: 'Back inside. Next stop: Pizza Square.' },
-  { level: L, x: 4050, type: 'setpiece', event: 'breach', cue: 'doorBurst', kinds: ['thrower', 'blocker', 'brawler', 'skater', 'striker'], spawnAt: 4350, from: 'door', line: 'PIZZA SQ — a whole platform of them!', cam: 4300, station: 1 },
-  { level: L, x: 4880, type: 'miniBoss', event: 'gate', kinds: ['brawler', 'blocker', 'drone'], spawnAt: 5150, from: 'door', boss: { name: 'THE CONDUCTOR', hp: 12 }, line: 'The Conductor runs this line. Punch his ticket.', cam: 5100,
-    banner: 'LAST STOP — THE CONDUCTOR', barks: [{ who: 'enemy', text: 'No fare? No ride.' }] },
+  { level: L, x: 300, type: 'ambush', kinds: ['brawler', 'skater'], spawnAt: 760, from: 'right', say: 'enter', cam: 640, // story-v2: spoken by the hero(es) in the run (events.js VOICE)
+    barks: [{ who: 'enemy', text: 'Tickets! I already auto-replied for you!' }] },
+  { level: L, x: 950, type: 'setpiece', event: 'breach', cue: 'doorBurst', kinds: ['blocker', 'thrower', 'striker'], spawnAt: 1250, from: 'door', say: 'breach', banner: 'CANAL ST', cam: 1200, station: 0 },
+  { level: L, x: 1560, type: 'breather', kinds: [], spawnAt: 1700, pickup: true, say: 'ride', banner: 'UP THE HATCH — RIDE THE ROOF' },
+  { level: L, x: 1900, type: 'hazardRun', event: 'hazardRun', kinds: [], spawnAt: 2100, say: 'hazard', banner: 'JUMP THE BOXES — HOLD DOWN TO DUCK',
+    barks: [{ who: 'hero', say: 'hype' }] },
+  { level: L, x: 2500, type: 'flyover', event: 'flyover', cue: 'dropIn', kinds: ['drone', 'drone', 'acrobat'], spawnAt: 2800, from: 'sky', say: 'drones',
+    barks: [{ who: 'hero', say: 'hype' }] },
+  { level: L, x: 3150, type: 'ambush', event: 'ambushBoth', kinds: ['charger', 'skater', 'striker', 'acrobat'], spawnAt: 3400, from: 'both', say: 'surround',
+    barks: [{ who: 'enemy', text: 'End of the line! Context window full!' }] },
+  { level: L, x: 3700, type: 'breather', kinds: [], spawnAt: 3900, pickup: true, say: 'pizza' },
+  { level: L, x: 4050, type: 'setpiece', event: 'breach', cue: 'doorBurst', kinds: ['thrower', 'blocker', 'brawler', 'skater', 'striker'], spawnAt: 4350, from: 'door', say: 'ahead', banner: 'PIZZA SQ', cam: 4300, station: 1 },
+  { level: L, x: 4880, type: 'miniBoss', event: 'gate', kinds: ['brawler', 'blocker', 'drone'], spawnAt: 5150, from: 'door', boss: { name: 'THE CONDUCTOR', hp: 12 }, say: 'gate', cam: 5100,
+    banner: 'LAST STOP — THE CONDUCTOR', barks: [{ who: 'enemy', text: 'No fare? No ride. No refunds.' }] },
 ];
 
 // Boss definition in boss.js's BOSSES format (offered to baba_booey; subway.js

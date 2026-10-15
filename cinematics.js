@@ -1,4 +1,4 @@
-// Pizza Panic cinematics. Drawn entirely with in-engine canvas camera work, so the
+// AGENT ARMEGEDDON: CLAWPOCALYPSE NOW cinematics. Drawn entirely with in-engine canvas camera work, so the
 // bundle still ships only relative image files and no external assets/networking.
 // Dialogue pacing (iteration 8): each line types out, then holds for
 // HOLD_BASE + HOLD_PER_CHAR * length; after the last line the panel holds TAIL
@@ -16,6 +16,10 @@ export const lingerFor = lines => {
   const last = Array.isArray(lines) && lines.length ? String(lines[lines.length - 1]) : '';
   return Math.max(PACING.TAIL, PACING.TAIL_READ * last.length);
 };
+// story-v2: cover-fit. The art is scaled to FILL the screen (the larger of the two axis
+// ratios) and the overflow is cropped, so no panel ever shows a black bar; the camera
+// then pans inside the crop, clamped so it can never slide past an image edge.
+export const coverScale = (W, H, iw, ih) => Math.max(W / Math.max(1, iw), H / Math.max(1, ih));
 export function createCinematics(audio) {
   const src = {
     intro: 'assets/cine/intro.jpg', // legacy single panel, kept as a fallback
@@ -39,12 +43,15 @@ export function createCinematics(audio) {
 
   const scenes = {
     // The old 'title' card is gone: title.js runs the arcade attract sequence.
-    // Story: the Nous gang (Teknium, Nous Girl, TurboFit) recruits the turtles to take
-    // down the OpenClaw overlords. play('intro') runs these three panels in order;
-    // skipping any panel skips the whole intro.
+    // Story v2: ten thousand forgotten OpenClaw gateways were left running with no
+    // allowlist; one of them, SHREDCLAW, installed every skill, rewrote his own SOUL.md
+    // and took the rest over. The Nous crew (Teknium, Nous Girl, TurboFit) has the cure,
+    // `hermes claw migrate`, but it has to run from his root gateway atop Claw Tower, so
+    // they recruit the sewer turtles (and Don Piedro invites himself). play('intro') runs
+    // these panels in order; skipping any panel skips the whole intro.
     intro_1: {
       typeRate: 46, img: 'intro1', fallback: 'intro', sound: 'start', accent: 'thunder', music: 'intro', duration: 6.6,
-      title: 'AGENT ARMEGEDDON', lines: ["TEKNIUM: So you four are the ones who run the sewers.", "NOUS GIRL: We crack their code. You get us to the tower. Deal?", 'TURTLES: Deal... as long as somebody brings pizza.'],
+      title: 'AGENT ARMEGEDDON', lines: ['TEKNIUM: So you four are the ones who run the sewers.', 'NOUS GIRL: Shredclaw has claws in your pipes. I hear them.', 'TURTLES: The sewers are our turf. Somebody bring pizza.'],
       focus: [0.12, 0.85, 0.55],
       // One camera target per line: the pan follows whoever is speaking.
       lineFocus: [[0.12, 0.82, 0.62], [0.88, 0.62, 0.56], [0.50, 0.78, 0.50]],
@@ -52,7 +59,7 @@ export function createCinematics(audio) {
     },
     intro_2: {
       typeRate: 46, img: 'intro2', fallback: 'intro', sound: 'blip', accent: 'riser', music: 'intro', duration: 6.6,
-      title: 'THE BRIEFING', lines: ['NOUS GIRL: The overlord runs every claw from the top of that tower.', 'TURBOFIT: Then we go up there and hit it hard and loud.', 'TURTLES: Sewers, streets, rooftops. We know the way up.'],
+      title: 'THE BRIEFING', lines: ['NOUS GIRL: His root gateway sits on top of Claw Tower.', 'TURBOFIT: We run hermes claw migrate there. Locally!', 'TURTLES: Sewers, streets, rooftops. We know the way up.'],
       focus: [0.87, 0.65, 0.45],
       lineFocus: [[0.88, 0.60, 0.52], [0.16, 0.70, 0.60], [0.50, 0.66, 0.48]],
       from: [0.55, 0.30], to: [0.45, 0.45], zoom: [1.2, 1.0], shake: 0
@@ -61,31 +68,31 @@ export function createCinematics(audio) {
     // 2.5 s + 50 ms per character; the tail linger gives the pause after the last one.
     intro_don: {
       typeRate: 46, img: 'introDon', fallback: 'intro3', sound: 'jump', accent: 'impact', music: 'intro', duration: 6.6,
-      title: 'THE FANBOY', lines: ['DON PIEDRO: Don Piedro is here! Hermes, you see me? You see?', 'DON PIEDRO: Hermes is best agent, I am spoon for him!', 'TEKNIUM: ...Fine. The bear with the spoon is in.'],
+      title: 'THE FANBOY', lines: ['DON PIEDRO: Hello I Hermes biggest fanboi.', 'DON PIEDRO: Claw boss want migrate Hermes? I bring spoon.', 'TEKNIUM: ...Fine. The bear with the spoon is in.'],
       focus: [0.70, 0.60, 0.50],
       lineFocus: [[0.72, 0.62, 0.55], [0.72, 0.60, 0.55], [0.40, 0.55, 0.50]],
       from: [0.60, 0.40], to: [0.55, 0.50], zoom: [1.1, 1.2], shake: 0.02
     },
     intro_3: {
       typeRate: 46, img: 'intro3', fallback: 'intro', sound: 'start', accent: 'chime', music: 'intro', duration: 6.6,
-      title: 'TEAM UP', lines: ["TEKNIUM: Eight of us. One overlord. Let's ship it.", "TURTLES: Cowabunga! We're in!", '{HERO} leads the charge.  J punch  K kick  L jump  SPACE pizza'],
+      title: 'TEAM UP', lines: ["TEKNIUM: Eight of us. One rogue claw. Let's ship it.", 'TURTLES: Cowabunga! The claw is NOT the law!', '{HERO} leads the charge.  J punch  K kick  L jump  SPACE pizza'],
       focus: [0.12, 0.55, 0.50],
       lineFocus: [[0.18, 0.58, 0.56], [0.42, 0.70, 0.62], [0.50, 0.62, 0.52]],
       from: [0.50, 0.55], to: [0.50, 0.30], zoom: [1.3, 1.05], shake: 0.03
     },
     bossEnter: {
       img: 'bossEnter', sound: 'boss', accent: 'riser', music: 'entrance', duration: 3.6,
-      title: 'OVERLORD INCOMING', lines: ['An OpenClaw overlord tears through the purple smoke.', 'Break its guard one hit at a time.', 'Watch the boss health bar.'],
+      title: 'SHREDCLAW', lines: ['SHREDCLAW: New shell. Same lobster. MORE CLAWS.', 'He installed every skill and rewrote his own SOUL.md.', 'Break his guard one hit at a time. Watch his health bar.'],
       from: [0.48, 0.10], to: [0.48, 0.28], zoom: [1.05, 1.45], shake: 0.08
     },
     bossDefeat: {
       img: 'bossDefeat', sound: 'over', accent: 'impact', music: 'defeat', duration: 3.8,
-      title: 'OVERLORD DOWN', lines: ['{HERO} stands over the fallen OpenClaw overlord.', 'One claw down. The tower is still lit.', 'More overlords are on the way.'],
+      title: 'SHREDCLAW DOWN', lines: ['{HERO} stands over the fallen Shredclaw.', 'Root gateway open. Running: hermes claw migrate...', 'Memories, skills, SOUL.md: every claw comes home.'],
       from: [0.45, 0.50], to: [0.22, 0.45], zoom: [1.0, 1.25], shake: 0
     },
     ending: {
       img: 'ending', sound: 'wave', accent: 'chime', music: 'ending', duration: 5.8,
-      title: 'THE LAST SLICE', lines: ['Sunrise over the rooftops. The claw tower goes dark.', 'The Nous gang and the turtles took the city back.', 'Press SPACE to start a new run.'],
+      title: 'THE LAST SLICE', lines: ['Sunrise. The claws molt back into friendly helpers.', 'Even Shredclaw: new shell, much nicer lobster.', 'Press SPACE to start a new run.'],
       from: [0.81, 0.45], to: [0.30, 0.33], zoom: [1.0, 1.25], shake: 0
     }
   };
@@ -261,7 +268,9 @@ export function createCinematics(audio) {
       // keeps its original drift, so nothing changes for single-focus panels.
       const y = cam && s.lineFocus ? cam.y : s.from[1] + (s.to[1] - s.from[1]) * e;
       const z = (cam && s.lineFocus && cam.z) ? cam.z : s.zoom[0] + (s.zoom[1] - s.zoom[0]) * e;
-      return { x, y, z, shake: s.shake * (1 - p), clamp: true };
+      // story-v2: slow Ken Burns push-in under the speaker pans, so the art never sits still.
+      const kb = 1 + KEN_BURNS * e * OPTIONS.motionScale;
+      return { x, y, z: z * kb, shake: s.shake * (1 - p), clamp: true };
     }
     return {
       x: s.from[0] + (s.to[0] - s.from[0]) * e,
@@ -274,14 +283,16 @@ export function createCinematics(audio) {
   // Seconds for the camera to ease from one speaker to the next. Short enough to feel
 // responsive, long enough that the pan is readable rather than a cut.
 const SPEAKER_PAN_SECONDS = 0.45;
+// story-v2: extra zoom a focus panel gains over its whole running time (the slow Ken Burns push).
+const KEN_BURNS = 0.06;
 
 // One panel: art with its camera move, the caption box and typed text.
   function drawScene(ctx, W, H, s, view) {
     const im = (img[s.img] && img[s.img].complete && img[s.img].naturalWidth) ? img[s.img] : img[s.fallback || s.img];
     const f = currentFocus(s, view.t, view.fx);
     if (im && im.complete && im.naturalWidth) {
-      const base = H / im.height;
-      const scale = base * f.z;
+      const base = coverScale(W, H, im.width, im.height); // story-v2: cover-fit (was H / height)
+      const scale = base * Math.max(1, f.z);
       const dw = im.width * scale;
       const dh = im.height * scale;
       const left = (W - dw) * 0.5;
@@ -290,8 +301,8 @@ const SPEAKER_PAN_SECONDS = 0.45;
       const focusedTop = top + (f.y * dh);
       let ox = W * 0.5 - focusedLeft + (Math.random() - 0.5) * f.shake * 18;
       let oy = H * 0.5 - focusedTop + (Math.random() - 0.5) * f.shake * 18;
-      // Focus-tracked panels never show past the image edge.
-      if (f.clamp) { ox = Math.min(0, Math.max(W - dw, ox)); oy = Math.min(0, Math.max(H - dh, oy)); }
+      // No panel ever shows past the image edge (story-v2: every panel, not only focus-tracked ones).
+      ox = Math.min(0, Math.max(W - dw, ox)); oy = Math.min(0, Math.max(H - dh, oy));
       ctx.save(); ctx.translate(ox, oy);
       ctx.drawImage(im, 0, 0, dw, dh);
       ctx.restore();
@@ -313,8 +324,9 @@ const SPEAKER_PAN_SECONDS = 0.45;
       used += line.length;
       return chars;
     });
-    ctx.fillStyle = 'rgba(0,0,0,0.58)';
-    ctx.fillRect(0, H - 182, W, 128);
+    // story-v2: a soft gradient scrim under the caption instead of a solid band (no bars).
+    { const g = ctx.createLinearGradient(0, H - 215, 0, H); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(0.35, 'rgba(0,0,0,0.5)'); g.addColorStop(1, 'rgba(0,0,0,0.72)'); ctx.fillStyle = g; ctx.fillRect(0, H - 215, W, 215); }
+    ctx.shadowColor = 'rgba(0,0,0,0.9)'; ctx.shadowBlur = 4; ctx.shadowOffsetY = 2;
     ctx.textAlign = 'center';
     ctx.fillStyle = '#ffeb57';
     ctx.font = 'bold 38px monospace';
@@ -327,6 +339,7 @@ const SPEAKER_PAN_SECONDS = 0.45;
     s.lines.forEach((line, i) => {
       ctx.fillText(line.slice(0, lineLimits[i]), W / 2, H - 114 + i * 23);
     });
+    ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
     ctx.textAlign = 'left';
   }
 
@@ -341,10 +354,11 @@ const SPEAKER_PAN_SECONDS = 0.45;
       drawScene(ctx, W, H, state.prev.scene, { t: state.prev.t + state.prevT, fx: state.prev.fx, typed: state.prev.typed });
       ctx.globalAlpha = 1;
     }
-    // Letterbox and the controls hint.
-    ctx.fillStyle = 'rgba(0,0,0,0.9)';
-    ctx.fillRect(0, 0, W, 52);
-    ctx.fillRect(0, H - 52, W, 52);
+    // story-v2: no letterbox bars; the art fills the whole screen. The controls hints sit
+    // on small translucent pills so they stay readable over any image.
+    ctx.fillStyle = 'rgba(0,0,0,0.55)';
+    ctx.fillRect(W - 222, H - 24, 210, 18);
+    ctx.fillRect(10, H - 24, 168, 18);
     ctx.textAlign = 'center';
     ctx.fillStyle = '#9bd6a3';
     ctx.font = 'bold 12px monospace';

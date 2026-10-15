@@ -1,4 +1,4 @@
-// Walkable collision maps for Pizza Panic's side-scrolling stages.  These are
+// Walkable collision maps for AGENT ARMEGEDDON: CLAWPOCALYPSE NOW's side-scrolling stages.  These are
 // data-first so MR.INDIA's art and animation can be layered on top without
 // changes to the game loop: pipes, ladders and stage edges should match these boxes.
 // One full level-strip tile: the world is wider than the viewport so the camera

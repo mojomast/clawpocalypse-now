@@ -1,4 +1,4 @@
-// Pizza Panic sound: sampled music and SFX from free (CC0) packs, played through
+// AGENT ARMEGEDDON: CLAWPOCALYPSE NOW sound: sampled music and SFX from free (CC0) packs, played through
 // Web Audio. Sources, URLs and licences: CREDITS-AUDIO.md. The recordings live in
 // two packs, assets/audio/sfx-pack.ogg.txt and music-pack.ogg.txt: plain Ogg Vorbis
 // files laid end to end (byte ranges in audio-pack.js). The .txt suffix is only

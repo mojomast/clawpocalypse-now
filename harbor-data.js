@@ -29,18 +29,18 @@ const L = HARBOR_LEVEL_INDEX;
 // shieldbrute, flamebot) are added per trigger key through enemies-ext EXT_SPAWNS
 // by harbor.js.
 export const HARBOR_TRIGGERS = [
-  { level: L, x: 300, type: 'ambush', kinds: ['brawler', 'striker'], spawnAt: 760, from: 'right', line: 'Pier 13. OpenClaw is loading something big tonight.', cam: 640,
-    barks: [{ who: 'enemy', text: 'Nobody unloads on our dock!' }] },
-  { level: L, x: 1000, type: 'setpiece', event: 'breach', cue: 'doorBurst', kinds: ['thrower', 'brawler'], spawnAt: 1300, from: 'right', line: 'Watch the cranes: crates are coming down! Mind the wet planks.', cam: 1250,
-    barks: [{ who: 'hero', text: 'Slippery! Careful on the wet boards.' }] },
-  { level: L, x: 1650, type: 'breather', kinds: [], spawnAt: 1800, pickup: true, line: 'Foghorn. The smuggler ship is docking.' },
-  { level: L, x: 2200, type: 'ambush', event: 'ambushBoth', kinds: ['charger', 'acrobat', 'striker'], spawnAt: 2500, from: 'both', line: 'They come out from between the containers!', cam: 2450,
-    barks: [{ who: 'enemy', text: 'Box them in!' }] },
-  { level: L, x: 2900, type: 'flyover', event: 'flyover', cue: 'dropIn', kinds: ['drone', 'drone', 'thrower'], spawnAt: 3100, from: 'sky', line: 'Claw drones off the ship!' },
-  { level: L, x: 3500, type: 'breather', kinds: [], spawnAt: 3600, pickup: true, line: 'Up the gangway. We board the ship!', barks: [{ who: 'hero', text: 'Cowabunga, all aboard!' }] },
-  { level: L, x: 3900, type: 'setpiece', event: 'breach', cue: 'doorBurst', kinds: ['blocker', 'brawler', 'skater'], spawnAt: 4200, from: 'door', line: 'BOARDING! The crew pours out of the hold!', cam: 4150 },
-  { level: L, x: 4880, type: 'miniBoss', event: 'gate', kinds: ['brawler', 'thrower', 'drone'], spawnAt: 5150, from: 'right', boss: { name: 'CAPTAIN HOOKCLAW', hp: 12 }, line: 'The smuggler captain guards the cargo.', cam: 5100,
-    banner: 'SHIP DECK — CAPTAIN HOOKCLAW', barks: [{ who: 'enemy', text: 'Walk the plank, turtle!' }] },
+  { level: L, x: 300, type: 'ambush', kinds: ['brawler', 'striker'], spawnAt: 760, from: 'right', say: 'enter', banner: 'PIER 13', cam: 640, // story-v2: spoken by the hero(es) in the run (events.js VOICE)
+    barks: [{ who: 'enemy', text: 'Nobody unloads our GPUs!' }] },
+  { level: L, x: 1000, type: 'setpiece', event: 'breach', cue: 'doorBurst', kinds: ['thrower', 'brawler'], spawnAt: 1300, from: 'right', say: 'drop', banner: 'CRANES — CRATES INCOMING', cam: 1250,
+    barks: [{ who: 'hero', say: 'hype' }] },
+  { level: L, x: 1650, type: 'breather', kinds: [], spawnAt: 1800, pickup: true, say: 'story' },
+  { level: L, x: 2200, type: 'ambush', event: 'ambushBoth', kinds: ['charger', 'acrobat', 'striker'], spawnAt: 2500, from: 'both', say: 'surround', cam: 2450,
+    barks: [{ who: 'enemy', text: 'Box them in! Containerize them!' }] },
+  { level: L, x: 2900, type: 'flyover', event: 'flyover', cue: 'dropIn', kinds: ['drone', 'drone', 'thrower'], spawnAt: 3100, from: 'sky', say: 'drones' },
+  { level: L, x: 3500, type: 'breather', kinds: [], spawnAt: 3600, pickup: true, say: 'ride', barks: [{ who: 'hero', say: 'onward' }] },
+  { level: L, x: 3900, type: 'setpiece', event: 'breach', cue: 'doorBurst', kinds: ['blocker', 'brawler', 'skater'], spawnAt: 4200, from: 'door', say: 'breach', cam: 4150 },
+  { level: L, x: 4880, type: 'miniBoss', event: 'gate', kinds: ['brawler', 'thrower', 'drone'], spawnAt: 5150, from: 'right', boss: { name: 'CAPTAIN HOOKCLAW', hp: 12 }, say: 'gate', cam: 5100,
+    banner: 'SHIP DECK — CAPTAIN HOOKCLAW', barks: [{ who: 'enemy', text: 'Walk the plank! These GPUs sail tonight!' }] },
 ];
 // Ext enemy waves keyed by trigger (level:x), merged into enemies-ext EXT_SPAWNS.
 export const HARBOR_EXT_SPAWNS = { [L + ':1000']: ['flamebot'], [L + ':2200']: ['clawninja'], [L + ':3900']: ['shieldbrute', 'clawninja'], [L + ':4880']: ['flamebot'] };

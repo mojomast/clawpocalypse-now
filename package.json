@@ -3,11 +3,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node tests/check-rig-sources.mjs && node tests/check-rigs.mjs && node tests/check-hero-v2.mjs && node check-animation.mjs && node tests/check-levels.mjs",
+    "test": "node tests/check-rig-sources.mjs && node tests/check-polish-protected.mjs && node tests/check-rigs.mjs && node tests/check-hero-v2.mjs && node check-animation.mjs && node tests/check-levels.mjs",
     "test:browser": "node browser-smoke.mjs",
     "test:pixels": "node tests/check-rig-pixels.mjs",
     "rigs:after": "node tools/render-rigs.mjs after --out evidence/hero-assets-v2/after/contact-sheets",
-    "rigs:gen": "node tools/gen-hero-rigs.mjs"
+    "rigs:gen": "node tools/gen-hero-rigs.mjs",
+    "polish:capture": "node tools/capture-polish.mjs after",
+    "test:protected-pixels": "node tools/capture-polish.mjs protected"
   },
   "devDependencies": {
     "playwright": "1.64.1"

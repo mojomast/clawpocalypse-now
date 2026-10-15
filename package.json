@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node tests/check-rig-sources.mjs && node tests/check-rigs.mjs && node check-animation.mjs && node tests/check-levels.mjs",
+    "test": "node tests/check-rig-sources.mjs && node tests/check-rigs.mjs && node tests/check-hero-v2.mjs && node check-animation.mjs && node tests/check-levels.mjs",
     "test:browser": "node browser-smoke.mjs",
     "test:pixels": "node tests/check-rig-pixels.mjs",
     "rigs:after": "node tools/render-rigs.mjs after --out evidence/hero-assets-v2/after/contact-sheets",

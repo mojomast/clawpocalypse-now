@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Capture production Canvas rig contact sheets in Chromium, with no npm dependencies.
 import { createServer } from 'node:http';
-import { spawn } from 'node:child_process';
+import { spawn, execFileSync } from 'node:child_process';
 import { readFile, writeFile, mkdir, access } from 'node:fs/promises';
 import { join, resolve, extname } from 'node:path';
 import { once } from 'node:events';
@@ -9,6 +9,7 @@ import { createHash } from 'node:crypto';
 import { setTimeout as sleep } from 'node:timers/promises';
 
 const root = resolve(import.meta.dirname, '..');
+const sourceRevision = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
 const heroes = ['turtle_purple', 'turtle_blue', 'turtle_red', 'turtle_orange', 'nous_girl', 'teknium', 'turbofit', 'don_piedro'];
 const mode = process.argv[2] || 'baseline';
 if (!['baseline', 'after'].includes(mode)) throw Error('Usage: node tools/render-rigs.mjs baseline|after');
@@ -50,7 +51,7 @@ try {
   for (const hero of heroes) {
     const dest = join(out, `${hero}.png`);
     if (mode === 'baseline') { try { await access(dest); throw Error(`Immutable baseline already exists: ${dest}`); } catch (e) { if (e.code !== 'ENOENT') throw e; } }
-    await send('Page.navigate', { url: `${host}/tools/rig-sheet.html?hero=${hero}` });
+    await send('Page.navigate', { url: `${host}/tools/rig-sheet.html?hero=${hero}&mode=${mode}` });
     let value;
     for (let i = 0; i < 200; i++) {
       const result = await send('Runtime.evaluate', { expression: 'window.__rigSheet', returnByValue: true });
@@ -61,7 +62,7 @@ try {
     if (!value) throw Error(`${hero}: timed out waiting for sheet`);
     if (value.error) throw Error(`${hero}: ${JSON.stringify(value.error)}`);
     const data = Buffer.from(value.png.split(',')[1], 'base64');
-    captures.push({ hero, dest, data, meta: { ...value, png: undefined, sha256: sha256(data) } });
+    captures.push({ hero, dest, data, meta: { ...value, sourceRevision, png: undefined, sha256: sha256(data) } });
     console.log(`${hero}: ${value.poses.length} poses × 2 facings, ${value.assets.length} art files; absent: ${value.absent.join(', ') || 'none'}`);
   }
   await mkdir(out, { recursive: true });

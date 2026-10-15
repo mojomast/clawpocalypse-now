@@ -1,6 +1,7 @@
 [
   {
     "hero": "turtle_purple",
+    "captureMode": "production animated pose",
     "poses": [
       "turtle_purple_sweep_wind",
       "turtle_purple_sweep_active",
@@ -163,10 +164,12 @@
     ],
     "width": 1472,
     "height": 6980,
-    "sha256": "1217f97aa1b3accf32ec67295d8557743a85cd39f73412e08bf82ce717098c44"
+    "sourceRevision": "bcec2eec8a47c380c6fcfcfc5dcf870b64b92c40",
+    "sha256": "5634744749156a66ee05a3fd5f012baf31fd0b1e318f786adca90601c15e0f28"
   },
   {
     "hero": "turtle_blue",
+    "captureMode": "production animated pose",
     "poses": [
       "turtle_blue_slash_wind",
       "turtle_blue_slash_active",
@@ -329,10 +332,12 @@
     ],
     "width": 1472,
     "height": 6980,
-    "sha256": "a690ee5e9b413cee13842070b0819bea5c447d22edca3ddec732ba59b5eb9b38"
+    "sourceRevision": "bcec2eec8a47c380c6fcfcfc5dcf870b64b92c40",
+    "sha256": "697a3a2f71c6106e0b7a731981699ffc83978bb8886da4d4f3093a46912f7978"
   },
   {
     "hero": "turtle_red",
+    "captureMode": "production animated pose",
     "poses": [
       "turtle_red_stabL_wind",
       "turtle_red_stabL_active",
@@ -494,10 +499,12 @@
     ],
     "width": 1472,
     "height": 6980,
-    "sha256": "da0e51c55973770a3558de71ac11f109679cbc13c2bfb8b0f139be2fa900af9b"
+    "sourceRevision": "bcec2eec8a47c380c6fcfcfc5dcf870b64b92c40",
+    "sha256": "9aa6973e6c86d38ead25470b9cfb086820c2834192ec7adee418606ad10a6571"
   },
   {
     "hero": "turtle_orange",
+    "captureMode": "production animated pose",
     "poses": [
       "turtle_orange_nunchakuA_wind",
       "turtle_orange_nunchakuA_active",
@@ -659,10 +666,12 @@
     ],
     "width": 1472,
     "height": 6980,
-    "sha256": "b9513025d16729df967906a55d33924da11638559f355535100a1d7b9345b5aa"
+    "sourceRevision": "bcec2eec8a47c380c6fcfcfc5dcf870b64b92c40",
+    "sha256": "0ce55d8a05f748fb2d155bd5789247f8edfc4efac69144da354e28ca881fc4fa"
   },
   {
     "hero": "nous_girl",
+    "captureMode": "production animated pose",
     "poses": [
       "nous_girl_whipA_wind",
       "nous_girl_whipA_active",
@@ -827,10 +836,12 @@
     ],
     "width": 1472,
     "height": 7210,
-    "sha256": "8053f945e7cf4abb75f3af5124c4cee058b2808b1f0b88115c53f39387ba9436"
+    "sourceRevision": "bcec2eec8a47c380c6fcfcfc5dcf870b64b92c40",
+    "sha256": "9d3227c613f1818f0b63f0007e1f744eeae716ace099694a92045fa8520fab8f"
   },
   {
     "hero": "teknium",
+    "captureMode": "production animated pose",
     "poses": [
       "teknium_bladeA_wind",
       "teknium_bladeA_active",
@@ -992,10 +1003,12 @@
     ],
     "width": 1472,
     "height": 6980,
-    "sha256": "52108ac31978ba6aaf56cfdb8faa229f09389558b0187a92255bc0d3166c130f"
+    "sourceRevision": "bcec2eec8a47c380c6fcfcfc5dcf870b64b92c40",
+    "sha256": "53f3d5f5d388d98bc01ceb36bd78497415b3a197179d6a361c79d643312063a5"
   },
   {
     "hero": "turbofit",
+    "captureMode": "production animated pose",
     "poses": [
       "turbofit_axe_wind",
       "turbofit_axe_active",
@@ -1161,10 +1174,12 @@
     ],
     "width": 1472,
     "height": 7210,
-    "sha256": "781e2cdf176a48e855f8e6e708eeb7d7591d091a9e136fc4d394c43de8698117"
+    "sourceRevision": "bcec2eec8a47c380c6fcfcfc5dcf870b64b92c40",
+    "sha256": "5c7800926d4a11a8a44f7d2246bc8746defcd1f91c3d916a56561bdcf3c7e8f4"
   },
   {
     "hero": "don_piedro",
+    "captureMode": "production animated pose",
     "poses": [
       "don_piedro_launcher_wind",
       "don_piedro_launcher_active",
@@ -1327,6 +1342,7 @@
     ],
     "width": 1472,
     "height": 6980,
-    "sha256": "7d51cb41c89d5aaf707c9e1e08fd8939641794083b4f6c06636b3f1ab310e7ec"
+    "sourceRevision": "bcec2eec8a47c380c6fcfcfc5dcf870b64b92c40",
+    "sha256": "28ac668ab2418b7ccb029f124f78c40fba4ba2c488494e85e50639553c20e554"
   }
 ]

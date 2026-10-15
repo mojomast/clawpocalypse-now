@@ -1,4 +1,4 @@
-import { createRig, POSES, HEROES, HERO_MOVES, MECHANICS, REACTIONS } from '../rig.js';
+import { createRig, POSES, HEROES, HERO_MOVES, MECHANICS, REACTIONS, FOOT_Y } from '../rig.js';
 import '../don.js';
 import { HERO_RIGS } from '../hero-rigs.js';
 
@@ -7,14 +7,19 @@ const ctx = c.getContext('2d');
 const rig = createRig();
 const query = new URLSearchParams(location.search);
 const hero = query.get('hero');
-const common = ['idle', 'idleA', 'idleB', 'idleC', 'walk1', 'walk2', 'walk3', 'walk4', 'run', 'turn', 'jump', 'hurt', 'taunt', 'victory', 'punchWind', 'punch', 'kickWind', 'kick'];
+const common = ['idle', 'idleA', 'idleB', 'idleC', 'walk1', 'walk2', 'walk3', 'walk4', 'run1', 'run2', 'run3', 'run4', 'turn', 'jump', 'hurt', 'taunt', 'victory', 'punchWind', 'punch', 'kickWind', 'kick'];
 const states = [...new Set([...REACTIONS, 'knockdownAir', 'down', 'downB', 'wake'])];
 const heroMoves = Object.keys(HERO_MOVES[hero] || {});
 const requested = [...common, ...states, ...heroMoves.flatMap(m => ['wind', 'active', 'recover', 'follow'].map(phase => `${m}_${phase}`)), ...MECHANICS.flatMap(m => ['wind', 'active', 'recover', 'follow'].map(phase => `${m}_${phase}`))];
 const absent = [...new Set(requested.filter(p => !POSES[`${hero}_${p}`] && !POSES[p]).map(p => `${hero}_${p}`))];
 const sharedFallbacks = [...new Set(requested.filter(p => !POSES[`${hero}_${p}`] && POSES[p]).map(p => ({ requested: `${hero}_${p}`, drawn: p })))];
 const poses = [...Object.keys(POSES).filter(p => p.startsWith(`${hero}_`)), ...requested.filter(p => !POSES[`${hero}_${p}`] && POSES[p])];
-const unique = [...new Set(poses)];
+let unique = [...new Set(poses)];
+if (query.get('mode') === 'after') {
+  // Preserve baseline cell positions when new run/reaction drawings are added.
+  const baseline = (await (await fetch('../before/manifest.json')).json()).find(e => e.hero === hero);
+  unique = [...baseline.poses, ...unique.filter(name => !baseline.poses.includes(name))];
+}
 const missing = unique.filter(p => !Object.hasOwn(POSES, p));
 const cols = 8, cellW = 184, cellH = 230, header = 80;
 c.width = cols * cellW;
@@ -48,7 +53,9 @@ if (missing.length || failures.length || !HEROES.includes(hero)) {
     ctx.fillText(pose.length > 27 ? pose.slice(0, 27) : pose, x + 6, y + 16);
     ctx.fillStyle = '#99aace'; ctx.fillText(side ? 'LEFT' : 'RIGHT', x + 6, y + 31);
     ctx.strokeStyle = '#5d6780'; ctx.beginPath(); ctx.moveTo(x + 16, y + 205); ctx.lineTo(x + cellW - 16, y + 205); ctx.stroke();
-    if (!rig.draw(ctx, hero, pose, x + cellW / 2, y + 108, !!side, .85)) failures.push(`draw failed: ${hero} ${pose}`);
+    const phase = /_active$/.test(pose) ? 'active' : /_wind$/.test(pose) ? 'wind' : /_recover$/.test(pose) ? 'rec' : null;
+    const drawing = { ...POSES[pose], __pose: pose, __phase: phase, __pt: 1 / 60 };
+    if (!rig.draw(ctx, hero, drawing, x + cellW / 2, y + 205 - FOOT_Y * .85, !!side, .85)) failures.push(`draw failed: ${hero} ${pose}`);
   }
-  window.__rigSheet = failures.length ? { error: { hero, missing, failures } } : { hero, poses: unique, absent, sharedFallbacks, facings: ['right', 'left'], assets: files, width: c.width, height: c.height, png: c.toDataURL('image/png') };
+  window.__rigSheet = failures.length ? { error: { hero, missing, failures } } : { hero, captureMode: 'production animated pose', poses: unique, absent, sharedFallbacks, facings: ['right', 'left'], assets: files, width: c.width, height: c.height, png: c.toDataURL('image/png') };
 }

@@ -83,17 +83,25 @@ export const HERO_RIGS = {
   },
   // moves: Heavy and slow: wide guitar-axe swings (long wind-up, big knockback), power chord shockwave special (ground wave both directions), headbang charge (head-first rush).
   turbofit: {
-    head: { file: 'turbofit_head.png', w: 61, h: 64, px: 37, py: 54, parent: 'torso', ax: 23, ay: 6 },
-    torso: { file: 'turbofit_torso.png', w: 46, h: 68, px: 23, py: 34, parent: null, ax: 0, ay: 0 },
-    uarm: { file: 'turbofit_uarm.png', w: 26, h: 54, px: 13, py: 7, parent: 'torso', ax: 34, ay: 16 },
-    farm: { file: 'turbofit_farm.png', w: 28, h: 58, px: 13, py: 6, parent: 'uarm', ax: 13, ay: 46 },
-    thigh: { file: 'turbofit_thigh.png', w: 30, h: 56, px: 15, py: 8, parent: 'torso', ax: 23, ay: 58 },
-    shin: { file: 'turbofit_shin.png', w: 34, h: 58, px: 13, py: 8, parent: 'thigh', ax: 14, ay: 48 },
-    weapon: { file: 'turbofit_weapon.png', w: 65, h: 118, px: 47, py: 38, parent: 'farm', ax: 16, ay: 52, grip: -60 },
-    uarm_b: { file: 'turbofit_uarm.png', w: 26, h: 54, px: 13, py: 7, parent: 'torso', ax: 28, ay: 14, back: true },
-    farm_b: { file: 'turbofit_farm.png', w: 28, h: 58, px: 13, py: 6, parent: 'uarm_b', ax: 13, ay: 46, back: true },
-    thigh_b: { file: 'turbofit_thigh.png', w: 30, h: 56, px: 15, py: 8, parent: 'torso', ax: 17, ay: 56, back: true },
-    shin_b: { file: 'turbofit_shin.png', w: 34, h: 58, px: 13, py: 8, parent: 'thigh_b', ax: 14, ay: 48, back: true },
+    hair_back_1: {file: 'turbofit_hair_back_1.png', w: 32, h: 47, px: 16, py: 2, spring: [90, 9, 0.16], range: [-25, 55], parent: 'head', ax: 15, ay: 11, role: 'spring' },
+    hair_back_2: {file: 'turbofit_hair_back_2.png', w: 23, h: 41, px: 11, py: 2, spring: [120, 10, 0.14], range: [-20, 50], parent: 'head', ax: 10, ay: 20, role: 'spring' },
+    uarm_b: {file: 'turbofit_uarm.png', w: 16, h: 47, px: 8, py: 3, joint: [8, 42], parent: 'torso', ax: 50, ay: 15, role: 'body', back: true },
+    farm_b: {file: 'turbofit_farm.png', w: 14, h: 43, px: 7, py: 3, joint: [7, 39], parent: 'uarm_b', ax: 8, ay: 42, role: 'body', back: true },
+    hand_b: {file: 'turbofit_hand_open.png', w: 13, h: 25, px: 5, py: 1, parent: 'farm_b', ax: 7, ay: 39, role: 'hand', back: true, variants: {grip_far: {file: 'turbofit_hand_grip_far.png', w: 15, h: 24, px: 4, py: 1, grip: [7, 15]}} },
+    thigh_b: {file: 'turbofit_thigh.png', w: 18, h: 52, px: 8, py: 3, joint: [8, 47], parent: 'torso', ax: 35, ay: 62, role: 'body', back: true },
+    shin_b: {file: 'turbofit_shin.png', w: 17, h: 48, px: 8, py: 3, joint: [8, 43], parent: 'thigh_b', ax: 8, ay: 47, role: 'body', back: true },
+    foot_b: {file: 'turbofit_foot.png', w: 34, h: 33, px: 11, py: 18, sole: [4, 29, 31, 29], parent: 'shin_b', ax: 8, ay: 43, role: 'foot', back: true },
+    head: {file: 'turbofit_head.png', w: 37, h: 49, px: 18, py: 46, parent: 'torso', ax: 26, ay: 4, role: 'body', variants: {front: {file: 'turbofit_head_front.png', w: 32, h: 49, px: 15, py: 46}} },
+    hair_front: {file: 'turbofit_hair_front.png', w: 29, h: 31, px: 14, py: 1, spring: [260, 18, 0.05], range: [-8, 12], parent: 'head', ax: 16, ay: 1, role: 'spring' },
+    thigh: {file: 'turbofit_thigh.png', w: 18, h: 52, px: 8, py: 3, joint: [8, 47], parent: 'torso', ax: 21, ay: 62, role: 'body' },
+    shin: {file: 'turbofit_shin.png', w: 17, h: 48, px: 8, py: 3, joint: [8, 43], parent: 'thigh', ax: 8, ay: 47, role: 'body' },
+    foot: {file: 'turbofit_foot.png', w: 34, h: 33, px: 11, py: 18, sole: [4, 29, 31, 29], parent: 'shin', ax: 8, ay: 43, role: 'foot' },
+    torso: {file: 'turbofit_torso.png', w: 57, h: 70, px: 28, py: 35, parent: null, ax: 0, ay: 0, role: 'torso', variants: {front: {file: 'turbofit_torso_front.png', w: 54, h: 70, px: 27, py: 35}} },
+    uarm: {file: 'turbofit_uarm.png', w: 16, h: 47, px: 8, py: 3, joint: [8, 42], parent: 'torso', ax: 6, ay: 17, role: 'body' },
+    farm: {file: 'turbofit_farm.png', w: 14, h: 43, px: 7, py: 3, joint: [7, 39], parent: 'uarm', ax: 8, ay: 42, role: 'body' },
+    hand: {file: 'turbofit_hand_grip_back.png', w: 12, h: 19, px: 5, py: 1, grip: [5, 14], axis: -0.1, parent: 'farm', ax: 7, ay: 39, role: 'hand' },
+    weapon: {file: 'turbofit_weapon.png', w: 108, h: 38, px: 23, py: 15, tip: [105, 15], grip2: [45, 15], parent: 'hand', ax: 5, ay: 14, role: 'weapon', grip: 53 },
+    hand_front: {file: 'turbofit_hand_grip_front.png', w: 12, h: 19, px: 5, py: 1, grip: [5, 14], axis: -0.1, parent: 'hand', ax: 5, ay: 1, role: 'grip_front' },
   },
   // moves: agile; sound-wave blasts (ranged special, projectile/FX `nous_girl_fx_burst.png`), cable-whip combos at mid range, bass-drop ground pound, quick dodge roll.
   nous_girl: {
@@ -136,4 +144,4 @@ export const HERO_RIGS = {
 };
 
 // v2 rigs (separate hands, feet, grips, variants and spring chains): draw order and wrist window.
-export const HERO_V2 = {teknium: {layers: ['hem_b', 'uarm_b', 'farm_b', 'hand_b', 'thigh_b', 'shin_b', 'foot_b', 'head', 'thigh', 'shin', 'foot', 'hem', 'torso', 'uarm', 'farm', 'hand', 'weapon', 'hand_front'], wrist: {c: 20, hw: 35}}, nous_girl: {layers: ['uarm_b', 'farm_b', 'hand_b', 'thigh_b', 'shin_b', 'foot_b', 'head', 'thigh', 'shin', 'foot', 'torso', 'coil', 'hair_long', 'hair_short', 'uarm', 'farm', 'hand', 'weapon', 'hand_front', 'cable', 'cable_end'], wrist: {c: 0, hw: 40}}};
+export const HERO_V2 = {teknium: {layers: ['hem_b', 'uarm_b', 'farm_b', 'hand_b', 'thigh_b', 'shin_b', 'foot_b', 'head', 'thigh', 'shin', 'foot', 'hem', 'torso', 'uarm', 'farm', 'hand', 'weapon', 'hand_front'], wrist: {c: 20, hw: 35}}, turbofit: {layers: ['hair_back_1', 'hair_back_2', 'uarm_b', 'farm_b', 'hand_b', 'thigh_b', 'shin_b', 'foot_b', 'head', 'hair_front', 'thigh', 'shin', 'foot', 'torso', 'uarm', 'farm', 'hand', 'weapon', 'hand_front'], wrist: {c: 35, hw: 35}}, nous_girl: {layers: ['uarm_b', 'farm_b', 'hand_b', 'thigh_b', 'shin_b', 'foot_b', 'head', 'thigh', 'shin', 'foot', 'torso', 'coil', 'hair_long', 'hair_short', 'uarm', 'farm', 'hand', 'weapon', 'hand_front', 'cable', 'cable_end'], wrist: {c: 0, hw: 40}}};

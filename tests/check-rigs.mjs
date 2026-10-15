@@ -21,7 +21,7 @@ const expectedSoles = {
   don_piedro: [[5, 48], [41, 48]],
   // v2 rigs (separate feet): the leg IK plants the ankle, i.e. the shin's foot-attach pixel;
   // the heel/toe live on the foot part (expectedFootSoles) and are checked on the floor below.
-  nous_girl: [[6, 42], [6, 42]], teknium: [[5, 37], [5, 37]], turbofit: [[3, 56], [31, 56]],
+  nous_girl: [[6, 42], [6, 42]], teknium: [[5, 37], [5, 37]], turbofit: [[8, 43], [8, 43]],
 };
 const expectedFootSoles = { nous_girl: [3, 16, 27, 16], teknium: [1, 16, 28, 16], turbofit: [4, 29, 31, 29] };
 const near = (a, b, context, tolerance = 1) => {

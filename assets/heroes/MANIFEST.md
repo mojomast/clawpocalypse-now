@@ -101,21 +101,42 @@ Wrist: c=20 hw=35
 
 Weapon grip: 35 (degrees the weapon art turns in the fist; rig QA t_0309973138084dd1)
 
-## turbofit (black electric guitar axe)
+## turbofit (black flying-V guitar axe)
 
-Palette/look: long wild brown hair (the head part), black tattered sleeveless top, tattooed arms, studded wristbands, black pants and boots.  Move set: Heavy and slow: wide guitar-axe swings (long wind-up, big knockback), power chord shockwave special (ground wave both directions), headbang charge (head-first rush).
+Palette/look (v2, `src/design.jpg`, sovthpaw's TurboFit): copper wavy mane with the face visible (heads from `src/heads.jpg`; the sheetA heads have the wrong dark hair and are unused), studded black leather vest over a bare chest, silver chains, amber belt buckle, dark jeans, black boots with mint laces, black flying-V guitar-axe.  Move set: Heavy and slow: wide guitar-axe swings (long wind-up, big knockback), power chord shockwave special (ground wave both directions), headbang charge (head-first rush).
 
-| part | image | size | pivot | parent | attach |
-|---|---|---|---|---|---|
-| head | turbofit_head.png | 61x64 | 37,54 | torso | 23,6 |
-| torso | turbofit_torso.png | 46x68 | 23,34 | - | - |
-| uarm | turbofit_uarm.png | 26x54 | 13,7 | torso | 34,16 |
-| farm | turbofit_farm.png | 28x58 | 13,6 | uarm | 13,46 |
-| thigh | turbofit_thigh.png | 30x56 | 15,8 | torso | 23,58 |
-| shin | turbofit_shin.png | 34x58 | 13,8 | thigh | 14,48 |
-| weapon | turbofit_weapon.png | 65x118 | 47,38 | farm | 16,52 |
+Rig: v2 (sliced by `tools/slice-hero-parts.py turbofit` from `src/sheetA.jpg`, `src/heads.jpg` + `src/sheetB.jpg`, spec `src/SLICE.json`). Separate boots (the shaft overlaps the jeans), hands with a grip pair on the guitar neck; the far hand closes on the neck's second grip (grip_far) whenever the far arm can reach it, otherwise it stays open. Two back hair locks and the crown piece on springs, colour-matched to the heads.jpg copper.
+Layers: hair_back_1, hair_back_2, uarm_b, farm_b, hand_b, thigh_b, shin_b, foot_b, head, hair_front, thigh, shin, foot, torso, uarm, farm, hand, weapon, hand_front
+Wrist: c=35 hw=35
 
-Weapon grip: -60 (degrees the weapon art turns in the fist; rig QA t_0309973138084dd1)
+<!-- slice:turbofit:begin -->
+| part | image | size | pivot | parent | attach | role | data |
+|---|---|---|---|---|---|---|---|
+| hair_back_1 | turbofit_hair_back_1.png | 32x47 | 16,2 | head | 15,11 | spring | spring=90,9,0.16 range=-25,55 |
+| hair_back_2 | turbofit_hair_back_2.png | 23x41 | 11,2 | head | 10,20 | spring | spring=120,10,0.14 range=-20,50 |
+| uarm_b | turbofit_uarm.png | 16x47 | 8,3 | torso | 50,15 | body | joint=8,42 |
+| farm_b | turbofit_farm.png | 14x43 | 7,3 | uarm_b | 8,42 | body | joint=7,39 |
+| hand_b | turbofit_hand_open.png | 13x25 | 5,1 | farm_b | 7,39 | hand |  |
+| hand_b@grip_far | turbofit_hand_grip_far.png | 15x24 | 4,1 | - | - | variant | grip=7,15 |
+| thigh_b | turbofit_thigh.png | 18x52 | 8,3 | torso | 35,62 | body | joint=8,47 |
+| shin_b | turbofit_shin.png | 17x48 | 8,3 | thigh_b | 8,47 | body | joint=8,43 |
+| foot_b | turbofit_foot.png | 34x33 | 11,18 | shin_b | 8,43 | foot | sole=4,29,31,29 |
+| head | turbofit_head.png | 37x49 | 18,46 | torso | 26,4 | body |  |
+| head@front | turbofit_head_front.png | 32x49 | 15,46 | - | - | variant |  |
+| hair_front | turbofit_hair_front.png | 29x31 | 14,1 | head | 16,1 | spring | spring=260,18,0.05 range=-8,12 |
+| thigh | turbofit_thigh.png | 18x52 | 8,3 | torso | 21,62 | body | joint=8,47 |
+| shin | turbofit_shin.png | 17x48 | 8,3 | thigh | 8,47 | body | joint=8,43 |
+| foot | turbofit_foot.png | 34x33 | 11,18 | shin | 8,43 | foot | sole=4,29,31,29 |
+| torso | turbofit_torso.png | 57x70 | 28,35 | - | - | torso |  |
+| torso@front | turbofit_torso_front.png | 54x70 | 27,35 | - | - | variant |  |
+| uarm | turbofit_uarm.png | 16x47 | 8,3 | torso | 6,17 | body | joint=8,42 |
+| farm | turbofit_farm.png | 14x43 | 7,3 | uarm | 8,42 | body | joint=7,39 |
+| hand | turbofit_hand_grip_back.png | 12x19 | 5,1 | farm | 7,39 | hand | grip=5,14 axis=-0.1 |
+| weapon | turbofit_weapon.png | 108x38 | 23,15 | hand | 5,14 | weapon | tip=105,15 grip2=45,15 |
+| hand_front | turbofit_hand_grip_front.png | 12x19 | 5,1 | hand | 5,1 | grip_front | grip=5,14 axis=-0.1 |
+<!-- slice:turbofit:end -->
+
+Weapon grip: 53 (degrees the weapon art turns in the fist; rig QA t_0309973138084dd1)
 
 ## nous_girl (audio-cable whip with jack plugs, Nous Research mascot)
 

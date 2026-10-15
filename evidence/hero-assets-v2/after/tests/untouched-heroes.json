@@ -1,0 +1,47 @@
+{
+ "turtle_purple": {
+  "pre_v2_c4334c6_sha256": "a74748a4d5389f7ee4c347939fb00b44eb944996425ec0ba7c967a72694bfbc4",
+  "v2_sha256": "a74748a4d5389f7ee4c347939fb00b44eb944996425ec0ba7c967a72694bfbc4",
+  "pixel_identical": true,
+  "size": [
+   1472,
+   7210
+  ]
+ },
+ "turtle_blue": {
+  "pre_v2_c4334c6_sha256": "0abdb78f5d654bb3761372ce3c6265d8f3098f667c34c93a4528f48c7657b1e6",
+  "v2_sha256": "0abdb78f5d654bb3761372ce3c6265d8f3098f667c34c93a4528f48c7657b1e6",
+  "pixel_identical": true,
+  "size": [
+   1472,
+   7210
+  ]
+ },
+ "turtle_red": {
+  "pre_v2_c4334c6_sha256": "cd047eba092738da0a2ae94a591ab10760850e851aefdbb2a046ee68abeb20b4",
+  "v2_sha256": "cd047eba092738da0a2ae94a591ab10760850e851aefdbb2a046ee68abeb20b4",
+  "pixel_identical": true,
+  "size": [
+   1472,
+   7210
+  ]
+ },
+ "turtle_orange": {
+  "pre_v2_c4334c6_sha256": "1daed7b5bced1544964e75f205ede23dc5ad934c7804cee7be408e6e0916dcaa",
+  "v2_sha256": "1daed7b5bced1544964e75f205ede23dc5ad934c7804cee7be408e6e0916dcaa",
+  "pixel_identical": true,
+  "size": [
+   1472,
+   7210
+  ]
+ },
+ "don_piedro": {
+  "pre_v2_c4334c6_sha256": "c583731cbb9380d20417fa5a29532f8bdd906d8e695f40af603880cec8fc9fe5",
+  "v2_sha256": "c583731cbb9380d20417fa5a29532f8bdd906d8e695f40af603880cec8fc9fe5",
+  "pixel_identical": true,
+  "size": [
+   1472,
+   7210
+  ]
+ }
+}

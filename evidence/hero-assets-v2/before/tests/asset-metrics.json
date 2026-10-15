@@ -1,0 +1,444 @@
+{
+ "__idle": {},
+ "turtle_purple": {
+  "idleHeight": 174.5,
+  "headH": 49,
+  "torsoH": 68,
+  "upperArm": 51.2,
+  "forearmToFist": 57.7,
+  "thigh": 25.3,
+  "shinToSole": 66.7,
+  "armOverTorso": 1.6,
+  "legOverTorso": 1.35,
+  "headOverHeight": 0.28,
+  "poses": 79,
+  "maxTorsoRot": 88,
+  "maxHeadRot": 62,
+  "plantedContacts": 112,
+  "plantedSoleTiltOver10": 82,
+  "worstSoleTilt": [
+   [
+    "wake",
+    "front",
+    73.4
+   ],
+   [
+    "wake",
+    "back",
+    71.4
+   ],
+   [
+    "run2",
+    "front",
+    61
+   ],
+   [
+    "run4",
+    "back",
+    61
+   ]
+  ],
+  "weaponBelowFloorPoses": 5,
+  "medianSoleTilt": 24.4,
+  "idleSoleTilt": [
+   -8,
+   45.5
+  ],
+  "worstWeaponBelow": [
+   [
+    "wake",
+    31.4
+   ],
+   [
+    "grabHold",
+    22.6
+   ],
+   [
+    "groundPound_active",
+    15.1
+   ],
+   [
+    "sweepSpin_follow",
+    3.8
+   ]
+  ]
+ },
+ "turtle_blue": {
+  "idleHeight": 175.5,
+  "headH": 50,
+  "torsoH": 68,
+  "upperArm": 40.5,
+  "forearmToFist": 56.9,
+  "thigh": 31.3,
+  "shinToSole": 52,
+  "armOverTorso": 1.43,
+  "legOverTorso": 1.23,
+  "headOverHeight": 0.28,
+  "poses": 79,
+  "maxTorsoRot": 88,
+  "maxHeadRot": 62,
+  "plantedContacts": 120,
+  "plantedSoleTiltOver10": 100,
+  "worstSoleTilt": [
+   [
+    "wake",
+    "front",
+    82.8
+   ],
+   [
+    "wake",
+    "back",
+    76.7
+   ],
+   [
+    "run2",
+    "front",
+    64
+   ],
+   [
+    "run4",
+    "back",
+    64
+   ]
+  ],
+  "weaponBelowFloorPoses": 5,
+  "medianSoleTilt": 26,
+  "idleSoleTilt": [
+   26,
+   33.4
+  ],
+  "worstWeaponBelow": [
+   [
+    "grabThrow_active",
+    47.6
+   ],
+   [
+    "healthSpecial_active",
+    42.7
+   ],
+   [
+    "grabThrow_follow",
+    38.7
+   ],
+   [
+    "wake",
+    24.5
+   ]
+  ]
+ },
+ "turtle_red": {
+  "idleHeight": 188.8,
+  "headH": 49,
+  "torsoH": 68,
+  "upperArm": 47.1,
+  "forearmToFist": 56.6,
+  "thigh": 37.4,
+  "shinToSole": 62.3,
+  "armOverTorso": 1.52,
+  "legOverTorso": 1.47,
+  "headOverHeight": 0.26,
+  "poses": 83,
+  "maxTorsoRot": 88,
+  "maxHeadRot": 62,
+  "plantedContacts": 124,
+  "plantedSoleTiltOver10": 107,
+  "worstSoleTilt": [
+   [
+    "wake",
+    "front",
+    80
+   ],
+   [
+    "wake",
+    "back",
+    69.5
+   ],
+   [
+    "run2",
+    "front",
+    68.9
+   ],
+   [
+    "run4",
+    "back",
+    68.9
+   ]
+  ],
+  "weaponBelowFloorPoses": 0,
+  "medianSoleTilt": 26,
+  "idleSoleTilt": [
+   24,
+   30.5
+  ],
+  "worstWeaponBelow": []
+ },
+ "turtle_orange": {
+  "idleHeight": 182.2,
+  "headH": 45,
+  "torsoH": 68,
+  "upperArm": 46,
+  "forearmToFist": 65.6,
+  "thigh": 34.5,
+  "shinToSole": 62.2,
+  "armOverTorso": 1.64,
+  "legOverTorso": 1.42,
+  "headOverHeight": 0.25,
+  "poses": 83,
+  "maxTorsoRot": 88,
+  "maxHeadRot": 62,
+  "plantedContacts": 124,
+  "plantedSoleTiltOver10": 103,
+  "worstSoleTilt": [
+   [
+    "wake",
+    "front",
+    79.2
+   ],
+   [
+    "wake",
+    "back",
+    76
+   ],
+   [
+    "run2",
+    "front",
+    61.9
+   ],
+   [
+    "run4",
+    "back",
+    61.9
+   ]
+  ],
+  "weaponBelowFloorPoses": 0,
+  "medianSoleTilt": 30,
+  "idleSoleTilt": [
+   30,
+   35.8
+  ],
+  "worstWeaponBelow": []
+ },
+ "teknium": {
+  "idleHeight": 171.3,
+  "headH": 43,
+  "torsoH": 68,
+  "upperArm": 31,
+  "forearmToFist": 44.7,
+  "thigh": 44.3,
+  "shinToSole": 50.9,
+  "armOverTorso": 1.11,
+  "legOverTorso": 1.4,
+  "headOverHeight": 0.25,
+  "poses": 83,
+  "maxTorsoRot": 88,
+  "maxHeadRot": 62,
+  "plantedContacts": 128,
+  "plantedSoleTiltOver10": 83,
+  "worstSoleTilt": [
+   [
+    "wake",
+    "front",
+    95.2
+   ],
+   [
+    "wake",
+    "back",
+    72.5
+   ],
+   [
+    "run2",
+    "front",
+    57.1
+   ],
+   [
+    "run4",
+    "back",
+    57.1
+   ]
+  ],
+  "weaponBelowFloorPoses": 1,
+  "medianSoleTilt": 12,
+  "idleSoleTilt": [
+   -1,
+   11.4
+  ],
+  "worstWeaponBelow": [
+   [
+    "wake",
+    10
+   ]
+  ]
+ },
+ "turbofit": {
+  "idleHeight": 191.8,
+  "headH": 64,
+  "torsoH": 68,
+  "upperArm": 39,
+  "forearmToFist": 50.9,
+  "thigh": 40,
+  "shinToSole": 51.3,
+  "armOverTorso": 1.32,
+  "legOverTorso": 1.34,
+  "headOverHeight": 0.33,
+  "poses": 83,
+  "maxTorsoRot": 88,
+  "maxHeadRot": 62,
+  "plantedContacts": 128,
+  "plantedSoleTiltOver10": 88,
+  "worstSoleTilt": [
+   [
+    "wake",
+    "front",
+    91.6
+   ],
+   [
+    "wake",
+    "back",
+    77.6
+   ],
+   [
+    "run2",
+    "front",
+    66.1
+   ],
+   [
+    "run4",
+    "back",
+    66.1
+   ]
+  ],
+  "weaponBelowFloorPoses": 16,
+  "medianSoleTilt": 17.5,
+  "idleSoleTilt": [
+   -2,
+   17.5
+  ],
+  "worstWeaponBelow": [
+   [
+    "wake",
+    44.5
+   ],
+   [
+    "axe_follow",
+    43.7
+   ],
+   [
+    "axeHeavy_follow",
+    38.3
+   ],
+   [
+    "taunt",
+    33.4
+   ]
+  ]
+ },
+ "nous_girl": {
+  "idleHeight": 183.3,
+  "headH": 47,
+  "torsoH": 68,
+  "upperArm": 39.6,
+  "forearmToFist": 53,
+  "thigh": 48.8,
+  "shinToSole": 54.1,
+  "armOverTorso": 1.36,
+  "legOverTorso": 1.51,
+  "headOverHeight": 0.26,
+  "poses": 87,
+  "maxTorsoRot": 88,
+  "maxHeadRot": 62,
+  "plantedContacts": 120,
+  "plantedSoleTiltOver10": 86,
+  "worstSoleTilt": [
+   [
+    "wake",
+    "front",
+    91.5
+   ],
+   [
+    "wake",
+    "back",
+    65.5
+   ],
+   [
+    "run2",
+    "front",
+    55.9
+   ],
+   [
+    "run4",
+    "back",
+    55.9
+   ]
+  ],
+  "weaponBelowFloorPoses": 0,
+  "medianSoleTilt": 16,
+  "idleSoleTilt": [
+   6.9,
+   13.9
+  ],
+  "worstWeaponBelow": []
+ },
+ "don_piedro": {
+  "idleHeight": 186.5,
+  "headH": 59,
+  "torsoH": 68,
+  "upperArm": 35,
+  "forearmToFist": 68.8,
+  "thigh": 39.1,
+  "shinToSole": 50.8,
+  "armOverTorso": 1.53,
+  "legOverTorso": 1.32,
+  "headOverHeight": 0.32,
+  "poses": 79,
+  "maxTorsoRot": 88,
+  "maxHeadRot": 62,
+  "plantedContacts": 120,
+  "plantedSoleTiltOver10": 104,
+  "worstSoleTilt": [
+   [
+    "wake",
+    "front",
+    90.1
+   ],
+   [
+    "wake",
+    "back",
+    80.5
+   ],
+   [
+    "slash_follow",
+    "back",
+    73.2
+   ],
+   [
+    "run2",
+    "front",
+    71.3
+   ]
+  ],
+  "weaponBelowFloorPoses": 6,
+  "medianSoleTilt": 30,
+  "idleSoleTilt": [
+   -12.3,
+   57.5
+  ],
+  "worstWeaponBelow": [
+   [
+    "grabThrow_active",
+    44
+   ],
+   [
+    "healthSpecial_active",
+    36.6
+   ],
+   [
+    "slash_follow",
+    32.3
+   ],
+   [
+    "grabThrow_follow",
+    29.3
+   ]
+  ]
+ }
+}

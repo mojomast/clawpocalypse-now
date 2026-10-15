@@ -1,0 +1,20 @@
+
+> test
+> node tests/check-rig-sources.mjs && node tests/check-rigs.mjs && node tests/check-hero-v2.mjs && node check-animation.mjs && node tests/check-levels.mjs
+
+rig sources OK: hero-rigs.js matches MANIFEST.md; 51 sliced parts match SLICE.json (nous_girl, teknium, turbofit)
+rig geometry OK: 2744 frames, 35300 attached joints, 2086 weapon grips, 2330 grounded facings
+production draw OK: eight heroes × both facings
+baseline manifest OK: all named hero poses and both facings
+v2 pose checks OK: teknium 168 frames, 260 flat planted feet (max tilt 0.00 deg, 0 toe-offs), lowest weapon y 89.4, 0 two-hand; nous_girl 176 frames, 244 flat planted feet (max tilt 0.00 deg, 0 toe-offs), lowest weapon y 47.6, 0 two-hand; turbofit 168 frames, 260 flat planted feet (max tilt 0.00 deg, 0 toe-offs), lowest weapon y 89.4, 30 two-hand
+variant hysteresis OK: head swaps >= 50 ms apart at 30/60/144 Hz
+mirror flags OK
+secondary chains OK: 30/60/144 Hz agree within 3 deg, ranges held, no NaN, frozen at dt=0
+proportions OK: teknium height 170.5 px, head 0.250, arm 1.274, leg 1.388
+proportions OK: nous_girl height 184.2 px, head 0.251, arm 1.318, leg 1.409
+proportions OK: turbofit height 194.6 px, head 0.248, arm 1.329, leg 1.357
+alpha/magenta OK: 51 v2 PNGs have antialiased edges and no magenta spill
+Animation checks passed: 8 heroes, 7320 recovery samples, state selection, exact impact holds, hit-stop freeze.
+World contacts passed: 3840 walking/running supports (22 v2 toe-offs), both facings; maximum X drift 0.0112px.
+Down/get-up transitions passed: no root teleport, reachable support contacts.
+Collision checks passed: 7 walking routes, 495 encounter/radius spawns, props, swept motion, breakable restoration.

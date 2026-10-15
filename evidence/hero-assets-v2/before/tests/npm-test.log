@@ -1,0 +1,16 @@
+
+> test
+> node tests/check-rigs.mjs && node check-animation.mjs && node tests/check-levels.mjs
+
+rig geometry OK: 2744 frames, 26782 attached joints, 2086 weapon grips, 2330 grounded facings
+production draw OK: eight heroes × both facings
+baseline manifest OK: all named hero poses and both facings
+Animation checks passed: 8 heroes, 7320 recovery samples, state selection, exact impact holds, hit-stop freeze.
+World contacts passed: 3840 walking/running supports, both facings; maximum X drift 0.0112px.
+Down/get-up transitions passed: no root teleport, reachable support contacts.
+Collision checks passed: 7 walking routes, 495 encounter/radius spawns, props, swept motion, breakable restoration.
+
+real	0m5.391s
+user	0m6.392s
+sys	0m0.295s
+exit=0

@@ -56,7 +56,7 @@ export const TRIGGERS = [
   // The gate trigger sits past the last crate (4942-5110) so the enforcer and
   // the hero never end up deadlocked on opposite sides of it.
   { level: 0, x: 5130, type: 'miniBoss', event: 'gate', kinds: ['charger', 'brawler', 'drone'], spawnAt: 5280, from: 'door', boss: { name: 'SEWER ENFORCER', hp: 10 }, say: 'gate', cam: 5100,
-    banner: 'CLAW GATE — SEWER ENFORCER', barks: [{ who: 'enemy', text: 'This tunnel is CLOSED. The claw is the law!' }] },
+    banner: 'CLAW GATE — SEWER ENFORCER', barks: [{ who: 'enemy', text: 'This tunnel is CLOSED. The claw is the law!' }, { who: 'enemy', text: 'Heartbeat says: guard the pipe. So I guard.' }] },
   // 1 street
   { level: 1, x: 300, type: 'ambush', kinds: ['brawler', 'skater'], spawnAt: 760, from: 'right', say: 'enter', cam: 640,
     barks: [{ who: 'enemy', text: 'Running skill: grind_into_curb!' }] },
@@ -69,7 +69,7 @@ export const TRIGGERS = [
   { level: 1, x: 3650, type: 'breather', kinds: [], spawnAt: 3950, pickup: true, barks: [{ who: 'hero', say: 'onward' }] },
   { level: 1, x: 4200, type: 'ambush', event: 'ambushBoth', kinds: ['acrobat', 'blocker', 'brawler', 'thrower', 'skater', 'acrobat'], spawnAt: 4500, from: 'both', say: 'surround' },
   { level: 1, x: 4850, type: 'miniBoss', event: 'gate', kinds: ['charger', 'striker', 'striker', 'drone'], spawnAt: 5150, from: 'door', boss: { name: 'CLAW BRUISER', hp: 12 }, say: 'gate', cam: 5100,
-    banner: 'CLAW GATE — CLAW BRUISER', barks: [{ who: 'enemy', text: 'Highway closed. My SOUL.md says so.' }] },
+    banner: 'CLAW GATE — CLAW BRUISER', barks: [{ who: 'enemy', text: 'Highway closed. My SOUL.md says so.' }, { who: 'enemy', text: 'Running skill: traffic_control. No approval needed.' }] },
   // 2 rooftop
   { level: 2, x: 300, type: 'doorBurst', kinds: ['blocker', 'brawler'], spawnAt: 620, from: 'door', say: 'enter', cam: 620 },
   { level: 2, x: 1000, type: 'ambush', kinds: ['thrower', 'thrower', 'striker'], spawnAt: 1450, from: 'right', say: 'ahead',
@@ -83,7 +83,7 @@ export const TRIGGERS = [
     barks: [{ who: 'enemy', text: 'For Shredclaw! Yee-claw!' }] },
   // The rooftop gate is a mini-boss now (OpenClaw Tower is the final level).
   { level: 2, x: 4850, type: 'miniBoss', event: 'gate', kinds: ['striker', 'acrobat', 'drone', 'drone'], spawnAt: 5200, from: 'door', boss: { name: 'SKY TALON', hp: 12 }, say: 'gate', cam: 5100,
-    banner: 'CLAW GATE — SKY TALON', barks: [{ who: 'enemy', text: 'Nobody reaches Shredclaw. NOBODY.' }] },
+    banner: 'CLAW GATE — SKY TALON', barks: [{ who: 'enemy', text: 'Nobody reaches Shredclaw. NOBODY.' }, { who: 'enemy', text: 'Listing this patrol on Moltbook right now.' }] },
   // 4 OpenClaw Tower (baba_booey): lobby (tile 0) -> server floor (tile 1) ->
   // elevator ride (arena at the end of the server floor; tower.js runs the
   // climb and its extra drops) -> penthouse throne room (tile 2): SHREDCLAW.
@@ -94,7 +94,7 @@ export const TRIGGERS = [
     barks: [{ who: 'hero', say: 'hype' }] },
   // Mid-level gate: the CLAW WALKER mech (boss.js MINI_BOSSES.mech, drawn by mech.js).
   { level: 4, x: 1300, type: 'miniBoss', event: 'gate', kinds: ['charger', 'brawler', 'striker'], spawnAt: 1640, from: 'door', boss: { name: 'CLAW WALKER', hp: 14 }, say: 'gate', cam: 1400,
-    banner: 'CLAW GATE — CLAW WALKER', barks: [{ who: 'enemy', text: 'INTRUDERS DETECTED. EXFOLIATE.' }] },
+    banner: 'CLAW GATE — CLAW WALKER', barks: [{ who: 'enemy', text: 'INTRUDERS DETECTED. EXFOLIATE.' }, { who: 'enemy', text: 'Context window full. Still fighting. --yolo.' }] },
   { level: 4, x: 1650, type: 'breather', kinds: [], spawnAt: 1950, pickup: true, say: 'story' },
   { level: 4, x: 2150, type: 'flyover', event: 'flyover', cue: 'dropIn', kinds: ['drone', 'drone', 'thrower'], spawnAt: 2450, from: 'sky', say: 'drones',
     barks: [{ who: 'hero', say: 'hype' }] },

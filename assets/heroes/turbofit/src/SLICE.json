@@ -3,7 +3,7 @@
  "note": "Approved design src/design.jpg (sovthpaw's TurboFit). Heads come from src/heads.jpg (copper hair); the sheetA heads have the wrong dark hair and are unused. The hair pieces are colour-matched to the heads.jpg copper.",
  "sheets": {
   "A": {
-   "file": "sheetA.jpg",
+   "file": "sheetA-polish.png",
    "grid": [
     4,
     3
@@ -114,23 +114,23 @@
   "uarm": {
    "sheet": "A",
    "kind": "limb",
-   "length": 40.2,
+   "length": 36,
    "rect": [
     0,
-    240,
+    228,
     320,
-    474
+    345
    ]
   },
   "farm": {
    "sheet": "A",
    "kind": "limb",
-   "length": 37.1,
+   "length": 36,
    "rect": [
     320,
-    240,
+    315,
     640,
-    474
+    446
    ]
   },
   "thigh": {
@@ -244,18 +244,14 @@
   "grip_far": {
    "sheet": "B",
    "rect": [
-    640,
+    320,
     0,
-    960,
+    640,
     340
    ],
-   "kind": "hand",
+   "kind": "grip",
    "flip": true,
-   "file": "hand_grip_far",
-   "gripPoint": [
-    0.45,
-    0.62
-   ]
+   "file": "hand_grip_far"
   },
   "hand_open": {
    "sheet": "B",
@@ -441,10 +437,10 @@
   "sha256": {
    "turbofit_head.png": "6943988fb2242d899bd6693e2256f61022bd2a621a8e948bc193bd59821b016f",
    "turbofit_head_front.png": "4815d667dc3084fdc7e244a212061439a5aefb07e60e0179bf9c3d4c2234aedb",
-   "turbofit_torso.png": "738f23c95432811afc7e3f16552393f584d3af8c33500557388ef97e717d98d7",
-   "turbofit_torso_front.png": "1ded8bf69597af77ddc0ea40706e07db7154be0cdbe999fd7d5fdcf369841450",
-   "turbofit_uarm.png": "6544697b0c7184c17597bbb3208cf61091c4dd6935a9de2a079ff01feb15d1f0",
-   "turbofit_farm.png": "d98a9ff8e515efc60a29b95a845b3afbc5f01b823d46a9b5301f4af2bb8e33ab",
+   "turbofit_torso.png": "29feac2cac0814b750b7b5ecff0558db1b60f7277b9d9fee6e31eca7fb8b60c2",
+   "turbofit_torso_front.png": "da32296da5f964f19e2a5fbb9d341b9f024c4ad85967cab95b7b5978b2ee1d86",
+   "turbofit_uarm.png": "6f77082e09af7f0465f7fda662b2660f6cc8e22ada5db99f3bca7b6e5426ffae",
+   "turbofit_farm.png": "aeaa04eb2a1fe997bf9b47f55bad4db614171447d7cf660dc454febef5042d02",
    "turbofit_thigh.png": "c001285c89be46dd992d5ba47d63cfdda9b91037437501690f75f7827f8cffeb",
    "turbofit_shin.png": "70cdb16bcb23e024122e6c15726576175d8230e82c0d7fc08620382c18f75833",
    "turbofit_foot.png": "6be78d9e5abfe2162bf0015e6bf2a9abd14332cbfa9bf7d86f83672e6d7ea78f",
@@ -453,12 +449,12 @@
    "turbofit_hair_front.png": "ca815731565f919c14479fa6adc32d6f08713719c8b26d3bd7e4285cbc98eddc",
    "turbofit_hand_grip_back.png": "f163776047baa9bd3697ec9b07ece79e5f62404cb70718f7da19ca2733bbdbe8",
    "turbofit_hand_grip_front.png": "b7049b2b2ded41b92727d6b89326c1f279020743979f313138586b56fc562043",
-   "turbofit_hand_grip_far.png": "d35abb5348b084b5ac5a39ad2e0f3720b091db9c11f7b91a61070567450c584a",
+   "turbofit_hand_grip_far.png": "f163776047baa9bd3697ec9b07ece79e5f62404cb70718f7da19ca2733bbdbe8",
    "turbofit_hand_open.png": "aaec2248495c3525f54faf0b9aa6d94664d5851e8658be62e4b676ff76a3c28a",
    "turbofit_weapon.png": "f13aefd5dd838031885095b1b1a34b83d33919987427daebc5f7dd51be0ddcfd"
   },
   "inputs": {
-   "A": "b3a4a5afccaf9bbc85f01e1474b045b06416fd1bf9c304d4a2a45c1054249b45",
+   "A": "8768e5b83473f4d461bddade0b290a5e6d63d3727372e80814d85966cfcad582",
    "H": "c820bed9f608098cbfc1f02041b1ba12226ec35dd16ce957d6f12d58c9cdf68e",
    "B": "e27e83c35608543fcb9f4719b42cb03c727475bc9466eb8d448abe952d9b647e"
   }
@@ -517,17 +513,17 @@
    "magentaPixels": 0
   },
   "torso": {
-   "w": 57,
+   "w": 50,
    "h": 70,
    "kind": "torso",
    "scale": 0.3167,
    "pivot": [
-    28,
+    25,
     35
    ],
    "anchors": {
     "neck": [
-     26,
+     22,
      4
     ],
     "shoulder": [
@@ -535,64 +531,64 @@
      17
     ],
     "shoulder_b": [
-     50,
+     44,
      15
     ],
     "hip": [
-     21,
+     18,
      62
     ],
     "hip_b": [
-     35,
+     31,
      62
     ]
    },
-   "partialAlpha": 0.153,
+   "partialAlpha": 0.165,
    "magentaPixels": 0
   },
   "torso_front": {
-   "w": 54,
+   "w": 49,
    "h": 70,
    "kind": "torso",
    "scale": 0.3153,
    "pivot": [
-    27,
+    24,
     35
    ],
    "anchors": {},
-   "partialAlpha": 0.138,
+   "partialAlpha": 0.16,
    "magentaPixels": 0
   },
   "uarm": {
-   "w": 16,
-   "h": 47,
+   "w": 27,
+   "h": 43,
    "kind": "limb",
-   "scale": 0.2144,
+   "scale": 0.366,
    "pivot": [
-    8,
-    3
+    14,
+    4
    ],
    "joint": [
-    8,
-    42
+    10,
+    39
    ],
-   "partialAlpha": 0.378,
+   "partialAlpha": 0.236,
    "magentaPixels": 0
   },
   "farm": {
-   "w": 14,
-   "h": 43,
+   "w": 20,
+   "h": 41,
    "kind": "limb",
-   "scale": 0.1979,
+   "scale": 0.3155,
    "pivot": [
-    7,
-    3
+    9,
+    2
    ],
    "joint": [
-    7,
-    39
+    11,
+    37
    ],
-   "partialAlpha": 0.438,
+   "partialAlpha": 0.282,
    "magentaPixels": 0
   },
   "thigh": {
@@ -721,19 +717,20 @@
    "magentaPixels": 0
   },
   "grip_far": {
-   "w": 15,
-   "h": 24,
-   "kind": "hand",
+   "w": 12,
+   "h": 19,
+   "kind": "grip",
    "scale": 0.0809,
    "pivot": [
-    4,
+    5,
     1
    ],
    "grip": [
-    7,
-    15
+    5,
+    14
    ],
-   "partialAlpha": 0.554,
+   "axis": -0.1,
+   "partialAlpha": 0.528,
    "magentaPixels": 0
   },
   "hand_open": {

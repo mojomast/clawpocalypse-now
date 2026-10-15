@@ -105,7 +105,7 @@ Weapon grip: 35 (degrees the weapon art turns in the fist; rig QA t_030997313808
 
 Palette/look (v2, `src/design.jpg`, sovthpaw's TurboFit): copper wavy mane with the face visible (heads from `src/heads.jpg`; the sheetA heads have the wrong dark hair and are unused), studded black leather vest over a bare chest, silver chains, amber belt buckle, dark jeans, black boots with mint laces, black flying-V guitar-axe.  Move set: Heavy and slow: wide guitar-axe swings (long wind-up, big knockback), power chord shockwave special (ground wave both directions), headbang charge (head-first rush).
 
-Rig: v2 (sliced by `tools/slice-hero-parts.py turbofit` from `src/sheetA.jpg`, `src/heads.jpg` + `src/sheetB.jpg`, spec `src/SLICE.json`). Separate boots (the shaft overlaps the jeans), hands with a grip pair on the guitar neck; the far hand closes on the neck's second grip (grip_far) whenever the far arm can reach it, otherwise it stays open. Two back hair locks and the crown piece on springs, colour-matched to the heads.jpg copper.
+Rig: v2 (sliced by `tools/slice-hero-parts.py turbofit` from `src/sheetA-polish.png`, `src/heads.jpg` + `src/sheetB.jpg`, spec `src/SLICE.json`). Rebuild the lossless torso socket cleanup with `src/prepare-polish.py` from the untouched approved `src/sheetA.jpg`. Upper/lower arms are anatomical overlapping source regions, uniformly resampled; the deltoid rotates with the upper arm rather than remaining a painted oval on the vest. Separate boots (the shaft overlaps the jeans). The near registered grip pair and closed far grip use the actual second closed-hand drawing on sheetB, with the sample rod removed; the far grip is no longer the third, open-palm drawing. Its wrist/grip register is (5,1)/(5,14), distinct from the 13x25 open hand. Supported coils/strikes require the whole far arm chain in front of the torso and closed fingers above the guitar neck; recovery/gestures release to open. Two back hair locks and the crown piece on springs, colour-matched to the heads.jpg copper.
 Layers: hair_back_1, hair_back_2, uarm_b, farm_b, hand_b, thigh_b, shin_b, foot_b, head, hair_front, thigh, shin, foot, torso, uarm, farm, hand, weapon, hand_front
 Wrist: c=35 hw=35
 
@@ -114,24 +114,24 @@ Wrist: c=35 hw=35
 |---|---|---|---|---|---|---|---|
 | hair_back_1 | turbofit_hair_back_1.png | 32x47 | 16,2 | head | 15,11 | spring | spring=90,9,0.16 range=-25,55 |
 | hair_back_2 | turbofit_hair_back_2.png | 23x41 | 11,2 | head | 10,20 | spring | spring=120,10,0.14 range=-20,50 |
-| uarm_b | turbofit_uarm.png | 16x47 | 8,3 | torso | 50,15 | body | joint=8,42 |
-| farm_b | turbofit_farm.png | 14x43 | 7,3 | uarm_b | 8,42 | body | joint=7,39 |
-| hand_b | turbofit_hand_open.png | 13x25 | 5,1 | farm_b | 7,39 | hand |  |
-| hand_b@grip_far | turbofit_hand_grip_far.png | 15x24 | 4,1 | - | - | variant | grip=7,15 |
-| thigh_b | turbofit_thigh.png | 18x52 | 8,3 | torso | 35,62 | body | joint=8,47 |
+| uarm_b | turbofit_uarm.png | 27x43 | 14,4 | torso | 44,15 | body | joint=10,39 |
+| farm_b | turbofit_farm.png | 20x41 | 9,2 | uarm_b | 10,39 | body | joint=11,37 |
+| hand_b | turbofit_hand_open.png | 13x25 | 5,1 | farm_b | 11,37 | hand |  |
+| hand_b@grip_far | turbofit_hand_grip_far.png | 12x19 | 5,1 | - | - | variant | grip=5,14 axis=-0.1 |
+| thigh_b | turbofit_thigh.png | 18x52 | 8,3 | torso | 31,62 | body | joint=8,47 |
 | shin_b | turbofit_shin.png | 17x48 | 8,3 | thigh_b | 8,47 | body | joint=8,43 |
 | foot_b | turbofit_foot.png | 34x33 | 11,18 | shin_b | 8,43 | foot | sole=4,29,31,29 |
-| head | turbofit_head.png | 37x49 | 18,46 | torso | 26,4 | body |  |
+| head | turbofit_head.png | 37x49 | 18,46 | torso | 22,4 | body |  |
 | head@front | turbofit_head_front.png | 32x49 | 15,46 | - | - | variant |  |
 | hair_front | turbofit_hair_front.png | 29x31 | 14,1 | head | 16,1 | spring | spring=260,18,0.05 range=-8,12 |
-| thigh | turbofit_thigh.png | 18x52 | 8,3 | torso | 21,62 | body | joint=8,47 |
+| thigh | turbofit_thigh.png | 18x52 | 8,3 | torso | 18,62 | body | joint=8,47 |
 | shin | turbofit_shin.png | 17x48 | 8,3 | thigh | 8,47 | body | joint=8,43 |
 | foot | turbofit_foot.png | 34x33 | 11,18 | shin | 8,43 | foot | sole=4,29,31,29 |
-| torso | turbofit_torso.png | 57x70 | 28,35 | - | - | torso |  |
-| torso@front | turbofit_torso_front.png | 54x70 | 27,35 | - | - | variant |  |
-| uarm | turbofit_uarm.png | 16x47 | 8,3 | torso | 6,17 | body | joint=8,42 |
-| farm | turbofit_farm.png | 14x43 | 7,3 | uarm | 8,42 | body | joint=7,39 |
-| hand | turbofit_hand_grip_back.png | 12x19 | 5,1 | farm | 7,39 | hand | grip=5,14 axis=-0.1 |
+| torso | turbofit_torso.png | 50x70 | 25,35 | - | - | torso |  |
+| torso@front | turbofit_torso_front.png | 49x70 | 24,35 | - | - | variant |  |
+| uarm | turbofit_uarm.png | 27x43 | 14,4 | torso | 6,17 | body | joint=10,39 |
+| farm | turbofit_farm.png | 20x41 | 9,2 | uarm | 10,39 | body | joint=11,37 |
+| hand | turbofit_hand_grip_back.png | 12x19 | 5,1 | farm | 11,37 | hand | grip=5,14 axis=-0.1 |
 | weapon | turbofit_weapon.png | 108x38 | 23,15 | hand | 5,14 | weapon | tip=105,15 grip2=45,15 |
 | hand_front | turbofit_hand_grip_front.png | 12x19 | 5,1 | hand | 5,1 | grip_front | grip=5,14 axis=-0.1 |
 <!-- slice:turbofit:end -->

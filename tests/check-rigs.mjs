@@ -53,8 +53,7 @@ for (const kind of ids) {
     for (const phase of ['wind', 'active', 'recover', 'follow'])
       assert.ok(POSES[`${kind}_${move}_${phase}`], `${kind}: ${move} missing ${phase}`);
   }
-  const missing = ['run', 'hurt'].filter(state => !POSES[`${kind}_${state}`]);
-  if (missing.length) console.log(`${kind}: no hero-prefixed ${missing.join(', ')} (generic walk/hurt states checked where present)`);
+  for (const state of ['run1', 'run2', 'run3', 'run4', 'flinch']) assert.ok(POSES[`${kind}_${state}`], `${kind}: missing ${state}`);
   assert.ok(POSES.hurt && ['walk1', 'walk2', 'walk3', 'walk4'].every(w => POSES[w]), `${kind}: shared hurt/walk fallback missing`);
   const frames = [...new Set([...named, ...generic.filter(p => POSES[p])])].map(name => ({ name, angles: POSES[name] }));
   // Real-time blends need the same geometry invariants as authored keyframes.
@@ -78,6 +77,8 @@ for (const kind of ids) {
   for (const { name, angles } of frames) for (const flip of [false, true]) {
     const label = `${kind} ${name} ${flip ? 'left' : 'right'}`;
     const sol = solve(kind, angles, { poseName: name, animated: true });
+    for (const joint of ['farm', 'farm_b']) assert.ok(sol.angles[joint] >= -150 && sol.angles[joint] <= 0, `${label}: elbow hyperextension ${joint}`);
+    for (const joint of ['shin', 'shin_b']) assert.ok(sol.angles[joint] >= 0 && sol.angles[joint] <= 145, `${label}: knee hyperextension ${joint}`);
     const drawOrder = sol.order;
     assert.equal(new Set(drawOrder).size, drawOrder.length, `${label}: duplicate layer`);
     for (const partName of ['torso', 'head', 'uarm', 'farm', 'uarm_b', 'farm_b', 'thigh', 'shin', 'thigh_b', 'shin_b'])
@@ -111,18 +112,34 @@ for (const kind of ids) {
       const expected = wrist ? wrist.c + wrist.hw * Math.tanh(wrap(raw - wrist.c) / wrist.hw) : raw;
       if (wrist) assert.ok(Math.abs(wrap(relative - wrist.c)) <= wrist.hw + 0.001, `${label}: impossible wrist bend`);
       near(wrap(relative - expected), 0, `${label}: weapon direction`, 0.001);
+      // Independent art-axis check, not merely a repeat of wristAngle(). These
+      // local vectors point handle -> blade/bowl/axe body in the source PNG.
+      // Double-ended staff and flexible cable/nunchaku intentionally have no tip.
+      const axes = { turtle_blue: [0, -82], teknium: [54, 0], turbofit: [-30, 70], don_piedro: [0, -98] };
+      if (axes[kind]) {
+        const hand = apply(pm, (weapon.ax - table[parent].px) * sol.S[parent][0], (weapon.ay - table[parent].py) * sol.S[parent][1]);
+        const elbow = apply(pm, 0, 0), origin = apply(wm, 0, 0);
+        const tip = apply(wm, axes[kind][0] * sol.S.weapon[0], axes[kind][1] * sol.S.weapon[1]);
+        const dot = (hand[0] - elbow[0]) * (tip[0] - origin[0]) + (hand[1] - elbow[1]) * (tip[1] - origin[1]);
+        assert.ok(dot >= -0.001, `${label}: weapon points backward through the gripping forearm`);
+      }
       weapons++;
     } else if (kind !== 'turtle_red' && kind !== 'turtle_orange') {
       assert.fail(`${label}: weapon missing`);
     }
     // Air poses deliberately retain idle lift. Standing poses must keep at least
     // one actual heel/toe on the ground, not just position a guessed bounding box.
-    if (!AIR_POSE.test(name)) {
+    if (sol.contacts.length) {
       const values = ['shin', 'shin_b'].flatMap(n => soles.map(([x, y]) => {
         const p = table[n], s = sol.S[n];
         return apply(sol.M[n], (x - p.px) * s[0], (y - p.py) * s[1])[1];
       }));
-      near(Math.max(...values), FOOT_Y + (angles.dy || 0), `${label}: support foot slid`, 1);
+      near(Math.max(...values), FOOT_Y, `${label}: support foot floated/penetrated`, 1);
+      for (const side of sol.contacts) {
+        const n = side === 'front' ? 'shin' : 'shin_b', p = table[n], sc = sol.S[n];
+        const ys = soles.map(([x, y]) => apply(sol.M[n], (x - p.px) * sc[0], (y - p.py) * sc[1])[1]);
+        near(Math.max(...ys), FOOT_Y, `${label}: ${side} planted foot left ground`, 1);
+      }
       grounded++;
     }
     cases++;
@@ -165,7 +182,8 @@ for (const entry of manifest) {
   const names = Object.keys(POSES).filter(name => name.startsWith(`${entry.hero}_`));
   assert.deepEqual([...entry.assets].sort(), [...new Set(Object.values(HERO_RIGS[entry.hero]).map(p => p.file))].sort(), `${entry.hero}: baseline asset coverage`);
   assert.equal(new Set(entry.poses).size, entry.poses.length, `${entry.hero}: duplicate contact sheet pose`);
-  for (const name of names) assert.ok(entry.poses.includes(name), `${entry.hero}: baseline omitted ${name}`);
+  // New authored states must not require rewriting the original baseline.
+  for (const name of entry.poses.filter(name => name.startsWith(`${entry.hero}_`))) assert.ok(names.includes(name), `${entry.hero}: original pose removed: ${name}`);
   assert.ok(entry.poses.includes('hurt'), `${entry.hero}: shared hurt state omitted`);
   assert.ok(entry.absent?.includes(`${entry.hero}_run`), `${entry.hero}: absent run must be reported`);
   assert.ok(entry.sharedFallbacks?.some(item => item.requested === `${entry.hero}_hurt` && item.drawn === 'hurt'), `${entry.hero}: shared hurt fallback must be explicit`);

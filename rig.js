@@ -7,6 +7,9 @@
 // their sprite/primitives fallback, so publishing without the art never breaks.
 import { ENEMY_RIGS } from './enemy-rigs.js';
 import { HERO_RIGS } from './hero-rigs.js';
+import { addRunPoses } from './hero-motion.js';
+import { constrainHeroAngles, footContacts, limbVectors, plantFeet } from './rig-geometry.js';
+import { HERO_SUPPORT } from './hero-support.js';
 
 // `ax/ay` are the attach point in the parent's pixels; `px/py` the local pivot.
 // `_b` (back) limbs reuse the front image with a darker filter and their own
@@ -398,8 +401,8 @@ export const REACTIONS = REACTION_STATES;
 //    and hips around the spine, so strikes rotate the body instead of only the arm;
 //  - a wrist: the weapon's angle in the fist is soft-limited to a natural range
 //    around that weapon's neutral grip, so a blade never spins in the hand;
-//  - planted feet: animated hero frames put the lowest sole on the ground line, so
-//    crouches bend the knees and drop the hips instead of sliding the feet.
+//  - planted feet: constrain blended joint angles, solve each supporting leg at
+//    fixed rendered bone lengths, then adjust the shared hip height.
 const BACK_TINT_DEFAULT = 'brightness(0.6)';
 // pale skin goes grey at 0.6; these keep the far limbs readable as skin
 const BACK_TINT = { nous_girl: 'brightness(0.8) sepia(0.12)', teknium: 'brightness(0.66)', turbofit: 'brightness(0.66)' };
@@ -413,12 +416,12 @@ export const PART_SCALE = {
 // (pose weapon + MANIFEST grip). c = the angle where the weapon sits square in the
 // fist (theta about -65 deg in check-weapon-angle terms: a fist holds a handle about 65 deg off the forearm), hw = how far the wrist can
 // cock or flex either side of it. Staffs and the spin-only nunchaku are free.
-export const WRIST = { turtle_blue: { c: 92, hw: 50 }, teknium: { c: 12, hw: 50 }, nous_girl: { c: 84, hw: 52 }, turbofit: { c: -91, hw: 50 } };
+export const WRIST = { turtle_blue: { c: 110, hw: 35 }, teknium: { c: 55, hw: 28 }, nous_girl: { c: 84, hw: 52 }, turbofit: { c: -55, hw: 30 } };
 // Shin sole points (heel, toe) in shin-image px, from the art (tools: check-rigs).
 export const SOLES = { turtle_purple: [[10, 72], [33, 72]], turtle_blue: [[13, 57], [35, 57]], turtle_red: [[11, 67], [33, 67]], turtle_orange: [[14, 65], [41, 65]], nous_girl: [[5, 60], [22, 60]], teknium: [[2, 55], [27, 55]], turbofit: [[3, 56], [31, 56]] };
 export const FOOT_Y = 90; // rig px from the root down to the ground line (game.js FEET_SCREEN 63 / RIG_SCALE 0.7)
 // Frames that are not standing on the ground keep the idle offset instead of the plant.
-export const AIR_POSE = /(^|_)(jump|knockdownAir|down|downB|wake|grabbed|juggle_\w+|vaultKick_\w+|dodgeRoll(_\w+)?|roll_\w+|bassDrop_\w+|launcher_active|launcher_recover)$/;
+export const AIR_POSE = /(^|_)(jump|jumpKick(_\w+)?|knockdownAir|down|downB|grabbed|juggle_\w+|vaultKick_\w+|dodgeRoll(_\w+)?|roll_\w+|bassDrop_\w+|slide_(active|follow)|launcher_active|launcher_recover)$/;
 const mul = (a, b) => [a[0] * b[0] + a[2] * b[1], a[1] * b[0] + a[3] * b[1], a[0] * b[2] + a[2] * b[3], a[1] * b[2] + a[3] * b[3], a[0] * b[4] + a[2] * b[5] + a[4], a[1] * b[4] + a[3] * b[5] + a[5]];
 const rot = deg => { const r = (deg || 0) * Math.PI / 180, c = Math.cos(r), s = Math.sin(r); return [c, s, -s, c, 0, 0]; };
 const tr = (x, y) => [1, 0, 0, 1, x, y];
@@ -449,13 +452,17 @@ function chainSolve(kind, A, names) {
     const p = table[name];
     let m = [1, 0, 0, 1, 0, 0];
     if (p.parent) {
-      const q = table[p.parent], qs = scaleOf(kind, p.parent) || [1, 1];
+      const q = table[p.parent];
+      // one(parent) computes its actual rendered S, including torso twist.
+      // Child translation uses that scale, but the child's own matrix does NOT
+      // inherit it: anisotropic sprite scaling must not stretch a limb chain.
+      const parentMatrix = one(p.parent), qs = S[p.parent];
       let ax = p.ax, ay = p.ay;
       if (hero && p.parent === 'torso' && tw) {
         // twist: the near shoulder and hip swing forward around the spine, the far ones back
         ax += tw * (name === 'uarm' ? 3.5 : name === 'uarm_b' ? -3 : name === 'thigh' ? 1.5 : name === 'thigh_b' ? -1.5 : name === 'head' ? 1.5 : 0);
       }
-      m = mul(one(p.parent), tr((ax - q.px) * qs[0], (ay - q.py) * qs[1]));
+      m = mul(parentMatrix, tr((ax - q.px) * qs[0], (ay - q.py) * qs[1]));
     }
     let ang = A[name];
     // mr_india (rig QA): + the weapon's grip angle from MANIFEST.md ("Weapon grip:"), so every
@@ -485,7 +492,11 @@ export function soleY(kind, sol) {
 const idleLift = {};
 export function solve(kind, angles, opts = {}) {
   const table = TABLES[kind];
-  const A = angles || POSES.idle, poseName = opts.poseName || '';
+  const input = angles || POSES.idle, poseName = opts.poseName || '';
+  const hero = !!HERO_RIGS[kind] && !!SOLES[kind];
+  const contacts = hero ? (opts.contacts || footContacts(poseName, input.__gait)) : [];
+  const airborne = !contacts.length || AIR_POSE.test(poseName);
+  const A = hero ? constrainHeroAngles(input, { airborne }) : input;
   const order = [];
   for (const name of orderFor(kind)) {
     const part = table[name];
@@ -496,14 +507,59 @@ export function solve(kind, angles, opts = {}) {
     }
     order.push(name);
   }
-  const { M, S } = chainSolve(kind, A, [...order, ...(table.shin_b && !order.includes('shin_b') ? ['shin_b'] : [])]);
-  let dx = A.dx || 0, dy = A.dy || 0;
-  if (opts.animated && HERO_RIGS[kind] && SOLES[kind]) {
+  let { M, S } = chainSolve(kind, A, [...order, ...(table.shin_b && !order.includes('shin_b') ? ['shin_b'] : [])]);
+  let solvedAngles = A;
+  let dx = A.dx || 0, dy = A.dy || 0, ground = null;
+  if (hero && contacts.length) {
+    const legs = {};
+    for (const [side, suffix] of [['front', ''], ['back', '_b']]) {
+      const thigh = 'thigh' + suffix, shin = 'shin' + suffix;
+      const sole = SOLES[kind].reduce((lowest, point) => {
+        const height = apply(M[shin], (point[0] - table[shin].px) * S[shin][0],
+          (point[1] - table[shin].py) * S[shin][1])[1];
+        return !lowest || height > lowest.height ? { point, height } : lowest;
+      }, null).point;
+      legs[side] = {
+        root: [M[thigh][4], M[thigh][5]],
+        vectors: limbVectors(table[thigh], table[shin], S[thigh], S[shin], sole),
+        contactVectors: SOLES[kind].map(point => [
+          (point[0] - table[shin].px) * S[shin][0],
+          (point[1] - table[shin].py) * S[shin][1],
+        ]),
+        parentAngle: Math.atan2(M.torso[1], M.torso[0]) * 180 / Math.PI,
+        upper: A[thigh] || 0, joint: A[shin] || 0,
+      };
+    }
+    ground = plantFeet({ ...legs, groundY: FOOT_Y, contacts,
+      targets: opts.footTargets || {}, rootDy: opts.rootDy ?? null,
+      maxHipTravel: opts.rootDy == null ? 30 : 0 });
+    // Rebuild every descendant from the IK angles, not just the shins; the
+    // exported matrices are exactly those used by draw and the weapon grip.
+    const posed = { ...A };
+    for (const [side, suffix] of [['front', ''], ['back', '_b']]) {
+      if (!ground[side]) continue; // swing leg keeps its authored motion
+      posed['thigh' + suffix] = ground[side].upper;
+      posed['shin' + suffix] = ground[side].joint;
+    }
+    solvedAngles = posed;
+    ({ M, S } = chainSolve(kind, posed, order));
+    dy = ground.dy; // A.dy is a posture hint; it must not unplant the feet.
+  } else if (hero && /(^|_)down(?:B|_b)?$/.test(poseName)) {
+    // Rest on opaque body art, not an idle-height root or transparent corners.
+    let bottom = -Infinity;
+    for (const n of order) {
+      if (n === 'weapon') continue;
+      const hull = HERO_SUPPORT[kind]?.[n.replace(/_b$/, '')];
+      if (!hull) continue;
+      for (const [u, v] of hull) bottom = Math.max(bottom, apply(M[n], (u - table[n].px) * S[n][0], (v - table[n].py) * S[n][1])[1]);
+    }
+    if (Number.isFinite(bottom)) dy = opts.rootDy ?? (FOOT_Y - bottom);
+  } else if (opts.animated && hero) {
     if (idleLift[kind] == null) idleLift[kind] = FOOT_Y - soleY(kind, chainSolve(kind, POSES[`${kind}_idleA`] || POSES.idle, ['shin', 'shin_b']));
-    dy += AIR_POSE.test(poseName) ? idleLift[kind] : FOOT_Y - soleY(kind, { M, S });
+    dy += idleLift[kind];
   }
   if (dx || dy) for (const n of Object.keys(M)) { M[n] = M[n].slice(); M[n][4] += dx; M[n][5] += dy; }
-  return { M, S, order };
+  return { M, S, order, contacts, ground, angles: solvedAngles };
 }
 
 // --- heroes world-class pass: per-hero stances, walks and moves ----------------
@@ -699,10 +755,10 @@ const HERO_STYLE = {
     },
   },
   turbofit: {
-    idleA: { torso: 8, head: -5, uarm: 4, farm: -16, th: -22, off: [-16, -70], legs: 'wide' },
+    idleA: { torso: 8, head: -5, uarm: -30, farm: -78, th: -22, off: [-16, -70], legs: 'wide' },
     idleB: { torso: 10, head: -6, uarm: -20, farm: -60, th: -75, off: [-40, -60], legs: 'wide', tw: 0.15 },
-    idleC: { torso: 12, head: -8, uarm: -10, farm: -40, th: -60, off: [-40, -60], legs: 'wide' },
-    walk: { torso: 9, front: [2, 6, -18], off: [-16, 26, -60], th: -24 },
+    idleC: { torso: 12, head: -8, uarm: -24, farm: -70, th: -60, off: [-40, -60], legs: 'wide' },
+    walk: { torso: 9, front: [-28, 6, -74], off: [-16, 26, -60], th: -24 },
     jump: { torso: -4, head: -6, uarm: -80, farm: -40, th: -40, off: [40, -30], legs: [-60, 80, -20, 60] },
     taunt: { torso: 4, head: 14, uarm: 4, farm: -16, th: -22, off: [-100, -60], legs: 'wide', tw: -0.3 },
     victory: { torso: -10, head: -8, uarm: -130, farm: -30, th: -30, off: [-150, -30], legs: 'wide' },
@@ -714,8 +770,8 @@ const HERO_STYLE = {
         { torso: 2, head: -6, uarm: -110, farm: -10, th: -60, off: [20, -80], legs: 'wide', tw: -0.8 },
         { torso: -2, head: -6, uarm: -130, farm: -20, th: -60, off: [26, -80], legs: 'wide', tw: -0.9 }],
       axeHeavy: [{ torso: -20, head: 6, uarm: 145, farm: -8, th: -55, off: [150, -20], legs: [-14, 30, 30, 16], tw: -1, dy: -2 },
-        { torso: 30, head: -16, uarm: -12, farm: -24, th: -30, off: [-30, -20], legs: [-44, 46, 34, 2], tw: 1, dx: 6 },
-        { torso: 34, head: -18, uarm: -2, farm: -20, th: -24, off: [-16, -20], legs: [-44, 46, 34, 2], tw: 1, dx: 6 }],
+        { torso: 30, head: -16, uarm: -12, farm: -50, th: -30, off: [-30, -20], legs: [-44, 46, 34, 2], tw: 1, dx: 6 },
+        { torso: 34, head: -18, uarm: -2, farm: -44, th: -24, off: [-16, -20], legs: [-44, 46, 34, 2], tw: 1, dx: 6 }],
       headbang: [{ torso: -10, head: -8, uarm: 20, farm: -30, th: -60, off: [30, -60], legs: 'coil', tw: -0.4 },
         { torso: 30, head: 14, uarm: 30, farm: -40, th: -70, off: [40, -40], legs: [-40, 30, 36, 4], tw: 0.5, dx: 6 },
         { torso: 26, head: 20, uarm: 26, farm: -40, th: -70, off: [40, -44], legs: [-36, 28, 32, 4], tw: 0.4, dx: 6 }],
@@ -744,6 +800,7 @@ for (const [h, st] of Object.entries(HERO_STYLE)) {
     if (w.th != null) o.weapon = w.th + GRIP_OFF[h]; else if (w.weapon != null) o.weapon = w.weapon;
     set('walk' + (i + 1), o);
   });
+  addRunPoses(POSES, h);
   set('turn', { ...POSES.turn, weapon: POSES[K('idleA')].weapon });
   for (const [mv, [wd, ac, fo]] of Object.entries(st.moves)) {
     set(`${mv}_wind`, hp(h, wd, { air: wd.air })); set(`${mv}_active`, hp(h, ac, { air: ac.air })); set(`${mv}_follow`, hp(h, fo, { air: fo.air }));
@@ -836,7 +893,11 @@ export function createRig() {
     const poseName = typeof pose === 'string' ? pose : (pose && pose.__pose) || ''; // rig QA: anim.js tags its angle objects
     const target = typeof pose === 'string' ? (POSES[pose] || POSES.idle) : (pose || POSES.idle);
     const angles = key ? eased(kind + ':' + key, target, dt, table) : target;
-    const sol = solve(kind, angles, { poseName, animated: typeof pose !== 'string' && !!(pose && pose.__pose) });
+    // __footTargets, when supplied by the caller, are rig-local [x,y] sole
+    // anchors AFTER converting world origin, facing and draw scale. Without
+    // anchors IK still plants both Y contacts, but cannot lock X across motion.
+    const sol = solve(kind, angles, { poseName, animated: typeof pose !== 'string' && !!(pose && pose.__pose),
+      footTargets: pose && pose.__footTargets, rootDy: pose && pose.__rootDy });
     ctx.save();
     ctx.translate(x, y);
     if (flip) ctx.scale(-1, 1);
@@ -911,9 +972,11 @@ export function createRig() {
     if (state.victory) return K('victory');
     if (state.taunt > 0) return K('taunt');
     // Being down or held outranks attacking, so a knocked-down player reads as down.
+    if (state.playerDown > 0) return K(state.playerDown <= 0.22 ? 'wake' : 'down');
     if (c.down > 0) return K('down');
     if (c.wake > 0) return K('wake');
-    if (c.grab) return K('grabHold');
+    if (state.hurtT > 0 || c.stun > 0) return K('flinch');
+    if (c.grab && !c.attack) return K('grabHold');
     if (c.turnT > 0) return K('turn');
     if (c.airborne) {
       // A jump kick still needs its own wind-up and strike, so an airborne attack
@@ -932,7 +995,7 @@ export function createRig() {
       if (c.phase === 'active') return kicking ? 'kick' : 'punch';
       return K('idle');
     }
-    if (c.moving) return K(WALK[Math.floor(c.walkT * 8) % WALK.length]);
+    if (c.moving) return K((c.running ? 'run' : 'walk') + (Math.floor(c.walkT * 8) % WALK.length + 1));
     // Standing still is not one pose: the idle variants rotate on a timer, offset
     // per hero so two heroes side by side are not in lockstep.
     return idleVariantAt(hero, t);

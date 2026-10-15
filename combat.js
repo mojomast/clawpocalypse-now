@@ -216,7 +216,13 @@ export function combatWalk(state, dx, dy, dt) {
     movePlayer(p, dx * WALK_AIR * r, dy * WALK_AIR * r, dt, c.freeLevel);
     return;
   }
+  const oldX = p.x, oldY = p.y;
   movePlayer(p, dx * r * run, dy * r, dt, state.level);
+  // Space the gait by actual travelled distance, including collision and the
+  // acceleration ramp. A clock-only cycle moonwalks against walls and at starts.
+  const distance = Math.hypot(p.x - oldX, p.y - oldY);
+  if (distance > 1e-5) c.walkT = (c.walkT || 0) + distance / ((c.running ? 64 : 46) * 4);
+  else c.moving = false;
   // Auto-grab: walking into a stunned enemy grabs it (Final Fight / SoR rule).
   if (dx && c.phase === 'idle' && !c.running) tryGrab(state);
 }
@@ -504,8 +510,7 @@ export function combatStep(state, dt) {
 
   if (c.chainTimer > 0) c.chainTimer = Math.max(0, c.chainTimer - dt);
   else if (c.phase === 'idle') c.chain = 0;
-  if (c.moving && !c.attack && !c.airborne) c.walkT = (c.walkT || 0) + dt * (c.running ? 1.6 : 1);
-  else c.walkT = 0;
+  if (!c.moving || c.attack || c.airborne) c.walkT = 0;
 
   // Grab hold: the enemy is pinned in front; it slips free when the timer runs out.
   stepGrab(state, dt);

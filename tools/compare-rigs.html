@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><base href="/"><title>Before and after rig comparison</title>
+<body style="margin:0;background:#171b2b"><canvas id="comparison"></canvas>
+<script type="module">
+const hero = new URLSearchParams(location.search).get('hero');
+const load = async path => { const img = new Image(); img.src = path; await img.decode(); return img; };
+try {
+  const [before, after] = await Promise.all([load(`/before/${hero}.png`), load(`/after/${hero}.png`)]);
+  const canvas = document.querySelector('#comparison');
+  canvas.width = before.width + after.width; canvas.height = Math.max(before.height, after.height) + 44;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#171b2b'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.font = 'bold 22px monospace'; ctx.fillStyle = '#fff';
+  ctx.fillText(`${hero} — BEFORE`, 20, 29); ctx.fillText(`${hero} — AFTER`, before.width + 20, 29);
+  ctx.drawImage(before, 0, 44); ctx.drawImage(after, before.width, 44);
+  window.__rigComparison = { png: canvas.toDataURL('image/png') };
+} catch (error) { window.__rigComparison = { error: error.message }; }
+</script></body></html>

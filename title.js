@@ -14,7 +14,7 @@ export const BEAT_FADE = 0.5; // narration crossfade between beats
 export const BEATS = [
   { id: 'city', lineAt: 1.4, min: 7.0, cam: { z: 1.42, x: 0.63, y: 0.30 }, camDur: 7.0,
     line: 'Ten thousand forgotten claws woke up hungry.' },
-  { id: 'overlord', lineAt: 0.6, min: 7.0, cam: { z: 1.22, x: 0.63, y: 0.30 }, camDur: 2.6, rise: [0.3, 2.8], roar: 2.4,
+  { id: 'overlord', lineAt: 0.6, min: 7.0, cam: { z: 1.22, x: 0.63, y: 0.26 }, camDur: 2.6, rise: [0.3, 2.8], roar: 2.4,
     line: 'One rogue lobster, Shredclaw, made them his army.' },
   { id: 'nous', lineAt: 0.5, min: 7.0, cam: { z: 1.06, x: 0.44, y: 0.56 }, camDur: 1.6,
     line: 'Three rebels from Nous had the cure: claw migrate.',
@@ -36,6 +36,21 @@ export const CAST = {
   // baba_booey (t_9ec48322f6de4bf7): Don Piedro Savastano, Hermes' #1 fanboy, drops in last (cutout from tools/make_don_art.py)
   don_piedro: { name: 'DON PIEDRO', sub: 'BIG SPOON', color: '#c98a4b', x: 662, h: 178, move: 'drop' }
 };
+// ---- the OpenClaw tower in plate.jpg (1280x720 plate space), measured from the art:
+// a biomechanical stepped pyramid with a flat top platform (y 86..120) and a round red
+// lens beacon at the apex. TOWER_POLY / SKYLINE_POLY trace the tower and the foreground
+// (spires, bone horns, lava ground); both are drawn again in front of the Overlord, so he
+// only shows in the sky. Traced with a GrabCut segmentation, simplified to ~1.5 px.
+const TOWER_POLY = [794, 48, 788, 53, 788, 56, 785, 57, 784, 64, 779, 68, 778, 79, 764, 91, 739, 94, 739, 97, 731, 101, 729, 106, 723, 111, 723, 115, 726, 118, 735, 122, 752, 125, 757, 128, 757, 131, 749, 138, 749, 143, 742, 149, 742, 154, 747, 159, 741, 168, 730, 175, 733, 185, 728, 191, 720, 191, 716, 194, 715, 201, 720, 206, 722, 212, 710, 220, 705, 220, 703, 223, 703, 229, 708, 236, 708, 242, 703, 245, 702, 252, 699, 255, 690, 257, 690, 262, 694, 268, 691, 274, 682, 281, 674, 282, 673, 292, 680, 300, 672, 310, 664, 309, 659, 314, 658, 319, 655, 320, 655, 325, 661, 332, 658, 341, 650, 348, 637, 353, 636, 365, 639, 369, 635, 377, 623, 383, 621, 387, 615, 387, 610, 393, 606, 405, 601, 406, 597, 413, 593, 426, 583, 445, 580, 446, 578, 450, 577, 441, 573, 441, 570, 444, 562, 444, 561, 454, 556, 462, 555, 476, 551, 481, 560, 482, 560, 719, 1060, 719, 1060, 482, 1080, 481, 1080, 464, 1064, 440, 1063, 432, 1059, 432, 1058, 437, 1055, 432, 1057, 431, 1056, 425, 1044, 422, 1037, 415, 1035, 405, 1039, 393, 1035, 383, 1029, 378, 1016, 375, 1010, 369, 1008, 359, 1011, 355, 1012, 347, 1009, 338, 1000, 333, 994, 333, 988, 328, 985, 318, 989, 313, 989, 304, 984, 298, 981, 298, 978, 294, 972, 294, 966, 288, 966, 284, 971, 276, 971, 271, 966, 264, 963, 264, 961, 261, 955, 261, 951, 257, 949, 251, 954, 244, 953, 235, 944, 229, 937, 229, 933, 224, 938, 214, 938, 208, 935, 203, 931, 201, 926, 202, 922, 199, 920, 193, 924, 187, 924, 182, 921, 181, 921, 178, 915, 177, 913, 179, 905, 171, 909, 164, 909, 157, 905, 153, 895, 155, 891, 150, 892, 144, 898, 136, 898, 129, 894, 129, 886, 137, 879, 135, 871, 136, 868, 133, 872, 124, 878, 118, 884, 118, 908, 109, 910, 99, 904, 97, 902, 92, 880, 87, 858, 85, 857, 80, 854, 80, 850, 75, 851, 68, 845, 58, 839, 58, 837, 56, 823, 58, 819, 56, 816, 51, 807, 50, 804, 47];
+const SKYLINE_POLY = [1279, 444, 1265, 442, 1259, 433, 1257, 411, 1245, 371, 1215, 304, 1193, 272, 1165, 240, 1154, 239, 1153, 247, 1177, 289, 1188, 318, 1189, 328, 1193, 331, 1204, 373, 1203, 384, 1206, 395, 1205, 443, 1198, 475, 1200, 483, 1192, 509, 1175, 529, 1170, 529, 1164, 543, 1157, 550, 1151, 546, 1148, 519, 1138, 512, 1125, 513, 1123, 510, 1114, 510, 1109, 507, 1105, 481, 1101, 480, 1096, 446, 1092, 446, 1091, 471, 1087, 472, 1074, 457, 1071, 448, 1064, 440, 1063, 432, 1061, 432, 1060, 470, 560, 470, 558, 457, 555, 476, 543, 487, 536, 485, 535, 492, 530, 498, 527, 490, 521, 490, 505, 508, 499, 476, 500, 467, 497, 466, 497, 449, 493, 449, 493, 454, 491, 454, 491, 429, 489, 428, 487, 404, 483, 402, 482, 381, 478, 381, 475, 386, 473, 410, 468, 411, 464, 446, 457, 450, 458, 475, 456, 481, 453, 482, 452, 506, 447, 509, 448, 518, 445, 531, 442, 530, 442, 525, 438, 525, 436, 540, 425, 538, 422, 533, 422, 520, 414, 515, 409, 496, 410, 489, 407, 488, 406, 464, 402, 462, 398, 413, 384, 415, 380, 456, 376, 463, 375, 486, 371, 489, 370, 508, 363, 519, 343, 520, 339, 524, 334, 542, 322, 544, 310, 494, 303, 487, 298, 486, 297, 463, 294, 462, 292, 455, 286, 454, 283, 418, 280, 415, 274, 415, 272, 419, 271, 386, 251, 383, 251, 394, 247, 404, 246, 434, 242, 440, 214, 435, 212, 452, 207, 457, 200, 457, 198, 462, 179, 455, 159, 455, 157, 453, 158, 396, 163, 383, 165, 363, 172, 347, 173, 336, 179, 325, 179, 310, 135, 267, 115, 252, 111, 244, 104, 244, 102, 252, 48, 321, 18, 407, 0, 429, 0, 719, 1279, 719];
+const LENS = { x: 806, y: 66 };         // the apex beacon (centre of the red lens)
+const TOWER_TOP = { x: 806, y: 136 };   // under the platform rim: where the smoke rolls
+// Shredclaw stands behind the tower: core (sprite y 0.267) hidden behind the platform,
+// head and horns above the lens dome, claws spread into the sky either side.
+const OVERLORD = { cx: 806, coreY: 104, w: 760 };
+// The apex is only ~44 px under the plate's top edge, so the camera may tilt this many
+// plate px above the plate; that strip is filled with a soft mirror of the plate's own sky.
+const SKY_HEADROOM = 120;
 const ENTER_DUR = { slideL: 0.55, slideR: 0.55, drop: 0.5, leap: 0.62 };
 const GROUND = 494; // stage y of the characters' feet at the default camera
 const typeTime = line => line.length / TYPE_RATE;
@@ -151,6 +166,16 @@ export function createTitle(audio) {
   }
 
   // ---------- drawing
+  let cap = null;
+  // the sky strip above the plate: its top 40 rows mirrored, stretched, blurred, darkened upward
+  function skyCap(P) {
+    if (cap || typeof document === 'undefined') return cap;
+    const c = document.createElement('canvas'); c.width = P.width; c.height = SKY_HEADROOM; const x = c.getContext('2d');
+    x.filter = 'blur(3px)'; x.save(); x.scale(1, -1); x.drawImage(P, 0, 0, P.width, 40, -4, -SKY_HEADROOM - 4, P.width + 8, SKY_HEADROOM + 8); x.restore(); x.filter = 'none';
+    const g = x.createLinearGradient(0, 0, 0, SKY_HEADROOM); g.addColorStop(0, 'rgba(6,2,12,0.8)'); g.addColorStop(1, 'rgba(6,2,12,0)');
+    x.fillStyle = g; x.fillRect(0, 0, c.width, SKY_HEADROOM);
+    return (cap = c);
+  }
   const sil = {};
   function silhouette(name, color) {
     const key = name + color; if (sil[key]) return sil[key];
@@ -190,18 +215,20 @@ export function createTitle(audio) {
     // slide the plate off an edge and show black; the clamp keeps that margin.
     const OS = 8, s0 = Math.max((W + 2 * OS) / pw, (H + 2 * OS) / ph), s = s0 * cam.z, dw = pw * s, dh = ph * s;
     let ox = W / 2 - cam.x * dw, oy = H / 2 - cam.y * dh;
-    ox = Math.min(-OS, Math.max(W - dw + OS, ox)); oy = Math.min(-OS, Math.max(H - dh + OS, oy));
+    // vertically the camera may also tilt up into the SKY_HEADROOM strip above the plate
+    ox = Math.min(-OS, Math.max(W - dw + OS, ox)); oy = Math.min(SKY_HEADROOM * s - OS, Math.max(H - dh + OS, oy));
     const PT = (px, py) => [ox + px * s, oy + py * s];
-    if (ok(P)) ctx.drawImage(P, ox, oy, dw, dh);
+    if (ok(P)) { ctx.drawImage(P, ox, oy, dw, dh); if (oy > -OS && skyCap(P)) ctx.drawImage(cap, ox, oy - SKY_HEADROOM * s + 0.5, dw, SKY_HEADROOM * s); }
     // ---- Overlord, behind the tower (rises in beat 2, looms in beat 5)
-    const O = img.overlord;
     const oi = BEATS.findIndex(x => x.id === 'overlord');
+    const O = img.overlord;
     if (ok(O) && st.b >= oi) {
       const rb = BEATS[oi];
       const rk = st.b > oi ? 1 : 1 - Math.pow(1 - Math.min(1, Math.max(0, (st.bt - rb.rise[0]) / (rb.rise[1] - rb.rise[0]))), 3);
       const loom = st.b === BEATS.length - 1 ? ease(st.bt / 2.0) : 0;
-      const ow = 900 * (1 + 0.1 * loom) * (1 + 0.008 * Math.sin(st.t * 1.6)), oh = ow * O.height / O.width;
-      const cx = 806, coreY = 192 - 30 * loom + 620 * (1 - rk);
+      // final loom: he grows and settles lower, face behind the logo, horns and claws around it
+      const ow = OVERLORD.w * (1 + 0.12 * loom) * (1 + 0.008 * Math.sin(st.t * 1.6)), oh = ow * O.height / O.width;
+      const cx = OVERLORD.cx, coreY = OVERLORD.coreY + 55 * loom + 620 * (1 - rk);
       // the Overlord sits a little deeper than the tower: a small parallax lag
       const lag = (cam.x - 0.5) * 40;
       const [sx, sy] = PT(cx - ow / 2 + lag, coreY - 0.267 * oh);
@@ -222,22 +249,33 @@ export function createTitle(audio) {
       // the tower and skyline in front of him: the plate again, clipped
       if (ok(P)) {
         ctx.save(); ctx.beginPath();
-        const poly = (pts) => { pts.forEach(([x, y], i) => { const [X, Y] = PT(x, y); if (i) ctx.lineTo(X, Y); else ctx.moveTo(X, Y); }); ctx.closePath(); };
-        // tower body only: he rises behind it and in front of the claw statue on top
-        poly([[540, 480], [600, 400], [640, 330], [668, 268], [680, 234], [944, 234], [975, 300], [1020, 380], [1080, 480], [1080, 720], [540, 720]]);
-        poly([[0, 720], [0, 250], [360, 240], [398, 300], [440, 392], [520, 392], [560, 402], [1080, 402], [1108, 282], [1160, 262], [1200, 300], [1280, 250], [1280, 720]]);
+        const poly = (f) => { for (let i = 0; i < f.length; i += 2) { const [X, Y] = PT(f[i], f[i + 1]); if (i) ctx.lineTo(X, Y); else ctx.moveTo(X, Y); } ctx.closePath(); };
+        // the whole tower (body, platform, lens dome) and the foreground skyline
+        poly(TOWER_POLY); poly(SKYLINE_POLY);
         ctx.clip(); ctx.drawImage(P, ox, oy, dw, dh); ctx.restore();
-        // purple smoke rolling off the tower top hides where he meets the tower
-        const [fx0, fy0] = PT(812 + Math.sin(st.t * 0.7) * 6, 238);
-        ctx.save(); ctx.translate(fx0, fy0); ctx.scale(1, 0.2);
-        const R = 240 * s, fg = ctx.createRadialGradient(0, 0, 0, 0, 0, R);
-        fg.addColorStop(0, 'rgba(22,8,40,0.97)'); fg.addColorStop(0.55, 'rgba(30,10,52,0.8)'); fg.addColorStop(1, 'rgba(30,10,52,0)');
+        // purple smoke rolling off the platform rim hides where he meets the tower
+        const [fx0, fy0] = PT(TOWER_TOP.x + Math.sin(st.t * 0.7) * 6, TOWER_TOP.y);
+        ctx.save(); ctx.translate(fx0, fy0); ctx.scale(1, 0.14);
+        const R = 165 * s, fg = ctx.createRadialGradient(0, 0, 0, 0, 0, R);
+        fg.addColorStop(0, 'rgba(22,8,40,0.85)'); fg.addColorStop(0.55, 'rgba(30,10,52,0.6)'); fg.addColorStop(1, 'rgba(30,10,52,0)');
         ctx.fillStyle = fg; ctx.beginPath(); ctx.arc(0, 0, R, 0, 7); ctx.fill(); ctx.restore();
       }
     }
-    // ---- searchlights from the tower (with the plate)
+    // ---- apex lens beacon: a slow blink, and a hard flash on the roar
     ctx.globalCompositeOperation = 'lighter';
-    for (const [u, v, phs, sp, col] of [[690, 250, 0, 0.5, '255,40,80'], [925, 245, 2.2, 0.42, '255,60,140'], [760, 300, 4.1, 0.33, '200,40,255']]) {
+    if (ok(P)) {
+      const ob = BEATS[oi], roarK = st.b === oi && st.bt >= ob.roar ? Math.max(0, 1 - (st.bt - ob.roar) / 0.7) : 0;
+      const pulse = Math.pow(0.5 + 0.5 * Math.sin(st.t * 2.2 - 1.2), 3); // ~2.9 s, mostly dim with a bright peak
+      const a = Math.min(1, 0.22 + 0.7 * pulse + 0.9 * roarK), [lx, ly] = PT(LENS.x, LENS.y);
+      const R = (24 + 14 * pulse + 70 * roarK) * s, g = ctx.createRadialGradient(lx, ly, 0, lx, ly, R);
+      g.addColorStop(0, `rgba(255,120,100,${a})`); g.addColorStop(0.3, `rgba(255,30,40,${a * 0.6})`); g.addColorStop(1, 'rgba(255,0,0,0)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(lx, ly, R, 0, 7); ctx.fill();
+      const r0 = (5 + 2 * pulse + 6 * roarK) * s, h = ctx.createRadialGradient(lx, ly, 0, lx, ly, r0);
+      h.addColorStop(0, `rgba(255,230,210,${Math.min(1, 0.3 + 0.7 * pulse + roarK)})`); h.addColorStop(1, 'rgba(255,60,60,0)');
+      ctx.fillStyle = h; ctx.beginPath(); ctx.arc(lx, ly, r0, 0, 7); ctx.fill();
+    }
+    // ---- searchlights from the tower top (with the plate): platform rim ends + the lens dome
+    for (const [u, v, phs, sp, col] of [[730, 104, 0, 0.5, '255,40,80'], [884, 104, 2.2, 0.42, '255,60,140'], [806, 48, 4.1, 0.33, '200,40,255']]) {
       const [bx, by] = PT(u, v); const ang = -Math.PI / 2 + Math.sin(st.t * sp + phs) * 0.8, len = H * 1.4, half = 0.08;
       const g = ctx.createLinearGradient(bx, by, bx + Math.cos(ang) * len, by + Math.sin(ang) * len);
       g.addColorStop(0, `rgba(${col},0.32)`); g.addColorStop(0.5, `rgba(${col},0.09)`); g.addColorStop(1, `rgba(${col},0)`);
@@ -280,12 +318,12 @@ export function createTitle(audio) {
       // name cards alternate height so neighbours' cards never overlap
       if (a.land >= 0 && a.land < 2.1) nameCard(ctx, X, Y - hgt - 10 * cr - (Object.keys(CAST).indexOf(a.name) % 2) * 40, a.c, a.land, W);
     }
-    // ---- near rain + rooftop silhouettes (fastest layer)
+    // ---- near rain + foreground silhouettes on the lava ground (fastest layer)
     drawRain(ctx, W, H, true, shiftX * 1.7);
     ctx.fillStyle = '#05030b';
     const fx = shiftX * 1.7, fy = Math.max(0, shiftY * 0.6);
-    { const vx = -150 + fx; ctx.beginPath(); ctx.moveTo(vx, H + 10); ctx.lineTo(vx, H - 64 + fy); ctx.lineTo(vx + 64, H - 64 + fy); ctx.lineTo(vx + 64, H - 44 + fy); ctx.lineTo(vx + 78, H - 44 + fy); ctx.lineTo(vx + 78, H + 10); ctx.fill(); } // vent stack at the edge
-    const ax = W + 110 + fx; ctx.fillRect(ax, H - 210 + fy, 5, 220); ctx.fillRect(ax - 18, H - 190 + fy, 40, 3); ctx.fillRect(ax - 12, H - 160 + fy, 28, 3); // antenna, passes the right edge as the camera pans
+    { const vx = -150 + fx; ctx.beginPath(); ctx.moveTo(vx, H + 10); ctx.lineTo(vx, H - 40 + fy); ctx.lineTo(vx + 30, H - 72 + fy); ctx.lineTo(vx + 52, H - 54 + fy); ctx.lineTo(vx + 80, H - 30 + fy); ctx.lineTo(vx + 96, H + 10); ctx.fill(); } // basalt shard at the edge
+    { const ax = W + 110 + fx; ctx.beginPath(); ctx.moveTo(ax - 4, H + 10); ctx.quadraticCurveTo(ax + 2, H - 120 + fy, ax - 38, H - 214 + fy); ctx.quadraticCurveTo(ax + 22, H - 124 + fy, ax + 24, H + 10); ctx.fill(); } // bone spike (like the plate's horns), passes the right edge as the camera pans
     // vignette + lower shade for the narration
     const vg = ctx.createRadialGradient(W / 2, H / 2, H * 0.25, W / 2, H / 2, H * 0.85);
     vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,0.55)'); ctx.fillStyle = vg; ctx.fillRect(-20, -20, W + 40, H + 40);

@@ -12,7 +12,7 @@ const files = heroes.flatMap(h => Object.values(HERO_RIGS[h]).flatMap(p => [p.fi
 for (let n = 0; files.some(([h, f]) => !rig.images[h]?.[f]) && n < 500; n++) await new Promise(r => setTimeout(r, 20));
 for (const [h, f] of files) if (!rig.images[h]?.[f]) throw Error(`Unloaded image: ${h}/${f}`);
 let anim, locks, sequence, hero, frame = 0;
-const moves = h => [...new Set([...Object.keys(HERO_MOVES[h]), ...MECHANICS])].filter(m => POSES[`${h}_${m}_active`]);
+const moves = h => [...new Set([...Object.keys(HERO_MOVES[h]), ...MECHANICS, ...(h === 'turbofit' ? ['axeB'] : [])])].filter(m => POSES[`${h}_${m}_active`]);
 const duration = (h, m) => Object.values(HERO_MOVES_COMBAT[h] || {}).find(a => a.name === m) || { wind: .16, active: .13, rec: .32 };
 function start(h, move) {
   hero = h; frame = 0; anim = createAnim(); locks = createFootLocks();

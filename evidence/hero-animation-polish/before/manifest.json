@@ -1932,6 +1932,37 @@
         }
       ],
       "file": "turbofit/victory.mp4"
+    },
+    {
+      "hero": "turbofit",
+      "move": "axeB",
+      "frames": 68,
+      "sequence": [
+        {
+          "state": "idleA",
+          "time": 0.2
+        },
+        {
+          "state": "axeB_wind",
+          "phase": "wind",
+          "time": 0.16
+        },
+        {
+          "state": "axeB_active",
+          "phase": "active",
+          "time": 0.13
+        },
+        {
+          "state": "axeB_recover",
+          "phase": "rec",
+          "time": 0.32
+        },
+        {
+          "state": "idleA",
+          "time": 0.3
+        }
+      ],
+      "file": "turbofit/axeB.mp4"
     }
   ]
 }

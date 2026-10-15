@@ -8,12 +8,15 @@ import { spawn, execFileSync } from 'node:child_process';
 import { once } from 'node:events';
 import assert from 'node:assert/strict';
 const root = resolve(import.meta.dirname, '..'), mode = process.argv[2] || 'after';
+const combat = process.argv.includes('--combat');
+const extend = process.argv.includes('--extend');
+const only = process.argv.includes('--only') ? process.argv[process.argv.indexOf('--only') + 1] : null;
 assert.ok(['before', 'after', 'protected'].includes(mode));
 const source = mode === 'before' ? resolve(process.env.BASELINE_ROOT || '/tmp/opencode/hero-polish-baseline') : root;
-const out = resolve(root, 'evidence/hero-animation-polish', mode);
+const out = resolve(root, 'evidence/hero-animation-polish', mode, combat ? 'combat' : '.');
 const pathFor = url => {
   const p = decodeURIComponent(new URL(url, 'http://localhost').pathname);
-  return resolve(p.startsWith('/tools/polish-review.') ? root : source, '.' + p);
+  return resolve(/^\/tools\/polish-(review|combat)\./.test(p) ? root : source, '.' + p);
 };
 const server = createServer(async (req, res) => {
   try { const p = pathFor(req.url); if (![root, source].some(r => p.startsWith(r + '/'))) throw Error('outside root');
@@ -25,23 +28,25 @@ const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PAT
 try {
   const page = await browser.newPage(), errors = [];
   page.on('pageerror', e => { errors.push(e.message); console.error(e.message); });
-  await page.goto(`http://127.0.0.1:${server.address().port}/tools/polish-review.html`);
+  await page.goto(`http://127.0.0.1:${server.address().port}/tools/polish-${combat ? 'combat' : 'review'}.html`);
   await page.waitForFunction(() => window.polish, { timeout: 30000 });
-  const hashes = await page.evaluate(() => polish.protectedHashes());
+  const hashes = combat ? null : await page.evaluate(() => polish.protectedHashes());
   if (mode === 'before') {
     await mkdir(out, { recursive: true });
-    await assert.rejects(access(resolve(out, 'manifest.json')), 'baseline already exists');
-    await writeFile(resolve(out, 'protected-renders.json'), JSON.stringify(hashes, null, 2));
-  } else {
+    if (!extend) await assert.rejects(access(resolve(out, 'manifest.json')), 'baseline already exists');
+    if (hashes && !extend) await writeFile(resolve(out, 'protected-renders.json'), JSON.stringify(hashes, null, 2));
+  } else if (!combat) {
     assert.deepEqual(hashes, JSON.parse(await readFile(resolve(root, 'evidence/hero-animation-polish/before/protected-renders.json'))), 'Protected hero pixel output changed');
     console.log('Protected heroes: all named poses × both facings byte-identical RGBA');
   }
   if (mode !== 'protected') {
-    const manifest = { revision: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: source, encoding: 'utf8' }).trim(), scale: .7, fps: 30, clips: [] };
+    const manifest = extend ? JSON.parse(await readFile(resolve(out, 'manifest.json'))) : { revision: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: source, encoding: 'utf8' }).trim(), scale: .7, fps: 30, clips: [] };
     for (const hero of ['teknium', 'nous_girl', 'turbofit']) {
       await mkdir(resolve(out, hero), { recursive: true });
       const moves = await page.evaluate(h => [...polish.moves(h), ...polish.states], hero);
       for (const move of moves) {
+        if (only && move !== only) continue;
+        if (extend && manifest.clips.some(c => c.hero === hero && c.move === move)) continue;
         const { frames, sequence } = await page.evaluate(([h, m]) => polish.start(h, m), [hero, move]);
         const dest = resolve(out, hero, move + '.mp4');
         const encoder = spawn('ffmpeg', ['-loglevel', 'error', '-y', '-f', 'image2pipe', '-framerate', '30', '-i', '-', '-an', '-c:v', 'libx264', '-preset', 'fast', '-crf', '20', '-pix_fmt', 'yuv420p', dest]);
@@ -52,6 +57,7 @@ try {
           if (f % Math.max(1, Math.floor(frames / 8)) === 0 && selected.length < 8) selected.push(png);
         }
         encoder.stdin.end(); assert.equal((await done)[0], 0, 'ffmpeg failed');
+        if (combat) await writeFile(resolve(out, hero, move + '.json'), JSON.stringify(await page.evaluate(() => polish.traces()), null, 2));
         const strip = await page.evaluate(async frames => {
           const c = document.createElement('canvas'); c.width = 960; c.height = 150 * frames.length;
           const ctx = c.getContext('2d');

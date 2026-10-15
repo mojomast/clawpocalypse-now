@@ -60,19 +60,26 @@ export const HERO_RIGS = {
     thigh_b: { file: 'turtle_orange_thigh.png', w: 38, h: 52, px: 15, py: 10, parent: 'torso', ax: 23, ay: 58, back: true },
     shin_b: { file: 'turtle_orange_shin.png', w: 44, h: 66, px: 16, py: 8, parent: 'thigh_b', ax: 25, ay: 43, back: true },
   },
-  // moves: Technical, combo-heavy: energy-blade slash chains (4-5 hits, cancelable), dash-through (passes through enemies, hits all in path), data burst projectile special. The torso includes the long coat skirt, so the hips sit low on the torso (attach thighs at about 70% of torso height and draw the coat over the thighs).
+  // moves: Technical, combo-heavy: energy-blade slash chains (4-5 hits, cancelable), dash-through (passes through enemies, hits all in path), data burst projectile special.
   teknium: {
-    head: { file: 'teknium_head.png', w: 40, h: 43, px: 18, py: 38, parent: 'torso', ax: 22, ay: 6 },
-    torso: { file: 'teknium_torso.png', w: 44, h: 68, px: 22, py: 34, parent: null, ax: 0, ay: 0 },
-    uarm: { file: 'teknium_uarm.png', w: 16, h: 42, px: 8, py: 6, parent: 'torso', ax: 26, ay: 16 },
-    farm: { file: 'teknium_farm.png', w: 20, h: 52, px: 9, py: 6, parent: 'uarm', ax: 9, ay: 37 },
-    thigh: { file: 'teknium_thigh.png', w: 23, h: 58, px: 13, py: 8, parent: 'torso', ax: 22, ay: 48 },
-    shin: { file: 'teknium_shin.png', w: 28, h: 56, px: 10, py: 7, parent: 'thigh', ax: 8, ay: 52 },
-    weapon: { file: 'teknium_weapon.png', w: 61, h: 22, px: 7, py: 9, parent: 'farm', ax: 12, ay: 46, grip: 35 },
-    uarm_b: { file: 'teknium_uarm.png', w: 16, h: 42, px: 8, py: 6, parent: 'torso', ax: 20, ay: 14, back: true },
-    farm_b: { file: 'teknium_farm.png', w: 20, h: 52, px: 9, py: 6, parent: 'uarm_b', ax: 9, ay: 37, back: true },
-    thigh_b: { file: 'teknium_thigh.png', w: 23, h: 58, px: 13, py: 8, parent: 'torso', ax: 16, ay: 46, back: true },
-    shin_b: { file: 'teknium_shin.png', w: 28, h: 56, px: 10, py: 7, parent: 'thigh_b', ax: 8, ay: 52, back: true },
+    hem_b: {file: 'teknium_hem_tail_far.png', w: 10, h: 25, px: 4, py: 1, spring: [150, 13, 0.12], range: [-15, 55], parent: 'torso', ax: 12, ay: 56, role: 'spring', back: true },
+    uarm_b: {file: 'teknium_uarm.png', w: 10, h: 40, px: 5, py: 3, joint: [5, 36], parent: 'torso', ax: 32, ay: 11, role: 'body', back: true },
+    farm_b: {file: 'teknium_farm.png', w: 10, h: 38, px: 5, py: 3, joint: [4, 34], parent: 'uarm_b', ax: 5, ay: 36, role: 'body', back: true },
+    hand_b: {file: 'teknium_hand_fist.png', w: 12, h: 18, px: 5, py: 1, parent: 'farm_b', ax: 4, ay: 34, role: 'hand', back: true, variants: {open: {file: 'teknium_hand_open.png', w: 14, h: 22, px: 5, py: 1}} },
+    thigh_b: {file: 'teknium_thigh.png', w: 13, h: 46, px: 6, py: 4, joint: [5, 42], parent: 'torso', ax: 25, ay: 53, role: 'body', back: true },
+    shin_b: {file: 'teknium_shin.png', w: 12, h: 41, px: 6, py: 3, joint: [5, 37], parent: 'thigh_b', ax: 5, ay: 42, role: 'body', back: true },
+    foot_b: {file: 'teknium_foot.png', w: 30, h: 17, px: 10, py: 2, sole: [1, 16, 28, 16], parent: 'shin_b', ax: 5, ay: 37, role: 'foot', back: true },
+    head: {file: 'teknium_head.png', w: 45, h: 45, px: 21, py: 41, parent: 'torso', ax: 23, ay: 7, role: 'body', variants: {front: {file: 'teknium_head_front.png', w: 42, h: 45, px: 21, py: 41}} },
+    thigh: {file: 'teknium_thigh.png', w: 13, h: 46, px: 6, py: 4, joint: [5, 42], parent: 'torso', ax: 16, ay: 53, role: 'body' },
+    shin: {file: 'teknium_shin.png', w: 12, h: 41, px: 6, py: 3, joint: [5, 37], parent: 'thigh', ax: 5, ay: 42, role: 'body' },
+    foot: {file: 'teknium_foot.png', w: 30, h: 17, px: 10, py: 2, sole: [1, 16, 28, 16], parent: 'shin', ax: 5, ay: 37, role: 'foot' },
+    hem: {file: 'teknium_hem_tail.png', w: 10, h: 25, px: 4, py: 1, spring: [150, 13, 0.12], range: [-15, 55], parent: 'torso', ax: 7, ay: 56, role: 'spring' },
+    torso: {file: 'teknium_torso.png', w: 41, h: 62, px: 20, py: 31, parent: null, ax: 0, ay: 0, role: 'torso', variants: {front: {file: 'teknium_torso_front.png', w: 43, h: 62, px: 22, py: 31}} },
+    uarm: {file: 'teknium_uarm.png', w: 10, h: 40, px: 5, py: 3, joint: [5, 36], parent: 'torso', ax: 8, ay: 14, role: 'body' },
+    farm: {file: 'teknium_farm.png', w: 10, h: 38, px: 5, py: 3, joint: [4, 34], parent: 'uarm', ax: 5, ay: 36, role: 'body' },
+    hand: {file: 'teknium_hand_grip_back.png', w: 12, h: 16, px: 5, py: 1, grip: [5, 11], axis: -0.1, parent: 'farm', ax: 4, ay: 34, role: 'hand' },
+    weapon: {file: 'teknium_weapon.png', w: 94, h: 8, px: 9, py: 4, tip: [92, 3], parent: 'hand', ax: 5, ay: 11, role: 'weapon', grip: 35 },
+    hand_front: {file: 'teknium_hand_grip_front.png', w: 12, h: 16, px: 5, py: 1, grip: [5, 11], axis: -0.1, parent: 'hand', ax: 5, ay: 1, role: 'grip_front' },
   },
   // moves: Heavy and slow: wide guitar-axe swings (long wind-up, big knockback), power chord shockwave special (ground wave both directions), headbang charge (head-first rush).
   turbofit: {
@@ -118,4 +125,5 @@ export const HERO_RIGS = {
   },
 };
 
-export const HERO_V2 = {};
+// v2 rigs (separate hands, feet, grips, variants and spring chains): draw order and wrist window.
+export const HERO_V2 = {teknium: {layers: ['hem_b', 'uarm_b', 'farm_b', 'hand_b', 'thigh_b', 'shin_b', 'foot_b', 'head', 'thigh', 'shin', 'foot', 'hem', 'torso', 'uarm', 'farm', 'hand', 'weapon', 'hand_front'], wrist: {c: 20, hw: 35}}};

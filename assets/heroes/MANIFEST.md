@@ -67,17 +67,37 @@ Weapon grip: 130 (degrees the weapon art turns in the fist; rig QA t_03099731380
 
 ## teknium (teal energy blade)
 
-Palette/look: teal-green spiky hair, orange visor, dark-green trench coat with red/white lining, black joggers, green-white sneakers.  Move set: Technical, combo-heavy: energy-blade slash chains (4-5 hits, cancelable), dash-through (passes through enemies, hits all in path), data burst projectile special. The torso includes the long coat skirt, so the hips sit low on the torso (attach thighs at about 70% of torso height and draw the coat over the thighs).
+Palette/look (v2, `src/design.jpg`, after Teknium's own avatar): white wedge visor with red stripes, spiky sage-teal hair with a green leaf cluster at the back, green high-collar zip jacket (short body; sleeves are the arm parts), charcoal trousers, black fingerless gloves, white/green sneakers, cyan energy blade.  Move set: Technical, combo-heavy: energy-blade slash chains (4-5 hits, cancelable), dash-through (passes through enemies, hits all in path), data burst projectile special.
 
-| part | image | size | pivot | parent | attach |
-|---|---|---|---|---|---|
-| head | teknium_head.png | 40x43 | 18,38 | torso | 22,6 |
-| torso | teknium_torso.png | 44x68 | 22,34 | - | - |
-| uarm | teknium_uarm.png | 16x42 | 8,6 | torso | 26,16 |
-| farm | teknium_farm.png | 20x52 | 9,6 | uarm | 9,37 |
-| thigh | teknium_thigh.png | 23x58 | 13,8 | torso | 22,48 |
-| shin | teknium_shin.png | 28x56 | 10,7 | thigh | 8,52 |
-| weapon | teknium_weapon.png | 61x22 | 7,9 | farm | 12,46 |
+Rig: v2 (sliced by `tools/slice-hero-parts.py teknium` from `src/sheetA.jpg` + `src/sheetB.jpg`, spec `src/SLICE.json`; `src/sheetA-rejected-blue-visor.jpg` is unused). Separate feet (ankle on the shin, sole flat on the floor), gloved hands with a grip pair around the blade (grip_back behind it, grip_front over it), 3/4 head and torso with front variants for turn/taunt/victory, two short jacket-hem tails on springs.
+Layers: hem_b, uarm_b, farm_b, hand_b, thigh_b, shin_b, foot_b, head, thigh, shin, foot, hem, torso, uarm, farm, hand, weapon, hand_front
+Wrist: c=20 hw=35
+
+<!-- slice:teknium:begin -->
+| part | image | size | pivot | parent | attach | role | data |
+|---|---|---|---|---|---|---|---|
+| hem_b | teknium_hem_tail_far.png | 10x25 | 4,1 | torso | 12,56 | spring | spring=150,13,0.12 range=-15,55 |
+| uarm_b | teknium_uarm.png | 10x40 | 5,3 | torso | 32,11 | body | joint=5,36 |
+| farm_b | teknium_farm.png | 10x38 | 5,3 | uarm_b | 5,36 | body | joint=4,34 |
+| hand_b | teknium_hand_fist.png | 12x18 | 5,1 | farm_b | 4,34 | hand |  |
+| hand_b@open | teknium_hand_open.png | 14x22 | 5,1 | - | - | variant |  |
+| thigh_b | teknium_thigh.png | 13x46 | 6,4 | torso | 25,53 | body | joint=5,42 |
+| shin_b | teknium_shin.png | 12x41 | 6,3 | thigh_b | 5,42 | body | joint=5,37 |
+| foot_b | teknium_foot.png | 30x17 | 10,2 | shin_b | 5,37 | foot | sole=1,16,28,16 |
+| head | teknium_head.png | 45x45 | 21,41 | torso | 23,7 | body |  |
+| head@front | teknium_head_front.png | 42x45 | 21,41 | - | - | variant |  |
+| thigh | teknium_thigh.png | 13x46 | 6,4 | torso | 16,53 | body | joint=5,42 |
+| shin | teknium_shin.png | 12x41 | 6,3 | thigh | 5,42 | body | joint=5,37 |
+| foot | teknium_foot.png | 30x17 | 10,2 | shin | 5,37 | foot | sole=1,16,28,16 |
+| hem | teknium_hem_tail.png | 10x25 | 4,1 | torso | 7,56 | spring | spring=150,13,0.12 range=-15,55 |
+| torso | teknium_torso.png | 41x62 | 20,31 | - | - | torso |  |
+| torso@front | teknium_torso_front.png | 43x62 | 22,31 | - | - | variant |  |
+| uarm | teknium_uarm.png | 10x40 | 5,3 | torso | 8,14 | body | joint=5,36 |
+| farm | teknium_farm.png | 10x38 | 5,3 | uarm | 5,36 | body | joint=4,34 |
+| hand | teknium_hand_grip_back.png | 12x16 | 5,1 | farm | 4,34 | hand | grip=5,11 axis=-0.1 |
+| weapon | teknium_weapon.png | 94x8 | 9,4 | hand | 5,11 | weapon | tip=92,3 |
+| hand_front | teknium_hand_grip_front.png | 12x16 | 5,1 | hand | 5,1 | grip_front | grip=5,11 axis=-0.1 |
+<!-- slice:teknium:end -->
 
 Weapon grip: 35 (degrees the weapon art turns in the fist; rig QA t_0309973138084dd1)
 

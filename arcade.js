@@ -5,7 +5,7 @@
 //   arcade.drawWorld(ctx, s, camX, t)  -> machines, cabinets, debris piles, tickets (world space)
 //   arcade.post(ctx, s, W, H)          -> overlords' glitch: palette swap + RGB split + scanline jitter
 // breakables.js (DOLAN) is tied to props.js levels 0-2, so the cabinets live here.
-import { ARCADE_LEVEL_INDEX as LV, ARCADE_TILE_W as TW, ARCADE_BAND as BAND, CABINETS, CABINET, DECOR, GLITCH, ARCADE_GLITCH_KEYS, ARCADE_EXT_SPAWNS } from './arcade-data.js';
+import { ARCADE_LEVEL_INDEX as LV, ARCADE_TILE_W as TW, ARCADE_BAND as BAND, ARCADE_LEVEL, CABINET_BASES, CABINETS, CABINET, DECOR, GLITCH, ARCADE_GLITCH_KEYS, ARCADE_EXT_SPAWNS } from './arcade-data.js';
 import { attackBox, DEPTH } from './combat.js';
 import { STAGE_NAMES } from './screens.js';
 import { EXT_SPAWNS } from './enemies-ext.js';
@@ -18,13 +18,19 @@ if (LEVEL_MUSIC && LEVEL_MUSIC[LV] == null) LEVEL_MUSIC[LV] = 'street';
 for (const [k, v] of Object.entries(ARCADE_EXT_SPAWNS)) if (!EXT_SPAWNS[k]) EXT_SPAWNS[k] = v;
 
 const ART = 'assets/levels/arcade/';
-const FOOT = BAND.y + 10; // cabinets stand on the back edge of the floor
+let cabinetOwner = null;
 
 export function ensureArcade(s) {
+  const changed = cabinetOwner !== s || !s.arcade || s.arcade.wave !== s.wave;
+  if (changed) {
+    ARCADE_LEVEL.obstacles.forEach((o, i) => { o.x = CABINETS[i] - 32; });
+    cabinetOwner = s;
+  }
   if (!s.arcade || s.arcade.wave !== s.wave) {
-    s.arcade = { wave: s.wave, cabs: CABINETS.map(x => ({ x, hp: CABINET.hp, broken: false, wob: 0, flash: 0, swing: -1, t: 0 })),
+    s.arcade = { wave: s.wave, cabs: CABINETS.map((x, i) => ({ id: `arcade:cabinet:${i}`, x, baseY: CABINET_BASES[i], ob: ARCADE_LEVEL.obstacles[i], hp: CABINET.hp, broken: false, wob: 0, flash: 0, swing: -1, t: 0 })),
       tickets: [], glitch: null, glitched: {}, swing: 0, lastPhase: null, smashed: 0, collected: 0, log: [] };
   }
+  if (changed) for (const cab of s.arcade.cabs) if (cab.broken) cab.ob.x = cab.x - 32 - 1e6;
   return s.arcade;
 }
 export const reducedFlash = fx => !!((fx && fx.shakeEnabled === false) ||
@@ -43,11 +49,12 @@ export function createArcade(opts = {}) {
 
   function hitCab(s, a, cab, dmg, dir) {
     cab.hp -= dmg; cab.wob = 0.3 * (dir || 1); cab.flash = 0.1; play('crunch');
-    if (s.fxCue) s.fxCue('hit', { x: cab.x, y: FOOT - 60, heavy: dmg > 1, shake: 0.06 });
+    if (s.fxCue) s.fxCue('hit', { x: cab.x, y: cab.baseY - 60, heavy: dmg > 1, shake: 0.06 });
     if (cab.hp > 0) return;
     cab.broken = true; cab.t = 0; a.smashed++; a.log.push('smash'); play('smash');
+    cab.ob.x = cab.x - 32 - 1e6;
     s.score = (s.score || 0) + CABINET.score;
-    for (let k = 0; k < CABINET.tickets; k++) a.tickets.push({ x: cab.x + (k - 1) * 14, y: FOOT + 14 + rand() * 20, z: 40, vz: 200 + rand() * 80, vx: (dir || 1) * (30 + rand() * 60) * (k === 1 ? 0.3 : 1), t: 0 });
+    for (let k = 0; k < CABINET.tickets; k++) a.tickets.push({ x: cab.x + (k - 1) * 14, y: Math.max(BAND.y + 18, Math.min(BAND.y + BAND.h - 18, cab.baseY + 14 + rand() * 20)), z: 40, vz: 200 + rand() * 80, vx: (dir || 1) * (30 + rand() * 60) * (k === 1 ? 0.3 : 1), t: 0 });
   }
 
   function step(s, dt) {
@@ -68,13 +75,14 @@ export function createArcade(opts = {}) {
       for (const cab of a.cabs) {
         if (cab.broken || cab.swing === a.swing) continue;
         if (box.x1 < cab.x - CABINET.halfW || box.x0 > cab.x + CABINET.halfW) continue;
-        if (Math.abs(p.y - FOOT) > box.depth + 26) continue;
+        if (Math.abs(p.y - (cab.baseY - 7)) > box.depth + 7) continue;
+        if (box.bot < cab.baseY - CABINET.h || box.top > cab.baseY) continue;
         cab.swing = a.swing; hitCab(s, a, cab, c.attack.heavy || c.attack.around ? 2 : 1, c.attackFacing || 1);
       }
     }
     for (const z of s.pizzas || []) {
       if (z.dead) continue;
-      for (const cab of a.cabs) if (!cab.broken && Math.abs(z.x - cab.x) < CABINET.halfW && Math.abs(z.y - FOOT) < DEPTH + 26) { z.dead = true; hitCab(s, a, cab, 1, Math.sign(z.vx || 1) || 1); break; }
+      for (const cab of a.cabs) if (!cab.broken && Math.abs(z.x - cab.x) < CABINET.halfW && Math.abs(z.y - (cab.baseY - 7)) < DEPTH + 7) { z.dead = true; hitCab(s, a, cab, 1, Math.sign(z.vx || 1) || 1); break; }
     }
     for (const cab of a.cabs) { cab.wob *= Math.max(0, 1 - dt * 9); cab.flash = Math.max(0, cab.flash - dt); cab.t += dt; }
     // Prize tickets: pop out, bounce, collect for score.
@@ -104,32 +112,38 @@ export function createArcade(opts = {}) {
     return true;
   }
 
-  function drawWorld(ctx, s, camX) {
-    if ((s.level | 0) !== LV) return;
-    const a = s.arcade;
-    for (const [k, x] of DECOR) { const im = img[k]; if (im && x > camX - 200 && x < camX + 1000) ctx.drawImage(im, x - im.width / 2, FOOT - im.height); }
-    if (!a) return;
+  function depthEntries(ctx, s, camX) {
+    if ((s.level | 0) !== LV) return [];
+    const a = ensureArcade(s), entries = [];
+    for (const [k, x, baseY] of DECOR) { const im = img[k]; if (im && x > camX - 200 && x < camX + 1000) entries.push({ y: baseY, draw: () => ctx.drawImage(im, x - im.width / 2, baseY - im.height) }); }
     for (const cab of a.cabs) {
       if (cab.x < camX - 200 || cab.x > camX + 1000) continue;
+      entries.push({ y: cab.baseY, draw: () => {
+      const FOOT = cab.baseY;
       if (cab.broken) {
         const sm = img.cabinet_smashed, db = img.debris;
         if (sm) ctx.drawImage(sm, cab.x - sm.width / 2, FOOT - sm.height);
         if (db) ctx.drawImage(db, cab.x - db.width * 0.35 + 18, FOOT - db.height * 0.7 + 10, db.width * 0.7, db.height * 0.7);
         if (cab.t < 0.25) { ctx.save(); ctx.globalAlpha = 1 - cab.t / 0.25; ctx.fillStyle = '#bff'; ctx.beginPath(); ctx.arc(cab.x, FOOT - 70, 40 + cab.t * 200, 0, 7); ctx.fill(); ctx.restore(); }
       } else {
-        const im = img.cabinet; if (!im) continue;
+        const im = img.cabinet; if (!im) return;
         ctx.save(); ctx.translate(cab.x, FOOT); ctx.rotate(cab.wob * Math.sin((cab.t || 0) * 40) * 0.15);
         ctx.drawImage(im, -im.width / 2, -im.height);
         if (cab.flash > 0) { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 0.5; ctx.drawImage(im, -im.width / 2, -im.height); }
         ctx.restore();
       }
+      } });
     }
     const tk = img.tickets;
     for (const k of a.tickets) {
+      entries.push({ y: k.y, draw: () => {
       const bob = k.z + Math.sin(k.t * 6) * 2;
       if (tk) ctx.drawImage(tk, k.x - tk.width / 2, k.y - tk.height - bob); else { ctx.fillStyle = '#ffd27a'; ctx.fillRect(k.x - 10, k.y - 20 - bob, 20, 14); }
+      } });
     }
+    return entries;
   }
+  function drawWorld(ctx, s, camX) { for (const entry of depthEntries(ctx, s, camX)) entry.draw(); }
 
   // Glitch overlay over the whole canvas (drawImage only; no pixel reads, the canvas is tainted).
   let buf = null;
@@ -167,5 +181,5 @@ export function createArcade(opts = {}) {
     ctx.restore();
   }
 
-  return { step, back, drawWorld, post, images: img, info: s => s.arcade ? { smashed: s.arcade.smashed, collected: s.arcade.collected, tickets: s.arcade.tickets.length, glitch: s.arcade.glitch ? +s.arcade.glitch.t.toFixed(2) : null, log: s.arcade.log.slice(-20) } : null };
+  return { step, back, drawWorld, depthEntries, post, images: img, info: s => s.arcade ? { smashed: s.arcade.smashed, collected: s.arcade.collected, tickets: s.arcade.tickets.length, glitch: s.arcade.glitch ? +s.arcade.glitch.t.toFixed(2) : null, log: s.arcade.log.slice(-20) } : null };
 }

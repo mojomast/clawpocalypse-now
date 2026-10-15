@@ -10,7 +10,7 @@
 //     on the penthouse.
 //   - drawBack: shaft girders streaming past while climbing, a red alert pulse
 //     on the server floor, the throne-room glow. drawFront: the floor counter.
-import { LEVELS, TILE_W } from './collision.js';
+import { LEVELS, TILE_W, resolveWalkable } from './collision.js';
 import { KIND_R, KIND_HP } from './events.js';
 import { makeExtEnemy } from './enemies-ext.js';
 import { LEVEL_MUSIC } from './audio.js';
@@ -53,6 +53,10 @@ export function createTower(opts = {}) {
         if (k === 'drone') { n.hover = 70; n.flying = true; n.x = i % 2 ? lk.L + 30 : lk.R - 30; }
         else { n.z = 170 + rand() * 40; n.launchV = -40; n.spin = 3; } // through the roof hatch
       }
+      // Ext brutes have larger radii than ordinary hatch drops. Resolve using
+      // the actual actor radius rather than the former fixed 16px inset.
+      const foot = resolveWalkable(TOWER_LEVEL, n.x, n.y, n.r);
+      n.x = foot.x; n.y = foot.y;
       n.elevator = true;
       state.ninjas.push(n);
     });

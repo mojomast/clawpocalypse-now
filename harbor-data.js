@@ -15,13 +15,21 @@ export const CRANE = { reach: 260, telegraph: 1.0, fall: 0.25, cd: 3.2, dmg: 10,
 // Slick wet planks: low friction, momentum carries after you stop, dash or get knocked back.
 export const WET_ZONES = [{ x0: 900, x1: 1550 }, { x0: 2650, x1: 3350 }, { x0: 4300, x1: 4900 }];
 export const SLIDE = { decay: 2.2, min: 15 };
+// [sprite, center x, base y, footprint width, footprint depth]. Rope and wall
+// liferings are dressing; solid dock hardware has the same authored foot in play.
+export const HARBOR_PROPS = [['containers', 180, 396, 75, 18], ['drum', 620, 468, 28, 16],
+  ['bollard', 840, 404, 37, 14], ['rope', 1060, 460, 0, 0], ['crate', 1500, 400, 52, 18], ['lifering', 1700, 388, 0, 0],
+  ['containers', 1994, 396, 75, 18], ['fishcrate', 2514, 468, 43, 14], ['bollard', 2814, 402, 37, 14],
+  ['drum', 3414, 468, 28, 16], ['crate', 3800, 400, 52, 18], ['crate', 3860, 400, 52, 18],
+  ['drum', 4600, 468, 28, 16], ['rope', 5000, 398, 0, 0]];
 
 export const HARBOR_LEVEL = {
   id: 'harbor',
   width: HARBOR_W,
   walkables: [{ x: 0, y: HARBOR_BAND.y, w: HARBOR_W, h: HARBOR_BAND.h }],
-  obstacles: [],
-  spawnY: rand => HARBOR_BAND.y + 12 + rand() * (HARBOR_BAND.h - 24),
+  obstacles: HARBOR_PROPS.filter(p => p[3]).map(([name, x, y, w, h], i) => ({ id: `harbor:prop:${i}`, x: x - w / 2, y: y - h, w, h })),
+  // Central landing strip clears both the back hardware and front drum feet.
+  spawnY: rand => 426 + rand() * 6,
 };
 
 const L = HARBOR_LEVEL_INDEX;

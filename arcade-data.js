@@ -11,9 +11,12 @@ export const ARCADE_BAND = { y: 392, h: 66 }; // carpet / checkered floor (strip
 export const TICKET_X = ARCADE_TILE_W * 2; // ticket-counter section starts here
 // Smashable cabinets stand on the back edge of the floor (intact -> smashed + debris + tickets).
 export const CABINETS = [520, 1180, 1560, 2300, 2740, 3260, 4300, 4660, 5250];
+// Explicit feet shared by combat and rendering. Alternating shallow back rows
+// and foreground islands keep the narrow carpet's opposite lane open.
+export const CABINET_BASES = [400, 458, 402, 458, 400, 458, 400, 458, 392];
 export const CABINET = { hp: 3, halfW: 34, h: 140, score: 300, tickets: 3, ticketScore: 100 };
 // Decorative machines (no collision, keeps the floor free for bots and tests).
-export const DECOR = [['claw', 820], ['pinball', 1900], ['skeeball', 2980], ['token', 3480], ['pinball', 3980], ['claw', 5050]];
+export const DECOR = [['claw', 820, 392], ['pinball', 1900, 392], ['skeeball', 2980, 390], ['token', 3480, 392], ['pinball', 3980, 392], ['claw', 5050, 390]];
 // Glitch: the overlords' hack swaps the palette mid-fight at these scripted beats.
 export const GLITCH = { dur: 2.2, reducedDur: 1.5, hue: 150 };
 
@@ -21,8 +24,9 @@ export const ARCADE_LEVEL = {
   id: 'arcade',
   width: ARCADE_W,
   walkables: [{ x: 0, y: ARCADE_BAND.y, w: ARCADE_W, h: ARCADE_BAND.h }],
-  obstacles: [],
-  spawnY: rand => ARCADE_BAND.y + 10 + rand() * (ARCADE_BAND.h - 20),
+  obstacles: CABINETS.map((x, i) => ({ id: `arcade:cabinet:${i}`, x: x - 32, y: CABINET_BASES[i] - 14, w: 64, h: 14 })),
+  // Radius-16 spawns clear either row, even directly beside a cabinet.
+  spawnY: rand => 422 + rand() * 2,
 };
 
 const L = ARCADE_LEVEL_INDEX;

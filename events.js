@@ -16,14 +16,14 @@
 // bubbles over an enemy or the hero). Every fighting beat locks a short arena
 // (camera held, player kept inside) until the wave is cleared, then a GO arrow
 // points the way on.
-import { WORLD_W, LEVELS, isWalkable } from './collision.js';
+import { WORLD_W, LEVELS, isWalkable, resolveWalkable } from './collision.js';
 import { W, spawnPowerup } from './logic.js';
 import { SUBWAY_TRIGGERS } from './subway-data.js'; // cheese: subway beats
 import { HARBOR_TRIGGERS } from './harbor-data.js'; // mr_india: harbor beats
 import { ARCADE_TRIGGERS } from './arcade-data.js'; // mr_india: arcade beats
 import { HEROES as HERO_LIST } from './heroes.js'; // story-v2: hero names for the speaker label
 
-const BAND = { 0: 363, 1: 358, 2: 358, 4: 384 };   // floor band top per level (LEVELS.md; 4 = tower)
+const bandTop = level => LEVELS[level]?.walkables[0]?.y ?? 358;
 
 // Radii and HP per enemy type, from MR.INDIA's MANIFEST.md behaviour notes
 // (blockers are high HP, strikers low, chargers heavy, the rest mid). The drone
@@ -145,14 +145,15 @@ function makeEnemy(kind, x, y, level, extra = {}) {
 
 function spawn(state, kind, x, level, from) {
   const r = KIND_R[kind] || 14;
-  const bandTop = BAND[level] ?? 358;
-  const y = bandTop + 20 + Math.random() * 40;
+  const y = bandTop(level) + 20 + Math.random() * 40;
+  const width = LEVELS[level]?.width || WORLD_W;
+  const pos = resolveWalkable(level, Math.min(width - r, Math.max(r, x)), y, r);
   const extra = {};
   if (from === 'above') { extra.z = 150 + Math.random() * 40; extra.launchV = -40; extra.spin = 3; }
   if (from === 'left' || from === 'right') extra.vx = from === 'left' ? 70 : -70;
   if (kind === 'drone') { extra.hover = 70; extra.flying = true; }
-  state.ninjas.push(makeEnemy(kind, Math.min(WORLD_W - r, Math.max(r, x)), y, level, extra));
-  return { kind, x, y };
+  state.ninjas.push(makeEnemy(kind, pos.x, pos.y, level, extra));
+  return { kind, x: pos.x, y: pos.y };
 }
 
 // Arena for a fighting beat: the camera window the wave is fought in.
@@ -479,8 +480,12 @@ export function stepEvents(state, dt) {
       e.go = null;
       e.log.push({ type: 'arenaLock', level, x: t.x, L: Math.round(arena.L) });
     }
-    if (t.pickup) { spawnPowerup(state, { x: t.spawnAt, y: (BAND[level] ?? 358) + 40 }, () => 0.99); state.powerups[state.powerups.length - 1].type = 'life'; }
-    if (state.eventCue) state.eventCue(t.cue || t.type, { x: t.spawnAt, y: BAND[level], level, kinds: t.kinds, line: t.line, event: t.event || null });
+    if (t.pickup) {
+      const pos = resolveWalkable(level, t.spawnAt, bandTop(level) + 40, 12);
+      spawnPowerup(state, pos, () => 0.99);
+      state.powerups[state.powerups.length - 1].type = 'life';
+    }
+    if (state.eventCue) state.eventCue(t.cue || t.type, { x: t.spawnAt, y: bandTop(level), level, kinds: t.kinds, line: t.line, event: t.event || null });
   }
   // Drone flyover: scripted drones cross the arena, then join the fight.
   for (const n of state.ninjas) {

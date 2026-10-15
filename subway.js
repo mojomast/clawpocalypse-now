@@ -79,6 +79,7 @@ export function createSubway(opts = {}) {
     if (!sw.run && log.some(l => l.level === LV && l.event === 'hazardRun')) sw.run = true;
     const locked = !!(s.events && s.events.lock);
     const cam = Number.isFinite(s.cameraX) ? s.cameraX : p.x - 330;
+    const activeHazards = sw.hz.length; // New warnings get their full duration, even after a long frame.
     if (sw.run && onRoof(p.x) && !locked && sw.speed > 300) {
       sw.next -= dt;
       if (sw.next <= 0) {
@@ -89,7 +90,8 @@ export function createSubway(opts = {}) {
       }
     }
     // Move hazards (they are fixed to the tunnel; the train carries us past them).
-    for (const h of sw.hz) {
+    for (let i = 0; i < activeHazards; i++) {
+      const h = sw.hz[i];
       if (h.warn > 0) { h.warn -= dt; continue; }
       h.x -= sw.speed * HAZARD.rel * dt;
       if (!h.passed && Math.abs(h.x - p.x) < HAZARD.hitRange) {

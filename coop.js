@@ -20,7 +20,7 @@
 // (state.coopSecondary), and enemyAI honours state.coopFilter.
 import { createCombat, combatTap, combatPress, combatStep, combatWalk, combatDash, enemyAI } from './combat.js';
 import { throwPizza, healPlayer, damagePlayer, damageNinja, hurtR, SKATE_LEVEL, W as LW, CAMERA_EASE_RATE } from './logic.js';
-import { LEVELS, WORLD_W } from './collision.js';
+import { LEVELS, WORLD_W, resolveWalkable } from './collision.js';
 import { HEROES } from './heroes.js';
 import { drawShots, drawBoard } from './skate.js';
 import { HAZARD } from './subway.js';
@@ -28,6 +28,7 @@ import { SUBWAY_LEVEL_INDEX } from './subway-data.js';
 import { CRANE, HARBOR_LEVEL_INDEX } from './harbor-data.js';
 import { PICKUPS } from './breakables.js';
 import { drawGrab } from './grab.js';
+import { createFootLocks } from './foot-lock.js';
 
 export const P2_KEYS = {
   left: 'Numpad4', right: 'Numpad6', up: 'Numpad8', down: 'Numpad5',
@@ -45,6 +46,7 @@ export const COOP = {
 const EXTRA_KINDS = new Set(['brawler', 'striker', 'blocker', 'thrower', 'charger', 'acrobat', 'skater', 'foot', 'runner', 'trooper']);
 
 export function createCoop(opts = {}) {
+  const footLocks = createFootLocks();
   const rig = opts.rig, hud = opts.hud; let anim = opts.anim;
   const rand = opts.rand || Math.random;
   const selecting = opts.selecting || (() => false);
@@ -90,10 +92,16 @@ export function createCoop(opts = {}) {
   const benched = s => !s.walkLevel && !skating(s); // level transitions: P2 rides along
   const inPlay = s => active() && !benched(s) && !v.over;
 
+  function spawnPosition(s, offset) {
+    const p = s.player, lv = LEVELS[s.level | 0];
+    const preferred = { x: Math.max(40, p.x - offset), y: p.y + 18 };
+    if (!lv) return preferred;
+    return resolveWalkable(lv, preferred.x, preferred.y, p.r);
+  }
+
   function spawnP2(s, heroId) {
-    const p = s.player, lv = LEVELS[s.level | 0], band = lv && lv.walkables && lv.walkables[0];
-    const y = band ? Math.max(band.y + 12, Math.min(band.y + band.h - 12, p.y + 18)) : p.y;
-    v = makeView(s, heroId, Math.max(40, p.x - 70), y);
+    const { x, y } = spawnPosition(s, 70);
+    v = makeView(s, heroId, x, y);
     s.coopFilter = n => n.coopT !== 2;
     joined = true; picking = false; cont = 0; revive = 0; stats.joins++; seenCont = s.continues | 0;
     lastWave = s.wave; lastLevel = s.level;
@@ -111,9 +119,9 @@ export function createCoop(opts = {}) {
   function continueP2(s = owner, free = false) {
     if (!v || !v.over) return false;
     if (!free) { if (pool <= 0) return false; pool--; }
-    const p = s.player;
     Object.assign(v, { over: false, lives: COOP.lives, hp: v.maxHp, invuln: 2, playerDown: 0, hurtT: 0 });
-    v.player.x = Math.max(40, p.x - 60); v.player.y = p.y; stats.continues++; cont = 0; revive = 0;
+    const pos = spawnPosition(s, 60);
+    v.player.x = pos.x; v.player.y = pos.y; stats.continues++; cont = 0; revive = 0;
     return true;
   }
 
@@ -351,7 +359,8 @@ export function createCoop(opts = {}) {
     checkOut(s);
     if (s.wave !== lastWave || s.level !== lastLevel) { // new level: regroup next to P1
       lastWave = s.wave; lastLevel = s.level;
-      v.player.x = Math.max(40, s.player.x - 60); v.player.y = s.player.y; v.player.level = s.level; v.pizzas = [];
+      const pos = spawnPosition(s, 60);
+      v.player.x = pos.x; v.player.y = pos.y; v.player.level = s.level; v.pizzas = [];
       if (v.combat) { v.combat.airborne = false; v.combat.jumpZ = 0; v.player.z = 0; }
     }
     if (benched(s) || handed) return;
@@ -420,29 +429,35 @@ export function createCoop(opts = {}) {
     if (label.length > 2) { ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(x - 32, y - 12, 64, 15); }
     ctx.fillStyle = color; ctx.fillText(label, x, y); ctx.beginPath(); ctx.moveTo(x - 5, y + 4); ctx.lineTo(x + 5, y + 4); ctx.lineTo(x, y + 9); ctx.fill(); ctx.restore();
   }
-  // World space, right after P1 (game.js translate(-camX)).
+  // One world-space actor for the shared depth queue. The callback owns all P2
+  // rendering (including down/revive effects), so animation advances only when drawn.
+  function depthEntries(ctx, s, animT, dt) {
+    if (!active() || owner !== s || benched(s)) return [];
+    const p = v.player;
+    return [{ y: p.y + p.r, draw: () => drawP2(ctx, s, animT, dt) }];
+  }
+  // Compatibility for callers that still draw P2 immediately after P1.
   function drawWorld(ctx, s, animT, dt) {
-    if (!active() || owner !== s || benched(s)) return;
+    for (const entry of depthEntries(ctx, s, animT, dt)) entry.draw();
+  }
+  function drawP2(ctx, s, animT, dt) {
     const p = v.player, c = v.combat;
     drawShots(ctx, v, img);
     for (const z of v.pizzas) { if (img) { const h = z.r * 3.2, w2 = h * img.width / img.height; ctx.save(); ctx.translate(z.x, z.y - 55); ctx.rotate(animT * 14 + z.x * 0.02); ctx.drawImage(img, -w2 / 2, -h / 2, w2, h); ctx.restore(); } else { ctx.fillStyle = '#e8b04a'; ctx.beginPath(); ctx.arc(z.x, z.y - 55, z.r, 0, 7); ctx.fill(); } }
     tag(ctx, s.player, p1Out ? '1P DOWN' : '1P', p1Out ? '#ff6b6b' : '#ffe86b');
     if (p1Out && revive1 > 0) { ctx.save(); ctx.strokeStyle = '#ffe86b'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(s.player.x, s.player.y - 30, 22, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (revive1 / COOP.reviveT)); ctx.stroke(); ctx.restore(); }
     if (v.over) {
-      ctx.save(); ctx.globalAlpha = 0.55; ctx.translate(p.x, p.y + p.r); ctx.rotate(-Math.PI / 2 * (c.facing || 1));
-      drawHero(ctx, v, 'idle', 0, 0 - p.r + 0, animT, dt, true); ctx.restore();
+      ctx.save(); ctx.globalAlpha = 0.55;
+      drawHero(ctx, v, `${rig.heroKind(v)}_down`, p.x, p.y, animT, dt, false); ctx.restore();
       if (revive > 0) { ctx.save(); ctx.strokeStyle = '#3df0ff'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(p.x, p.y - 30, 22, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (revive / COOP.reviveT)); ctx.stroke(); ctx.restore(); }
       return;
     }
     if (c.airborne) { ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.ellipse(p.x, p.y + p.r * 0.7, p.r * 0.9, p.r * 0.34, 0, 0, 7); ctx.fill(); }
     if (!(v.invuln > 0 && Math.floor(v.invuln * 10) % 2)) {
       const face = c.facing < 0 ? -1 : 1;
-      const downA = v.playerDown > 0 ? Math.min(1, v.playerDown / 0.25) * (Math.PI / 2) * -face : 0;
       const y = p.y - (p.z || 0);
       if (skating(s)) drawBoard(ctx, p.x, p.y + p.r + 2, p.z || 0, face, 1.8);
-      if (downA) { ctx.save(); ctx.translate(p.x, y + p.r); ctx.rotate(downA); ctx.translate(-p.x, -(y + p.r)); }
       drawHero(ctx, v, null, p.x, y, animT, dt, false);
-      if (downA) ctx.restore();
     }
     tag(ctx, p, '2P', '#3df0ff');
     drawGrab(ctx, v);
@@ -453,9 +468,10 @@ export function createCoop(opts = {}) {
     const kind = rig.heroKind(view), sc = kind === 'turtle' || kind === 'foot' ? 1.4 : 0.7;
     const pose = forcePose || rig.playerPose(view, animT);
     const a = c && c.attack;
-    const info = { phase: a && !a.hold ? c.phase : null, dur: a ? (c.phase === 'wind' ? a.wind : c.phase === 'active' ? a.active : a.rec) : 0, heavy: !!(a && a.heavy), walkT: c && c.moving ? c.walkT : null, walkRate: c && c.running ? 10 : 8 };
-    const angles = anim.step('p2:' + kind, pose, info, dt, animT);
+    const info = { phase: a && !a.hold ? c.phase : null, dur: a ? (c.phase === 'wind' ? a.wind : c.phase === 'active' ? a.active : a.rec) : 0, heavy: !!(a && a.heavy), walkT: c && c.moving ? c.walkT : null, walkRate: 8 };
+    const drawing = anim.step('p2:' + kind, pose, info, c && c.hitStop > 0 ? 0 : dt, animT);
     const rootY = (local ? 0 : y + p.r) - 63;
+    const angles = footLocks.place('p2:' + kind, kind, drawing, { x: local ? 0 : x, y: rootY, flip: !!(c && c.facing < 0), scale: sc, dt: c && c.hitStop > 0 ? 0 : dt });
     rig.draw(ctx, kind, angles, local ? 0 : x, rootY, !!(c && c.facing < 0), sc, null, dt);
   }
   // Screen space, after the P1 card: P2's card (pipi's hud.player at 3/4 size),
@@ -533,7 +549,7 @@ export function createCoop(opts = {}) {
   }
 
   const api = {
-    setAnim: a => { anim = a; }, step, after, drawWorld, drawHud, drawSelect, join, continueP2, onPress, keys, stats: () => ({ ...stats }),
+    setAnim: a => { anim = a; }, step, after, drawWorld, depthEntries, drawHud, drawSelect, join, continueP2, onPress, keys, stats: () => ({ ...stats }),
     leave: () => { joined = false; ready = false; picking = false; drop(owner); },
     get p2() { return v; }, get joined() { return joined; }, get ready() { return ready; }, get picking() { return picking; }, get pick() { return pick; }, set pick(i) { pick = i; },
     as, hudTwoUp: s => owner === s && active() && !benched(s), get p1Out() { return p1Out; }, get pool() { return pool; }, get handed() { return handed; }, continueP1: (s = owner) => continueP1(s), targetFor: (s, sys) => targetFor(s, sys),

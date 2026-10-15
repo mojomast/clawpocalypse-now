@@ -29,9 +29,9 @@ Pipeline per part
   5. Grip hands: the dark rod is located from the rod-only columns either side of the hand,
      removed outside the hand and where it is visible inside it, and its centre/axis become
      the grip point and grip axis. grip_front is the finger/thumb band in front of the rod
-     line; grip_back is the whole hand. When the source grip_back and grip_front drawings are
-     near-identical (IoU > 0.85) both are derived from the grip_front drawing, so the pair
-     registers exactly.
+     line; grip_back is the whole hand behind the rod. Both are always derived from the ONE
+     grip_front drawing so the pair registers exactly (two separately generated hands never
+     line up); the IoU of the two source drawings is recorded in SLICE.json for audit.
   6. Optional rotate/flip, then premultiplied Lanczos downsample to the rig-pixel size.
   7. Pivots by rule (limb = top-cap centre, joint = bottom-cap centre, foot = ankle + flat
      sole heel/toe, hand = wrist, head = neck, torso = centre + SLICE.json anchor fractions).
@@ -107,12 +107,16 @@ def clean(rgb, alpha, m, keep, sheet):
     part = (a > 0) & (a < 1)
     aa = a[part][:, None]
     out[part] = np.clip((rgb[part] - (1 - aa) * sheet.bg) / aa, 0, 255)
-    # clamp any residual magenta cast on the edge band
-    edge = (a > 0) & ~interior
+    # clamp any residual magenta cast on the edge band. Only purple-ish pixels (blue AND red
+    # above green) are touched, so red visor stripes and skin edges keep their colour.
+    # JPEG chroma subsampling bleeds the background ~4 px into the art, so the band is wider
+    # than the alpha ramp.
+    edge = (a > 0) & ~ndi.binary_erosion(filled, iterations=5)
     c = out[edge]
-    over = np.maximum(0, magness(c) - 20)
-    c[:, 0] -= over * 0.6
-    c[:, 2] -= over * 0.6 / 1.6
+    purple = (c[:, 2] - c[:, 1] > 12) & (c[:, 0] - c[:, 1] > 12)
+    over = np.where(purple, np.maximum(0, magness(c) - 8), 0)
+    c[:, 0] -= over
+    c[:, 2] -= over / 1.6
     out[edge] = np.clip(c, 0, 255)
     return out, a
 
@@ -248,6 +252,9 @@ def main():
         rgb, alpha, m = sheet.key(rect)
         keep, size, nsig = components(alpha, f'{hero}.{name} ({p["sheet"]} {rect})')
         rgb2, a2 = clean(rgb, alpha, m, keep, sheet)
+        if 'colorGain' in p:
+            # palette match (e.g. hair pieces drawn browner than the approved copper head)
+            rgb2 = np.clip(rgb2 * np.array(p['colorGain'], np.float32), 0, 255)
         raw[name] = (rgb2, a2, rect)
         report.append(f'{name:16s} sheet {p["sheet"]} rect {rect} main component {size}px')
 
@@ -414,6 +421,11 @@ def main():
                 i = int(np.argmax(d)); info['tip'] = [int(xs[i]), int(ys[i])]
         elif kind == 'cable':
             info['pivot'] = r1(cap_centre(ao, 'top', 0.08))
+        # generic overrides: an explicit pivot (fractions of the output image) and named anchors
+        if 'pivotFrac' in p and 'registeredWith' not in info:
+            info['pivot'] = [round(p['pivotFrac'][0] * W), round(p['pivotFrac'][1] * H)]
+        if 'anchors' in p and kind != 'torso':
+            info['anchors'] = {k: [round(v[0] * W), round(v[1] * H)] for k, v in p['anchors'].items()}
         if name in grip_out and grip_out[name][3] is not None:
             info['sourceIoU'] = round(grip_out[name][3], 3); info['source'] = grip_out[name][4]
         spillmask = (ao > 0) & (rgbo[..., 0] > 150) & (rgbo[..., 2] > 150) & (rgbo[..., 1] < 80)
@@ -476,6 +488,7 @@ def build_rows(hero, spec, M):
         if key == 'joint': return info['joint']
         if key == 'grip': return info['grip']
         if key == 'pivot': return info['pivot']
+        if key == 'tip': return info['tip']
         return info['anchors'][key]
     for slot, r in rig.items():
         src = r.get('part', slot)

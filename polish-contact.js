@@ -1,0 +1,69 @@
+// The three v2 fighters use their authored contact drawing for melee contact.
+// Legacy fighters retain the original broad rectangles byte-for-byte.
+import { POSES, HERO_CHAIN, HERO_KICK, solve, apply } from './rig.js';
+import { HERO_RIGS } from './hero-rigs.js';
+import { HERO_SUPPORT } from './hero-support.js';
+export const POLISHED_HEROES = new Set(['teknium', 'nous_girl', 'turbofit']);
+// Same body/range units as combat.attackBox; return right-facing rig pixels.
+export const presentationReach = (state, move) => move && !move.around ? (state.player.r * 2 * .3 + move.range * 1.8) / .7 : undefined;
+export function contactPose(state, move) {
+  const hero = state.hero || state.selectedHero, c = state.combat;
+  if (!POLISHED_HEROES.has(hero) || !move) return null;
+  if (/^(kick|jumpKick)$/.test(move.name) && POSES[`${hero}_${move.name}_active`]) return `${hero}_${move.name}_active`;
+  const named = `${hero}_${move.name}_active`;
+  if (POSES[named] && !/^(punch|kick|jumpKick)$/.test(move.name)) return named;
+  const chain = HERO_CHAIN[hero];
+  const action = move.name === 'kick' || move.air ? HERO_KICK[hero] : chain[Math.min(chain.length, Math.max(1, c.chain || 1)) - 1];
+  return `${hero}_${action}_active`;
+}
+export function contactShape(state, move) {
+  const hero = state.hero || state.selectedHero, name = contactPose(state, move);
+  if (!name || move.noHit || move.grabbed) return null;
+  // Sound/energy moves have an explicit reach cue, not a fictitious weapon tip.
+  if (move.around || /_wave_active$/.test(name)) return { area: true, name };
+  const pose = { ...POSES[name], __pose: name, __phase: 'active', __pt: 1 / 60, __reach: presentationReach(state, move) };
+  const sol = solve(hero, pose, { poseName: name, animated: true });
+  const T = HERO_RIGS[hero], points = [];
+  const slots = /_(?:jumpKick|kick)_active$/.test(name) ? ['foot', 'shin']
+    : move.behind ? ['hand_b', 'farm_b', 'uarm_b'] : ['weapon', 'hand', 'farm'];
+  for (const slot of slots) {
+    const p = T[slot], hull = HERO_SUPPORT[hero]?.[slot.replace(/_b$/, '')];
+    if (p && hull) for (const [u, v] of hull) points.push(apply(sol.M[slot], u - p.px, v - p.py));
+  }
+  if (hero === 'nous_girl') for (const rope of Object.values(sol.ropes)) points.push(...rope);
+  const player = state.player, face = state.combat.facing < 0 ? -1 : 1;
+  const world = points.map(([x, y]) => [player.x + face * .7 * x, player.y + player.r - 63 - (player.z || 0) + .7 * y]);
+  return { name, points: world, area: false,
+    x0: Math.min(...world.map(p => p[0])) - 6, x1: Math.max(...world.map(p => p[0])) + 6,
+    top: Math.min(...world.map(p => p[1])) - 6, bot: Math.max(...world.map(p => p[1])) + 6 };
+}
+export function alignContactBox(state, move, broad) {
+  const shape = contactShape(state, move);
+  if (!shape || shape.area) return broad;
+  // Keep existing range/depth caps, but do not hit empty space past the visible
+  // striking limb/weapon. Six pixels are the narrow contact/spark allowance.
+  const box = { ...broad, x0: Math.max(broad.x0, shape.x0), x1: Math.min(broad.x1, shape.x1), top: Math.max(broad.top, shape.top), bot: Math.min(broad.bot, shape.bot) };
+  box.empty = box.x0 > box.x1 || box.top > box.bot;
+  return box;
+}
+export function impactPoint(box, target, hurtbox) {
+  const hb = hurtbox(target);
+  return { x: (Math.max(box.x0, hb.x0) + Math.min(box.x1, hb.x1)) / 2,
+    y: (Math.max(box.top, hb.top) + Math.min(box.bot, hb.bot)) / 2 };
+}
+export function drawContactCue(ctx, state, box) {
+  const c = state.combat, move = c?.attack;
+  if (!POLISHED_HEROES.has(state.hero || state.selectedHero) || c.phase !== 'active' || !move || move.noHit) return;
+  const shape = contactShape(state, move);
+  if (!shape?.area) return;
+  ctx.save(); ctx.strokeStyle = (state.hero || state.selectedHero) === 'teknium' ? '#80ecff' : '#f3d99b';
+  ctx.globalAlpha *= .5; ctx.lineWidth = 2;
+  const y = state.player.y + state.player.r - 44 - (state.player.z || 0);
+  if (move.around) {
+    ctx.beginPath(); ctx.ellipse(state.player.x, y, (box.x1 - box.x0) / 2, 34, 0, 0, Math.PI * 2); ctx.stroke();
+  } else {
+    const sign = c.attackFacing < 0 ? -1 : 1, end = sign > 0 ? box.x1 : box.x0;
+    for (let i = 0; i < 3; i++) { const x = end - sign * i * 9; ctx.beginPath(); ctx.moveTo(x - sign * 8, y - 25); ctx.quadraticCurveTo(x + sign * 8, y, x - sign * 8, y + 25); ctx.stroke(); }
+  }
+  ctx.restore();
+}

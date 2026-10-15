@@ -26,8 +26,10 @@ function start(hero, move) {
     Object.assign(state.player, { x: side ? 240 : 220, y: 229, z: 0 });
     createCombat(state); Object.assign(state.combat, { facing, attackFacing: spec.behind ? -facing : facing, chain: spec.chain || 1 });
     state.combat.attack = spec;
-    const box = attackBox(state, spec), n = { x: (box.x0 + box.x1) / 2, y: 229, r: 16, hp: 100, maxHp: 100, kind: 'brawler', face: -facing, stun: 0, z: spec.air ? 35 : 0, juggle: !!spec.juggle };
-    if (box.empty) n.x = state.player.x + facing * 55;
+    // Fixed original broad-phase midpoint, independent of the current narrow
+    // contact geometry: before/after must face the same diagnostic target.
+    const nx = state.player.x + (spec.around ? 0 : state.combat.attackFacing * (state.player.r * .6 + spec.range * .9));
+    const n = { x: nx, y: 229, r: 16, hp: 100, maxHp: 100, kind: 'brawler', face: -facing, stun: 0, z: spec.air ? 35 : 0, juggle: !!spec.juggle };
     state.ninjas = [n]; state.combat.attack = null;
     const hits = []; state.fxCue = (kind, data) => { if (kind === 'hit') hits.push({ ...data, frame }); };
     const key = 'combat-review:' + side; heroSecondary.forget(hero + ':' + key);

@@ -18,7 +18,8 @@
 // coop.drawHud after the P1 card, coop.drawSelect on the select screen.
 // combat.js hooks: combatStep returns before the shared enemy half for P2
 // (state.coopSecondary), and enemyAI honours state.coopFilter.
-import { createCombat, combatTap, combatPress, combatStep, combatWalk, combatDash, enemyAI } from './combat.js';
+import { createCombat, combatTap, combatPress, combatStep, combatWalk, combatDash, enemyAI, attackBox } from './combat.js';
+import { drawContactCue, presentationReach } from './polish-contact.js';
 import { throwPizza, healPlayer, damagePlayer, damageNinja, hurtR, SKATE_LEVEL, W as LW, CAMERA_EASE_RATE } from './logic.js';
 import { LEVELS, WORLD_W, resolveWalkable } from './collision.js';
 import { HEROES } from './heroes.js';
@@ -469,9 +470,11 @@ export function createCoop(opts = {}) {
     const pose = forcePose || rig.playerPose(view, animT);
     const a = c && c.attack;
     const info = { phase: a && !a.hold ? c.phase : null, dur: a ? (c.phase === 'wind' ? a.wind : c.phase === 'active' ? a.active : a.rec) : 0, heavy: !!(a && a.heavy), walkT: c && c.moving ? c.walkT : null, walkRate: 8 };
+    info.reach = presentationReach(view, a);
     const drawing = anim.step('p2:' + kind, pose, info, c && c.hitStop > 0 ? 0 : dt, animT);
     const rootY = (local ? 0 : y + p.r) - 63;
     const angles = footLocks.place('p2:' + kind, kind, drawing, { x: local ? 0 : x, y: rootY, flip: !!(c && c.facing < 0), scale: sc, dt: c && c.hitStop > 0 ? 0 : dt });
+    if (!local && c?.attack && c.phase === 'active') drawContactCue(ctx, view, attackBox(view, c.attack));
     rig.draw(ctx, kind, angles, local ? 0 : x, rootY, !!(c && c.facing < 0), sc, null, dt);
   }
   // Screen space, after the P1 card: P2's card (pipi's hud.player at 3/4 size),

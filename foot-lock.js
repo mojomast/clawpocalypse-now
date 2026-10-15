@@ -10,14 +10,23 @@ export function createFootLocks() {
     const pose = { ...drawing };
     delete pose.__footTargets;
     delete pose.__rootDy;
+    const polish = kind === 'teknium' || kind === 'turbofit';
+    const gait = /_(walk|run)[1-4]$/.test(pose.__pose || '');
+    if (polish && gait) pose.__strideSpan = (/_run/.test(pose.__pose) ? 64 : 46) / scale;
     const base = solve(kind, pose, { poseName: pose.__pose, animated: true });
     let track = tracks.get(key);
     if (!track || track.flip !== flip || Math.hypot(x - track.x, y - track.y) > 80) {
       track = { anchors: {}, flip }; tracks.set(key, track);
     }
+    // Freeze an already-presented contact, but let a new active drawing commit
+    // on the first zero-dt hit frame (the combat presentation contract).
+    if (polish && dt === 0 && track.pose === pose.__pose && track.lastPose) {
+      return { ...track.lastPose, __dt: 0 };
+    }
     if (!base.contacts.length) track.anchors = {};
     const gettingUp = name => /(^|_)(down|downB|wake)$/.test(name || '');
     if (pose.__pose !== track.pose && (gettingUp(pose.__pose) || gettingUp(track.pose))) track.settle = 0.32;
+    if (polish && track.pose && /_(walk|run)[1-4]$/.exec(pose.__pose || '')?.[1] !== /_(walk|run)[1-4]$/.exec(track.pose)?.[1]) track.settle = 0.16;
     const sign = flip ? -1 : 1, targets = {};
     for (const side of Object.keys(track.anchors)) if (!base.contacts.includes(side)) delete track.anchors[side];
     for (const side of base.contacts) {
@@ -32,7 +41,8 @@ export function createFootLocks() {
     const free = solve(kind, pose, { poseName: pose.__pose, animated: true, footTargets: targets });
     if (track.settle > 0 && track.rootDy != null) {
       const delta = (free.M.torso[5] - track.rootDy) * (1 - Math.exp(-dt / 0.07));
-      pose.__rootDy = track.rootDy + Math.max(-450 * dt, Math.min(450 * dt, delta));
+      const rate = polish ? 240 : 450;
+      pose.__rootDy = track.rootDy + Math.max(-rate * dt, Math.min(rate * dt, delta));
       track.settle = Math.max(track.settle - dt, Math.abs(free.M.torso[5] - pose.__rootDy) > 0.5 ? dt : 0);
     }
     const locked = pose.__rootDy == null ? free : solve(kind, pose, { poseName: pose.__pose, animated: true, footTargets: targets, rootDy: pose.__rootDy });
@@ -49,6 +59,7 @@ export function createFootLocks() {
     // v2 rigs: the actor identity and frame time drive hair/hem/cable secondary motion
     // (dt is 0 during hit-stop, which freezes it).
     pose.__actor = kind + ':' + key; pose.__dt = dt;
+    if (polish) track.lastPose = { ...pose };
     return pose;
   }
   return { place, forget: key => tracks.delete(key), tracks };

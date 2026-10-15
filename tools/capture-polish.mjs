@@ -40,7 +40,7 @@ try {
     console.log('Protected heroes: all named poses × both facings byte-identical RGBA');
   }
   if (mode !== 'protected') {
-    const manifest = extend ? JSON.parse(await readFile(resolve(out, 'manifest.json'))) : { revision: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: source, encoding: 'utf8' }).trim(), scale: .7, fps: 30, clips: [] };
+    const manifest = extend ? JSON.parse(await readFile(resolve(out, 'manifest.json'))) : { revision: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: source, encoding: 'utf8' }).trim(), browser: browser.version(), scale: .7, fps: 30, clips: [] };
     for (const hero of ['teknium', 'nous_girl', 'turbofit']) {
       await mkdir(resolve(out, hero), { recursive: true });
       const moves = await page.evaluate(h => [...polish.moves(h), ...polish.states], hero);

@@ -3,23 +3,35 @@
 import { createServer } from 'node:http';
 import { spawn, execFileSync } from 'node:child_process';
 import { readFile, writeFile, mkdir, access } from 'node:fs/promises';
-import { join, resolve, extname } from 'node:path';
+import { join, resolve, extname, relative } from 'node:path';
+import { tmpdir } from 'node:os';
 import { once } from 'node:events';
 import { createHash } from 'node:crypto';
 import { setTimeout as sleep } from 'node:timers/promises';
 
 const root = resolve(import.meta.dirname, '..');
 const sourceRevision = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
-const heroes = ['turtle_purple', 'turtle_blue', 'turtle_red', 'turtle_orange', 'nous_girl', 'teknium', 'turbofit', 'don_piedro'];
+let heroes = ['turtle_purple', 'turtle_blue', 'turtle_red', 'turtle_orange', 'nous_girl', 'teknium', 'turbofit', 'don_piedro'];
 const mode = process.argv[2] || 'baseline';
-if (!['baseline', 'after'].includes(mode)) throw Error('Usage: node tools/render-rigs.mjs baseline|after');
-const out = resolve(root, mode === 'baseline' ? 'before' : 'after');
+if (!['baseline', 'after'].includes(mode)) throw Error('Usage: node tools/render-rigs.mjs baseline|after [--out DIR] [--heroes a,b]');
+// --out DIR: where sheets (and, in after mode, comparison/) are written. The tracked before/,
+// after/ and comparison/ folders at the repo root are historical evidence and are never written.
+const argOf = name => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : null; };
+const out = resolve(argOf('--out') || join(tmpdir(), `cpn-rig-sheets-${mode}`));
+for (const tracked of ['before', 'after', 'comparison']) {
+  const rel = relative(resolve(root, tracked), out);
+  if (!rel.startsWith('..')) throw Error(`Refusing to write into tracked ${tracked}/ (pass --out to another directory)`);
+}
+const only = argOf('--heroes')?.split(',');
+if (only) heroes = heroes.filter(h => only.includes(h));
 const sha256 = data => createHash('sha256').update(data).digest('hex');
 const mime = { '.html': 'text/html', '.js': 'text/javascript', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp' };
 const server = createServer(async (req, res) => {
   try {
-    const path = resolve(root, '.' + decodeURIComponent(new URL(req.url, 'http://localhost').pathname));
-    if (!path.startsWith(root + '/')) throw Error('outside root');
+    const pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
+    const base = pathname.startsWith('/__out/') ? out : root;
+    const path = resolve(base, '.' + pathname.replace(/^\/__out\//, '/'));
+    if (!path.startsWith(base + '/')) throw Error('outside root');
     const data = await readFile(path);
     res.writeHead(200, { 'Content-Type': mime[extname(path)] || 'application/octet-stream' }); res.end(data);
   } catch { res.writeHead(404); res.end('not found'); }
@@ -75,10 +87,10 @@ try {
       if (sha256(await readFile(join(root, 'before', `${entry.hero}.png`))) !== entry.sha256)
         throw Error(`Baseline checksum mismatch: ${entry.hero}`);
     }
-    const comparison = join(root, 'comparison');
+    const comparison = join(out, 'comparison');
     await mkdir(comparison, { recursive: true });
     for (const hero of heroes) {
-      await send('Page.navigate', { url: `${host}/tools/compare-rigs.html?hero=${hero}` });
+      await send('Page.navigate', { url: `${host}/tools/compare-rigs.html?hero=${hero}&after=/__out` });
       let value;
       for (let i = 0; i < 200; i++) {
         const result = await send('Runtime.evaluate', { expression: 'window.__rigComparison', returnByValue: true });

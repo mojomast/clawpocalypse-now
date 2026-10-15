@@ -95,19 +95,29 @@ export const HERO_RIGS = {
     thigh_b: { file: 'turbofit_thigh.png', w: 30, h: 56, px: 15, py: 8, parent: 'torso', ax: 17, ay: 56, back: true },
     shin_b: { file: 'turbofit_shin.png', w: 34, h: 58, px: 13, py: 8, parent: 'thigh_b', ax: 14, ay: 48, back: true },
   },
-  // moves: agile; sound-wave blasts (ranged special, projectile/FX `nous_girl_fx_burst.png`), cable-whip combos at mid range, bass-drop ground pound, quick dodge roll. The torso includes the skirt: attach thighs at about 72% of torso height, skirt drawn over them. Thighs include the sock tops; shins include the shoes. Previous parts are archived in ../_archive/nous_girl_v1/.
+  // moves: agile; sound-wave blasts (ranged special, projectile/FX `nous_girl_fx_burst.png`), cable-whip combos at mid range, bass-drop ground pound, quick dodge roll.
   nous_girl: {
-    head: { file: 'nous_girl_head.png', w: 47, h: 47, px: 22, py: 42, parent: 'torso', ax: 18, ay: 6 },
-    torso: { file: 'nous_girl_torso.png', w: 37, h: 68, px: 18, py: 34, parent: null, ax: 0, ay: 0 },
-    uarm: { file: 'nous_girl_uarm.png', w: 15, h: 59, px: 6, py: 6, parent: 'torso', ax: 21, ay: 10 },
-    farm: { file: 'nous_girl_farm.png', w: 25, h: 67, px: 6, py: 5, parent: 'uarm', ax: 10, ay: 54 },
-    thigh: { file: 'nous_girl_thigh.png', w: 19, h: 65, px: 9, py: 7, parent: 'torso', ax: 19, ay: 48 },
-    shin: { file: 'nous_girl_shin.png', w: 22, h: 60, px: 8, py: 5, parent: 'thigh', ax: 8, ay: 60 },
-    weapon: { file: 'nous_girl_weapon.png', w: 30, h: 52, px: 8, py: 43, parent: 'farm', ax: 19, ay: 61, grip: 115 },
-    uarm_b: { file: 'nous_girl_uarm.png', w: 15, h: 59, px: 6, py: 6, parent: 'torso', ax: 15, ay: 8, back: true },
-    farm_b: { file: 'nous_girl_farm.png', w: 25, h: 67, px: 6, py: 5, parent: 'uarm_b', ax: 10, ay: 54, back: true },
-    thigh_b: { file: 'nous_girl_thigh.png', w: 19, h: 65, px: 9, py: 7, parent: 'torso', ax: 13, ay: 46, back: true },
-    shin_b: { file: 'nous_girl_shin.png', w: 22, h: 60, px: 8, py: 5, parent: 'thigh_b', ax: 8, ay: 60, back: true },
+    uarm_b: {file: 'nous_girl_uarm.png', w: 12, h: 45, px: 6, py: 4, joint: [6, 41], parent: 'torso', ax: 37, ay: 15, role: 'body', back: true },
+    farm_b: {file: 'nous_girl_farm.png', w: 11, h: 42, px: 5, py: 3, joint: [4, 38], parent: 'uarm_b', ax: 6, ay: 41, role: 'body', back: true },
+    hand_b: {file: 'nous_girl_hand_fist.png', w: 9, h: 20, px: 4, py: 5, parent: 'farm_b', ax: 4, ay: 38, role: 'hand', back: true, variants: {open: {file: 'nous_girl_hand_open.png', w: 10, h: 24, px: 5, py: 6}} },
+    thigh_b: {file: 'nous_girl_thigh.png', w: 15, h: 48, px: 7, py: 4, joint: [7, 44], parent: 'torso', ax: 28, ay: 57, role: 'body', back: true },
+    shin_b: {file: 'nous_girl_shin.png', w: 14, h: 45, px: 7, py: 3, joint: [6, 42], parent: 'thigh_b', ax: 7, ay: 44, role: 'body', back: true },
+    foot_b: {file: 'nous_girl_foot.png', w: 29, h: 17, px: 9, py: 2, sole: [3, 16, 27, 16], parent: 'shin_b', ax: 6, ay: 42, role: 'foot', back: true },
+    head: {file: 'nous_girl_head.png', w: 42, h: 49, px: 22, py: 45, parent: 'torso', ax: 22, ay: 8, role: 'body', variants: {front: {file: 'nous_girl_head_front.png', w: 41, h: 49, px: 20, py: 45}} },
+    thigh: {file: 'nous_girl_thigh.png', w: 15, h: 48, px: 7, py: 4, joint: [7, 44], parent: 'torso', ax: 17, ay: 57, role: 'body' },
+    shin: {file: 'nous_girl_shin.png', w: 14, h: 45, px: 7, py: 3, joint: [6, 42], parent: 'thigh', ax: 7, ay: 44, role: 'body' },
+    foot: {file: 'nous_girl_foot.png', w: 29, h: 17, px: 9, py: 2, sole: [3, 16, 27, 16], parent: 'shin', ax: 6, ay: 42, role: 'foot' },
+    torso: {file: 'nous_girl_torso.png', w: 45, h: 66, px: 22, py: 33, parent: null, ax: 0, ay: 0, role: 'torso', variants: {front: {file: 'nous_girl_torso_front.png', w: 46, h: 66, px: 23, py: 33}} },
+    coil: {file: 'nous_girl_coil.png', w: 16, h: 13, px: 8, py: 1, spring: [220, 16, 0.06], range: [-20, 20], parent: 'torso', ax: 12, ay: 44, role: 'spring' },
+    hair_long: {file: 'nous_girl_hair_long.png', w: 18, h: 31, px: 7, py: 1, spring: [110, 10, 0.14], range: [-25, 60], parent: 'head', ax: 8, ay: 39, role: 'spring' },
+    hair_short: {file: 'nous_girl_hair_short.png', w: 10, h: 25, px: 3, py: 1, spring: [110, 10, 0.14], range: [-20, 45], parent: 'head', ax: 18, ay: 42, role: 'spring' },
+    uarm: {file: 'nous_girl_uarm.png', w: 12, h: 45, px: 6, py: 4, joint: [6, 41], parent: 'torso', ax: 8, ay: 16, role: 'body' },
+    farm: {file: 'nous_girl_farm.png', w: 11, h: 42, px: 5, py: 3, joint: [4, 38], parent: 'uarm', ax: 6, ay: 41, role: 'body' },
+    hand: {file: 'nous_girl_hand_grip_back.png', w: 9, h: 20, px: 4, py: 5, grip: [4, 16], axis: 0, parent: 'farm', ax: 4, ay: 38, role: 'hand' },
+    weapon: {file: 'nous_girl_plug.png', w: 18, h: 3, px: 11, py: 1, tip: [17, 1], parent: 'hand', ax: 4, ay: 16, role: 'weapon', grip: 25 },
+    hand_front: {file: 'nous_girl_hand_grip_front.png', w: 9, h: 20, px: 4, py: 5, grip: [4, 16], axis: 0, parent: 'hand', ax: 4, ay: 5, role: 'grip_front' },
+    cable: {file: 'nous_girl_cable_seg.png', w: 38, h: 4, px: 0, py: 2, segs: 10, len: 6, lash: 118, parent: 'weapon', ax: 17, ay: 1, role: 'rope' },
+    cable_end: {file: 'nous_girl_plug.png', w: 18, h: 3, px: 11, py: 1, tip: [17, 1], parent: 'cable', ax: 0, ay: 0, role: 'rope_end' },
   },
   // moves: Spoon bonk chains (3 hits), Soup Tornado special (root spins 360, hits all around), rising Spoon Uppercut on kick (Hermes' #1 fanboy).
   don_piedro: {
@@ -126,4 +136,4 @@ export const HERO_RIGS = {
 };
 
 // v2 rigs (separate hands, feet, grips, variants and spring chains): draw order and wrist window.
-export const HERO_V2 = {teknium: {layers: ['hem_b', 'uarm_b', 'farm_b', 'hand_b', 'thigh_b', 'shin_b', 'foot_b', 'head', 'thigh', 'shin', 'foot', 'hem', 'torso', 'uarm', 'farm', 'hand', 'weapon', 'hand_front'], wrist: {c: 20, hw: 35}}};
+export const HERO_V2 = {teknium: {layers: ['hem_b', 'uarm_b', 'farm_b', 'hand_b', 'thigh_b', 'shin_b', 'foot_b', 'head', 'thigh', 'shin', 'foot', 'hem', 'torso', 'uarm', 'farm', 'hand', 'weapon', 'hand_front'], wrist: {c: 20, hw: 35}}, nous_girl: {layers: ['uarm_b', 'farm_b', 'hand_b', 'thigh_b', 'shin_b', 'foot_b', 'head', 'thigh', 'shin', 'foot', 'torso', 'coil', 'hair_long', 'hair_short', 'uarm', 'farm', 'hand', 'weapon', 'hand_front', 'cable', 'cable_end'], wrist: {c: 0, hw: 40}}};

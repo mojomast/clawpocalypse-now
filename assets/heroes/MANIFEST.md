@@ -117,21 +117,44 @@ Palette/look: long wild brown hair (the head part), black tattered sleeveless to
 
 Weapon grip: -60 (degrees the weapon art turns in the fist; rig QA t_0309973138084dd1)
 
-## nous_girl (coiled audio-cable whip, Nous Research mascot)
+## nous_girl (audio-cable whip with jack plugs, Nous Research mascot)
 
-Palette/look: white hairband, blue blunt-bang bob, white sailor top with black collar and tie, black pleated skirt, blue-striped wristbands, black thigh-high socks with white stripe, black loafers. No headphones.  Move set: agile; sound-wave blasts (ranged special, projectile/FX `nous_girl_fx_burst.png`), cable-whip combos at mid range, bass-drop ground pound, quick dodge roll. The torso includes the skirt: attach thighs at about 72% of torso height, skirt drawn over them. Thighs include the sock tops; shins include the shoes. Previous parts are archived in ../_archive/nous_girl_v1/.
+Palette/look (v2, `src/design.jpg`, Kyle's own reference `src/kyle-reference.png`): black-ink manga style; glossy black hair with heavy bangs and outward-flipped ends, white headphones; white turtleneck, blue jeans (no skirt), white sneakers with blue trim; an instrument cable with a jack plug at each end, a spare coil clipped at the hip.  Move set: agile; sound-wave blasts (ranged special, projectile/FX `nous_girl_fx_burst.png`), cable-whip combos at mid range, bass-drop ground pound, quick dodge roll.
 
-| part | image | size | pivot | parent | attach |
-|---|---|---|---|---|---|
-| head | nous_girl_head.png | 47x47 | 22,42 | torso | 18,6 |
-| torso | nous_girl_torso.png | 37x68 | 18,34 | - | - |
-| uarm | nous_girl_uarm.png | 15x59 | 6,6 | torso | 21,10 |
-| farm | nous_girl_farm.png | 25x67 | 6,5 | uarm | 10,54 |
-| thigh | nous_girl_thigh.png | 19x65 | 9,7 | torso | 19,48 |
-| shin | nous_girl_shin.png | 22x60 | 8,5 | thigh | 8,60 |
-| weapon | nous_girl_weapon.png | 30x52 | 8,43 | farm | 19,61 |
+Rig: v2 (sliced by `tools/slice-hero-parts.py nous_girl` from `src/sheetA.jpg` + `src/sheetB.jpg`, spec `src/SLICE.json`). Separate feet and hands (the sleeve cuff drawn on each hand overlaps the forearm cuff), a grip pair around the held jack plug, the cable as a 10-link rope from the plug with the second plug at its free end (it lashes out on whip hits), two hair locks and the hip coil on springs, 3/4 head and torso with front variants. The v1 parts are in git history (a53e191); the unused v1 `nous_girl_weapon.png` is kept for the old baseline sheets.
+Layers: uarm_b, farm_b, hand_b, thigh_b, shin_b, foot_b, head, thigh, shin, foot, torso, coil, hair_long, hair_short, uarm, farm, hand, weapon, hand_front, cable, cable_end
+Wrist: c=0 hw=40
 
-Weapon grip: 115 (degrees the weapon art turns in the fist; rig QA t_0309973138084dd1)
+<!-- slice:nous_girl:begin -->
+| part | image | size | pivot | parent | attach | role | data |
+|---|---|---|---|---|---|---|---|
+| uarm_b | nous_girl_uarm.png | 12x45 | 6,4 | torso | 37,15 | body | joint=6,41 |
+| farm_b | nous_girl_farm.png | 11x42 | 5,3 | uarm_b | 6,41 | body | joint=4,38 |
+| hand_b | nous_girl_hand_fist.png | 9x20 | 4,5 | farm_b | 4,38 | hand |  |
+| hand_b@open | nous_girl_hand_open.png | 10x24 | 5,6 | - | - | variant |  |
+| thigh_b | nous_girl_thigh.png | 15x48 | 7,4 | torso | 28,57 | body | joint=7,44 |
+| shin_b | nous_girl_shin.png | 14x45 | 7,3 | thigh_b | 7,44 | body | joint=6,42 |
+| foot_b | nous_girl_foot.png | 29x17 | 9,2 | shin_b | 6,42 | foot | sole=3,16,27,16 |
+| head | nous_girl_head.png | 42x49 | 22,45 | torso | 22,8 | body |  |
+| head@front | nous_girl_head_front.png | 41x49 | 20,45 | - | - | variant |  |
+| thigh | nous_girl_thigh.png | 15x48 | 7,4 | torso | 17,57 | body | joint=7,44 |
+| shin | nous_girl_shin.png | 14x45 | 7,3 | thigh | 7,44 | body | joint=6,42 |
+| foot | nous_girl_foot.png | 29x17 | 9,2 | shin | 6,42 | foot | sole=3,16,27,16 |
+| torso | nous_girl_torso.png | 45x66 | 22,33 | - | - | torso |  |
+| torso@front | nous_girl_torso_front.png | 46x66 | 23,33 | - | - | variant |  |
+| coil | nous_girl_coil.png | 16x13 | 8,1 | torso | 12,44 | spring | spring=220,16,0.06 range=-20,20 |
+| hair_long | nous_girl_hair_long.png | 18x31 | 7,1 | head | 8,39 | spring | spring=110,10,0.14 range=-25,60 |
+| hair_short | nous_girl_hair_short.png | 10x25 | 3,1 | head | 18,42 | spring | spring=110,10,0.14 range=-20,45 |
+| uarm | nous_girl_uarm.png | 12x45 | 6,4 | torso | 8,16 | body | joint=6,41 |
+| farm | nous_girl_farm.png | 11x42 | 5,3 | uarm | 6,41 | body | joint=4,38 |
+| hand | nous_girl_hand_grip_back.png | 9x20 | 4,5 | farm | 4,38 | hand | grip=4,16 axis=0.0 |
+| weapon | nous_girl_plug.png | 18x3 | 11,1 | hand | 4,16 | weapon | tip=17,1 |
+| hand_front | nous_girl_hand_grip_front.png | 9x20 | 4,5 | hand | 4,5 | grip_front | grip=4,16 axis=0.0 |
+| cable | nous_girl_cable_seg.png | 38x4 | 0,2 | weapon | 17,1 | rope | segs=10 len=6 lash=118 |
+| cable_end | nous_girl_plug.png | 18x3 | 11,1 | cable | - | rope_end | tip=17,1 |
+<!-- slice:nous_girl:end -->
+
+Weapon grip: 25 (degrees the weapon art turns in the fist; rig QA t_0309973138084dd1)
 
 _hermes_girl was replaced by nous_girl; its art is archived in ../_archive/hermes_girl/._
 

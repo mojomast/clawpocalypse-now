@@ -1963,6 +1963,78 @@
         }
       ],
       "file": "turbofit/axeB.mp4"
+    },
+    {
+      "hero": "teknium",
+      "move": "stationary-recovery",
+      "frames": 234,
+      "sequence": [
+        {
+          "state": "flinch",
+          "time": 0.2
+        },
+        {
+          "state": "down",
+          "time": 0.4
+        },
+        {
+          "state": "wake",
+          "time": 0.3
+        },
+        {
+          "state": "idleA",
+          "time": 3
+        }
+      ],
+      "file": "teknium/stationary-recovery.mp4"
+    },
+    {
+      "hero": "nous_girl",
+      "move": "stationary-recovery",
+      "frames": 234,
+      "sequence": [
+        {
+          "state": "flinch",
+          "time": 0.2
+        },
+        {
+          "state": "down",
+          "time": 0.4
+        },
+        {
+          "state": "wake",
+          "time": 0.3
+        },
+        {
+          "state": "idleA",
+          "time": 3
+        }
+      ],
+      "file": "nous_girl/stationary-recovery.mp4"
+    },
+    {
+      "hero": "turbofit",
+      "move": "stationary-recovery",
+      "frames": 234,
+      "sequence": [
+        {
+          "state": "flinch",
+          "time": 0.2
+        },
+        {
+          "state": "down",
+          "time": 0.4
+        },
+        {
+          "state": "wake",
+          "time": 0.3
+        },
+        {
+          "state": "idleA",
+          "time": 3
+        }
+      ],
+      "file": "turbofit/stationary-recovery.mp4"
     }
   ]
 }

@@ -1,0 +1,232 @@
+[
+  {
+    "hero": "turtle_purple",
+    "errors": [],
+    "failedRequests": [],
+    "stats": {
+      "renderErrors": {
+        "count": 0,
+        "by": {}
+      },
+      "hero": "turtle_purple",
+      "facing": 1,
+      "log": [
+        "Jab",
+        "Jab 2",
+        "Hook",
+        "Bo Sweep",
+        "Launcher",
+        "Jump kick",
+        "Jab",
+        "Jab 2",
+        "Hook",
+        "Bo Sweep",
+        "Launcher",
+        "Jump kick",
+        "Jab",
+        "Bo Whirl"
+      ]
+    }
+  },
+  {
+    "hero": "turtle_blue",
+    "errors": [],
+    "failedRequests": [],
+    "stats": {
+      "renderErrors": {
+        "count": 0,
+        "by": {}
+      },
+      "hero": "turtle_blue",
+      "facing": 1,
+      "log": [
+        "Jab",
+        "Jab 2",
+        "Hook",
+        "Dash Slash",
+        "Launcher",
+        "Jump kick",
+        "Jab",
+        "Jab 2",
+        "Hook",
+        "Dash Slash",
+        "Launcher",
+        "Jump kick",
+        "Jab",
+        "Blade Cyclone"
+      ]
+    }
+  },
+  {
+    "hero": "turtle_red",
+    "errors": [],
+    "failedRequests": [],
+    "stats": {
+      "renderErrors": {
+        "count": 0,
+        "by": {}
+      },
+      "hero": "turtle_red",
+      "facing": 1,
+      "log": [
+        "Jab",
+        "Jab 2",
+        "Hook",
+        "Sai Flurry",
+        "Launcher",
+        "Jump kick",
+        "Jab",
+        "Jab 2",
+        "Hook",
+        "Sai Flurry",
+        "Jump kick",
+        "Jab",
+        "Rising Uppercut"
+      ]
+    }
+  },
+  {
+    "hero": "turtle_orange",
+    "errors": [],
+    "failedRequests": [],
+    "stats": {
+      "renderErrors": {
+        "count": 0,
+        "by": {}
+      },
+      "hero": "turtle_orange",
+      "facing": 1,
+      "log": [
+        "Jab",
+        "Jab 2",
+        "Hook",
+        "Nunchaku Flurry",
+        "Launcher",
+        "Jump kick",
+        "Jab",
+        "Jab 2",
+        "Hook",
+        "Nunchaku Flurry",
+        "Jump kick",
+        "Jab",
+        "Slide Kick"
+      ]
+    }
+  },
+  {
+    "hero": "nous_girl",
+    "errors": [],
+    "failedRequests": [],
+    "stats": {
+      "renderErrors": {
+        "count": 0,
+        "by": {}
+      },
+      "hero": "nous_girl",
+      "facing": 1,
+      "log": [
+        "Jab",
+        "Jab 2",
+        "Hook",
+        "Sound Wave",
+        "Launcher",
+        "Jump kick",
+        "Jab",
+        "Jab 2",
+        "Hook",
+        "Sound Wave",
+        "Launcher",
+        "Jump kick",
+        "Jab",
+        "Bass Drop"
+      ]
+    }
+  },
+  {
+    "hero": "teknium",
+    "errors": [],
+    "failedRequests": [],
+    "stats": {
+      "renderErrors": {
+        "count": 0,
+        "by": {}
+      },
+      "hero": "teknium",
+      "facing": 1,
+      "log": [
+        "Jab",
+        "Jab 2",
+        "Hook",
+        "Blade Finisher",
+        "Launcher",
+        "Jump kick",
+        "Jab",
+        "Jab 2",
+        "Hook",
+        "Blade Finisher",
+        "Launcher",
+        "Jump kick",
+        "Jab",
+        "Data Burst"
+      ]
+    }
+  },
+  {
+    "hero": "turbofit",
+    "errors": [],
+    "failedRequests": [],
+    "stats": {
+      "renderErrors": {
+        "count": 0,
+        "by": {}
+      },
+      "hero": "turbofit",
+      "facing": 1,
+      "log": [
+        "Jab",
+        "Jab 2",
+        "Hook",
+        "Guitar Axe Smash",
+        "Launcher",
+        "Jump kick",
+        "Jab",
+        "Jab 2",
+        "Hook",
+        "Guitar Axe Smash",
+        "Launcher",
+        "Jump kick",
+        "Jab",
+        "Power Chord"
+      ]
+    }
+  },
+  {
+    "hero": "don_piedro",
+    "errors": [],
+    "failedRequests": [],
+    "stats": {
+      "renderErrors": {
+        "count": 0,
+        "by": {}
+      },
+      "hero": "don_piedro",
+      "facing": 1,
+      "log": [
+        "Jab",
+        "Jab 2",
+        "Hook",
+        "Spoon Uppercut",
+        "Launcher",
+        "Jump kick",
+        "Jab",
+        "Jab 2",
+        "Hook",
+        "Spoon Uppercut",
+        "Launcher",
+        "Jump kick",
+        "Jab",
+        "Soup Tornado"
+      ]
+    }
+  }
+]

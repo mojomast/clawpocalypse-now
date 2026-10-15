@@ -1,5 +1,11 @@
 # Stationary knockdown recovery correction
 
+**Integrated in `d2560b5`.** The regression is now part of `npm test`.
+The final numerical report, actual-game result JSON, original defective Nous
+frames, all six corrected stationary cases and intermediate replant captures
+are committed under [`recovery/`](recovery/). Temporary absolute paths below
+record their original capture provenance.
+
 Scope: `foot-lock.js` and the new `tests/check-polish-recovery.mjs`. No prior evidence, artwork, combat logic, or other runtime files are changed by this workstream. No commits or pushes.
 
 ## Reproduced cause

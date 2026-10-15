@@ -1,0 +1,40 @@
+
+> test
+> node tests/check-rig-sources.mjs && node tests/check-polish-protected.mjs && node tests/check-polish-locomotion.mjs && node tests/check-rigs.mjs && node tests/check-hero-v2.mjs && node check-animation.mjs && node tests/check-polish-rigs.mjs && node tests/check-polish-nous.mjs && node tests/check-polish-timing.mjs && node tests/check-polish-contact.mjs && node tests/check-polish-recovery.mjs && node tests/check-levels.mjs
+
+rig sources OK: hero-rigs.js matches MANIFEST.md; 51 sliced parts match SLICE.json (nous_girl, teknium, turbofit)
+Protected heroes unchanged: assets, rig metadata, every pose and 12 transition frames per pose.
+Protected full locomotion/recovery: exact at 30/60/144Hz, both facings.
+rig geometry OK: 2920 frames, 38500 attached joints, 2262 weapon grips, 2470 grounded facings
+production draw OK: eight heroes × both facings
+baseline manifest OK: all named hero poses and both facings
+v2 pose checks OK: teknium 284 frames, 422 flat planted feet (max tilt 0.00 deg, 0 toe-offs), lowest weapon y 89.3, 0 two-hand; nous_girl 322 frames, 474 flat planted feet (max tilt 0.00 deg, 0 toe-offs), lowest weapon y 82.9, 0 two-hand; turbofit 292 frames, 438 flat planted feet (max tilt 0.00 deg, 0 toe-offs), lowest weapon y 67.9, 194 two-hand
+variant hysteresis OK: head swaps >= 50 ms apart at 30/60/144 Hz
+mirror flags OK
+secondary chains OK: 30/60/144 Hz agree within 3 deg, ranges held, no NaN, frozen at dt=0
+proportions OK: teknium height 170.5 px, head 0.250, arm 1.274, leg 1.388
+proportions OK: nous_girl height 182.9 px, head 0.252, arm 1.318, leg 1.409
+proportions OK: turbofit height 194.5 px, head 0.248, arm 1.261, leg 1.357
+alpha/magenta OK: 51 v2 PNGs have antialiased edges and no magenta spill
+Animation checks passed: 8 heroes, 8640 recovery samples, state selection, exact impact holds, hit-stop freeze.
+World contacts passed: 3840 walking/running supports (0 v2 toe-offs), both facings; maximum X drift 0.0112px.
+Down/get-up transitions passed: no root teleport, reachable support contacts.
+Polish gait: 5616 supports; zero toe fallback/releases; max root velocity 58.481 rig px/s; drift 0.000000
+Polish authored keys: 288 ; transition frames: 25048 ; max guard: 0.00 ; opaque arm seams: 96 ; visible far arms: teknium_idleA 84.9%, turbofit_axeHeavy_active 85.3%
+Nous poses OK: 124 keys; 657 production solves; foot maxY=90.500, weapon maxY=82.853, grip error=1.42e-14
+Nous cable OK: production replay at 30/60/144 Hz; max link ratio 1.000000; exact dt0 history freeze; fresh reflection equality
+whipA: first-contact rope identical at 30/60/144 Hz and 1us; measured forward reach 69.891 world px
+whipB: first-contact rope identical at 30/60/144 Hz and 1us; measured forward reach 64.735 world px
+Nous reach/contact OK: static and live rendered hulls at default/custom budgets, both facings; dt0 contact and spring freeze
+Contact timing: 552 first-active/frozen drawings at 30/60/120/144Hz, including phase changes during hit-stop.
+Visual contact: 66 actual combat hits, both facings; no anticipation damage, bounded melee reach, aligned sparks and frozen contact frames.
+Held contact: 24 knee/throw cases, both facings; raised-body impact and hit-stop.
+┌─────────┬─────────────┬───────┬────────────┬──────────────┬────────────────┬────────────────┐
+│ (index) │ hero        │ cases │ hipErrorPx │ ankleErrorPx │ supportErrorPx │ plantedDriftPx │
+├─────────┼─────────────┼───────┼────────────┼──────────────┼────────────────┼────────────────┤
+│ 0       │ 'nous_girl' │ 12    │ 0.126824   │ 0            │ 0.174999       │ 0              │
+│ 1       │ 'teknium'   │ 12    │ 0.158106   │ 0            │ 0.174999       │ 0              │
+│ 2       │ 'turbofit'  │ 12    │ 0.154814   │ 0            │ 0.175          │ 0              │
+└─────────┴─────────────┴───────┴────────────┴──────────────┴────────────────┴────────────────┘
+Recovery: 36 real-damage → production pose-selector → animation → foot-lock → solve paths; three stationary seconds, live breathing, both facings, with/without game invulnerability blinking, frozen recovery/contact, ordinary anchors retained.
+Collision checks passed: 7 walking routes, 495 encounter/radius spawns, props, swept motion, breakable restoration.

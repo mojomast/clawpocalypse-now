@@ -1,0 +1,710 @@
+{
+  "revision": "d2560b5a79049fa90ca5bb85b9c59f3316d5e3bd",
+  "browser": "155.0.8059.79",
+  "scale": 0.7,
+  "fps": 30,
+  "clips": [
+    {
+      "hero": "teknium",
+      "move": "punch1",
+      "frames": 150,
+      "sequence": [
+        {
+          "state": "punch1",
+          "time": 2.5,
+          "fixture": "real combatStep; fixed targets; no enemy AI"
+        }
+      ],
+      "file": "teknium/punch1.mp4"
+    },
+    {
+      "hero": "teknium",
+      "move": "punch2",
+      "frames": 150,
+      "sequence": [
+        {
+          "state": "punch2",
+          "time": 2.5,
+          "fixture": "real combatStep; fixed targets; no enemy AI"
+        }
+      ],
+      "file": "teknium/punch2.mp4"
+    },
+    {
+      "hero": "teknium",
+      "move": "punch3",
+      "frames": 150,
+      "sequence": [
+        {
+          "state": "punch3",
+          "time": 2.5,
+          "fixture": "real combatStep; fixed targets; no enemy AI"
+        }
+      ],
+      "file": "teknium/punch3.mp4"
+    },
+    {
+      "hero": "teknium",
+      "move": "punch4",
+      "frames": 150,
+      "sequence": [
+        {
+          "state": "punch4",
+          "time": 2.5,
+          "fixture": "real combatStep; fixed targets; no enemy AI"
+        }
+      ],
+      "file": "teknium/punch4.mp4"
+    },
+    {
+      "hero": "teknium",
+      "move": "kick",
+      "frames": 150,
+      "sequence": [
+        {
+          "state": "kick",
+          "time": 2.5,
+          "fixture": "real combatStep; fixed targets; no enemy AI"
+        }
+      ],
+      "file": "teknium/kick.mp4"
+    },
+    {
+      "hero": "teknium",
+      "move": "launcher",
+      "frames": 150,
+      "sequence": [
+        {
+          "state": "launcher",
+          "time": 2.5,
+          "fixture": "real combatStep; fixed targets; no enemy AI"
+        }
+      ],
+      "file": "teknium/launcher.mp4"
+    },
+    {
+      "hero": "teknium",
+      "move": "jumpKick",
+      "frames": 150,
+      "sequence": [
+        {
+          "state": "jumpKick",
+          "time": 2.5,
+          "fixture": "real combatStep; fixed targets; no enemy AI"
+        }
+      ],
+      "file": "teknium/jumpKick.mp4"
+    },
+    {
+      "hero": "teknium",
+      "move": "juggle",
+      "frames": 150,
+      "sequence": [
+        {
+          "state": "juggle",
+          "time": 2.5,
+          "fixture": "real combatStep; fixed targets; no enemy AI"
+        }
+      ],
+      "file": "teknium/juggle.mp4"
+    },
+    {
+      "hero": "teknium",
+      "move": "dashAttack",
+      "frames": 150,
+      "sequence": [
+        {
+          "state": "dashAttack",
+          "time": 2.5,
+          "fixture": "real combatStep; fixed targets; no enemy AI"
+        }
+      ],
+      "file": "teknium/dashAttack.mp4"
+    },
+    {
+      "hero": "teknium",
+      "move": "backAttack",
+      "frames": 150,
+      "sequence": [
+        {
+          "state": "backAttack",
+          "time": 2.5,
+          "fixture": "real combatStep; fixed targets; no enemy AI"
+        }
+      ],
+      "file": "teknium/backAttack.mp4"
+    },
+    {
+      "hero": "teknium",
+      "move": "dash",
+      "frames": 150,
+      "sequence": [
+        {
+          "state": "dash",
+          "time": 2.5,
+          "fixture": "real combatStep; fixed targets; no enemy AI"
+        }
+      ],
+      "file": "teknium/dash.mp4"
+    },
+    {
+      "hero": "teknium",
+      "move": "dodgeRoll",
+      "frames": 150,
+      "sequence": [
+        {
+          "state": "dodgeRoll",
+          "time": 2.5,
+          "fixture": "real combatStep; fixed targets; no enemy AI"
+        }
+      ],
+      "file": "teknium/dodgeRoll.mp4"
+    },
+    {
+      "hero": "teknium",
+      "move": "special",
+      "frames": 150,
+      "sequence": [
+        {
+          "state": "special",
+          "time": 2.5,
+          "fixture": "real combatStep; fixed targets; no enemy AI"
+        }
+      ],
+      "file": "teknium/special.mp4"
+    },
+    {
+      "hero": "teknium",
+      "move": "knee",
+      "frames": 150,
+      "sequence": [
+        {
+          "state": "knee",
+          "time": 2.5,
+          "fixture": "real combatStep; fixed targets; no enemy AI"
+        }
+      ],
+      "file": "teknium/knee.mp4"
+    },
+    {
+      "hero": "teknium",
+      "move": "kneeFinal",
+      "frames": 150,
+      "sequence": [
+        {
+          "state": "kneeFinal",
+          "time": 2.5,
+          "fixture": "real combatStep; fixed targets; no enemy AI"
+        }
+      ],
+      "file": "teknium/kneeFinal.mp4"
+    },
+    {
+      "hero": "teknium",
+      "move": "laneThrow",
+      "frames": 150,
+      "sequence": [
+        {
+          "state": "laneThrow",
+          "time": 2.5,
+          "fixture": "real combatStep; fixed targets; no enemy AI"
+        }
+      ],
+      "file": "teknium/laneThrow.mp4"
+    },
+    {
+      "hero": "teknium",
+      "move": "screenThrow",
+      "frames": 150,
+      "sequence": [
+        {
+          "state": "screenThrow",
+          "time": 2.5,
+          "fixture": "real combatStep; fixed targets; no enemy AI"
+        }
+      ],
+      "file": "teknium/screenThrow.mp4"
+    },
+    {
+      "hero": "teknium",
+      "move": "combo",
+      "frames": 360,
+      "sequence": [
+        {
+          "state": "combo",
+          "time": 6,
+          "fixture": "real combatStep; fixed targets; no enemy AI"
+        }
+      ],
+      "file": "teknium/combo.mp4"
+    },
+    {
+      "hero": "nous_girl",
+      "move": "punch1",
+      "frames": 150,
+      "sequence": [
+        {
+          "state": "punch1",
+          "time": 2.5,
+          "fixture": "real combatStep; fixed targets; no enemy AI"
+        }
+      ],
+      "file": "nous_girl/punch1.mp4"
+    },
+    {
+      "hero": "nous_girl",
+      "move": "punch2",
+      "frames": 150,
+      "sequence": [
+        {
+          "state": "punch2",
+          "time": 2.5,
+          "fixture": "real combatStep; fixed targets; no enemy AI"
+        }
+      ],
+      "file": "nous_girl/punch2.mp4"
+    },
+    {
+      "hero": "nous_girl",
+      "move": "punch3",
+      "frames": 150,
+      "sequence": [
+        {
+          "state": "punch3",
+          "time": 2.5,
+          "fixture": "real combatStep; fixed targets; no enemy AI"
+        }
+      ],
+      "file": "nous_girl/punch3.mp4"
+    },
+    {
+      "hero": "nous_girl",
+      "move": "punch4",
+      "frames": 150,
+      "sequence": [
+        {
+          "state": "punch4",
+          "time": 2.5,
+          "fixture": "real combatStep; fixed targets; no enemy AI"
+        }
+      ],
+      "file": "nous_girl/punch4.mp4"
+    },
+    {
+      "hero": "nous_girl",
+      "move": "kick",
+      "frames": 150,
+      "sequence": [
+        {
+          "state": "kick",
+          "time": 2.5,
+          "fixture": "real combatStep; fixed targets; no enemy AI"
+        }
+      ],
+      "file": "nous_girl/kick.mp4"
+    },
+    {
+      "hero": "nous_girl",
+      "move": "launcher",
+      "frames": 150,
+      "sequence": [
+        {
+          "state": "launcher",
+          "time": 2.5,
+          "fixture": "real combatStep; fixed targets; no enemy AI"
+        }
+      ],
+      "file": "nous_girl/launcher.mp4"
+    },
+    {
+      "hero": "nous_girl",
+      "move": "jumpKick",
+      "frames": 150,
+      "sequence": [
+        {
+          "state": "jumpKick",
+          "time": 2.5,
+          "fixture": "real combatStep; fixed targets; no enemy AI"
+        }
+      ],
+      "file": "nous_girl/jumpKick.mp4"
+    },
+    {
+      "hero": "nous_girl",
+      "move": "juggle",
+      "frames": 150,
+      "sequence": [
+        {
+          "state": "juggle",
+          "time": 2.5,
+          "fixture": "real combatStep; fixed targets; no enemy AI"
+        }
+      ],
+      "file": "nous_girl/juggle.mp4"
+    },
+    {
+      "hero": "nous_girl",
+      "move": "dashAttack",
+      "frames": 150,
+      "sequence": [
+        {
+          "state": "dashAttack",
+          "time": 2.5,
+          "fixture": "real combatStep; fixed targets; no enemy AI"
+        }
+      ],
+      "file": "nous_girl/dashAttack.mp4"
+    },
+    {
+      "hero": "nous_girl",
+      "move": "backAttack",
+      "frames": 150,
+      "sequence": [
+        {
+          "state": "backAttack",
+          "time": 2.5,
+          "fixture": "real combatStep; fixed targets; no enemy AI"
+        }
+      ],
+      "file": "nous_girl/backAttack.mp4"
+    },
+    {
+      "hero": "nous_girl",
+      "move": "dash",
+      "frames": 150,
+      "sequence": [
+        {
+          "state": "dash",
+          "time": 2.5,
+          "fixture": "real combatStep; fixed targets; no enemy AI"
+        }
+      ],
+      "file": "nous_girl/dash.mp4"
+    },
+    {
+      "hero": "nous_girl",
+      "move": "dodgeRoll",
+      "frames": 150,
+      "sequence": [
+        {
+          "state": "dodgeRoll",
+          "time": 2.5,
+          "fixture": "real combatStep; fixed targets; no enemy AI"
+        }
+      ],
+      "file": "nous_girl/dodgeRoll.mp4"
+    },
+    {
+      "hero": "nous_girl",
+      "move": "special",
+      "frames": 150,
+      "sequence": [
+        {
+          "state": "special",
+          "time": 2.5,
+          "fixture": "real combatStep; fixed targets; no enemy AI"
+        }
+      ],
+      "file": "nous_girl/special.mp4"
+    },
+    {
+      "hero": "nous_girl",
+      "move": "knee",
+      "frames": 150,
+      "sequence": [
+        {
+          "state": "knee",
+          "time": 2.5,
+          "fixture": "real combatStep; fixed targets; no enemy AI"
+        }
+      ],
+      "file": "nous_girl/knee.mp4"
+    },
+    {
+      "hero": "nous_girl",
+      "move": "kneeFinal",
+      "frames": 150,
+      "sequence": [
+        {
+          "state": "kneeFinal",
+          "time": 2.5,
+          "fixture": "real combatStep; fixed targets; no enemy AI"
+        }
+      ],
+      "file": "nous_girl/kneeFinal.mp4"
+    },
+    {
+      "hero": "nous_girl",
+      "move": "laneThrow",
+      "frames": 150,
+      "sequence": [
+        {
+          "state": "laneThrow",
+          "time": 2.5,
+          "fixture": "real combatStep; fixed targets; no enemy AI"
+        }
+      ],
+      "file": "nous_girl/laneThrow.mp4"
+    },
+    {
+      "hero": "nous_girl",
+      "move": "screenThrow",
+      "frames": 150,
+      "sequence": [
+        {
+          "state": "screenThrow",
+          "time": 2.5,
+          "fixture": "real combatStep; fixed targets; no enemy AI"
+        }
+      ],
+      "file": "nous_girl/screenThrow.mp4"
+    },
+    {
+      "hero": "nous_girl",
+      "move": "combo",
+      "frames": 360,
+      "sequence": [
+        {
+          "state": "combo",
+          "time": 6,
+          "fixture": "real combatStep; fixed targets; no enemy AI"
+        }
+      ],
+      "file": "nous_girl/combo.mp4"
+    },
+    {
+      "hero": "turbofit",
+      "move": "punch1",
+      "frames": 150,
+      "sequence": [
+        {
+          "state": "punch1",
+          "time": 2.5,
+          "fixture": "real combatStep; fixed targets; no enemy AI"
+        }
+      ],
+      "file": "turbofit/punch1.mp4"
+    },
+    {
+      "hero": "turbofit",
+      "move": "punch2",
+      "frames": 150,
+      "sequence": [
+        {
+          "state": "punch2",
+          "time": 2.5,
+          "fixture": "real combatStep; fixed targets; no enemy AI"
+        }
+      ],
+      "file": "turbofit/punch2.mp4"
+    },
+    {
+      "hero": "turbofit",
+      "move": "punch3",
+      "frames": 150,
+      "sequence": [
+        {
+          "state": "punch3",
+          "time": 2.5,
+          "fixture": "real combatStep; fixed targets; no enemy AI"
+        }
+      ],
+      "file": "turbofit/punch3.mp4"
+    },
+    {
+      "hero": "turbofit",
+      "move": "punch4",
+      "frames": 150,
+      "sequence": [
+        {
+          "state": "punch4",
+          "time": 2.5,
+          "fixture": "real combatStep; fixed targets; no enemy AI"
+        }
+      ],
+      "file": "turbofit/punch4.mp4"
+    },
+    {
+      "hero": "turbofit",
+      "move": "kick",
+      "frames": 150,
+      "sequence": [
+        {
+          "state": "kick",
+          "time": 2.5,
+          "fixture": "real combatStep; fixed targets; no enemy AI"
+        }
+      ],
+      "file": "turbofit/kick.mp4"
+    },
+    {
+      "hero": "turbofit",
+      "move": "launcher",
+      "frames": 150,
+      "sequence": [
+        {
+          "state": "launcher",
+          "time": 2.5,
+          "fixture": "real combatStep; fixed targets; no enemy AI"
+        }
+      ],
+      "file": "turbofit/launcher.mp4"
+    },
+    {
+      "hero": "turbofit",
+      "move": "jumpKick",
+      "frames": 150,
+      "sequence": [
+        {
+          "state": "jumpKick",
+          "time": 2.5,
+          "fixture": "real combatStep; fixed targets; no enemy AI"
+        }
+      ],
+      "file": "turbofit/jumpKick.mp4"
+    },
+    {
+      "hero": "turbofit",
+      "move": "juggle",
+      "frames": 150,
+      "sequence": [
+        {
+          "state": "juggle",
+          "time": 2.5,
+          "fixture": "real combatStep; fixed targets; no enemy AI"
+        }
+      ],
+      "file": "turbofit/juggle.mp4"
+    },
+    {
+      "hero": "turbofit",
+      "move": "dashAttack",
+      "frames": 150,
+      "sequence": [
+        {
+          "state": "dashAttack",
+          "time": 2.5,
+          "fixture": "real combatStep; fixed targets; no enemy AI"
+        }
+      ],
+      "file": "turbofit/dashAttack.mp4"
+    },
+    {
+      "hero": "turbofit",
+      "move": "backAttack",
+      "frames": 150,
+      "sequence": [
+        {
+          "state": "backAttack",
+          "time": 2.5,
+          "fixture": "real combatStep; fixed targets; no enemy AI"
+        }
+      ],
+      "file": "turbofit/backAttack.mp4"
+    },
+    {
+      "hero": "turbofit",
+      "move": "dash",
+      "frames": 150,
+      "sequence": [
+        {
+          "state": "dash",
+          "time": 2.5,
+          "fixture": "real combatStep; fixed targets; no enemy AI"
+        }
+      ],
+      "file": "turbofit/dash.mp4"
+    },
+    {
+      "hero": "turbofit",
+      "move": "dodgeRoll",
+      "frames": 150,
+      "sequence": [
+        {
+          "state": "dodgeRoll",
+          "time": 2.5,
+          "fixture": "real combatStep; fixed targets; no enemy AI"
+        }
+      ],
+      "file": "turbofit/dodgeRoll.mp4"
+    },
+    {
+      "hero": "turbofit",
+      "move": "special",
+      "frames": 150,
+      "sequence": [
+        {
+          "state": "special",
+          "time": 2.5,
+          "fixture": "real combatStep; fixed targets; no enemy AI"
+        }
+      ],
+      "file": "turbofit/special.mp4"
+    },
+    {
+      "hero": "turbofit",
+      "move": "knee",
+      "frames": 150,
+      "sequence": [
+        {
+          "state": "knee",
+          "time": 2.5,
+          "fixture": "real combatStep; fixed targets; no enemy AI"
+        }
+      ],
+      "file": "turbofit/knee.mp4"
+    },
+    {
+      "hero": "turbofit",
+      "move": "kneeFinal",
+      "frames": 150,
+      "sequence": [
+        {
+          "state": "kneeFinal",
+          "time": 2.5,
+          "fixture": "real combatStep; fixed targets; no enemy AI"
+        }
+      ],
+      "file": "turbofit/kneeFinal.mp4"
+    },
+    {
+      "hero": "turbofit",
+      "move": "laneThrow",
+      "frames": 150,
+      "sequence": [
+        {
+          "state": "laneThrow",
+          "time": 2.5,
+          "fixture": "real combatStep; fixed targets; no enemy AI"
+        }
+      ],
+      "file": "turbofit/laneThrow.mp4"
+    },
+    {
+      "hero": "turbofit",
+      "move": "screenThrow",
+      "frames": 150,
+      "sequence": [
+        {
+          "state": "screenThrow",
+          "time": 2.5,
+          "fixture": "real combatStep; fixed targets; no enemy AI"
+        }
+      ],
+      "file": "turbofit/screenThrow.mp4"
+    },
+    {
+      "hero": "turbofit",
+      "move": "combo",
+      "frames": 360,
+      "sequence": [
+        {
+          "state": "combo",
+          "time": 6,
+          "fixture": "real combatStep; fixed targets; no enemy AI"
+        }
+      ],
+      "file": "turbofit/combo.mp4"
+    }
+  ]
+}

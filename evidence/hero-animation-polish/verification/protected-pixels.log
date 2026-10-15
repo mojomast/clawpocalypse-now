@@ -1,0 +1,5 @@
+
+> test:protected-pixels
+> node tools/capture-polish.mjs protected
+
+Protected heroes: all named poses × both facings byte-identical RGBA

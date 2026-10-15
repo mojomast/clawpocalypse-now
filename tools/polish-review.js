@@ -21,7 +21,7 @@ function start(h, move) {
     const a = duration(h, move);
     sequence = [{ state: 'idleA', time: .2 }, { state: move + '_wind', phase: 'wind', time: a.wind },
       { state: move + '_active', phase: 'active', time: a.active }, { state: move + '_recover', phase: 'rec', time: a.rec }, { state: 'idleA', time: .3 }];
-  } else if (move === 'hurt-down-getup') sequence = [{ state: 'flinch', time: .2 }, { state: 'down', time: .4 }, { state: 'wake', time: .3 }, { state: 'idleA', time: .3 }];
+  } else if (move === 'hurt-down-getup' || move === 'stationary-recovery') sequence = [{ state: 'flinch', time: .2 }, { state: 'down', time: .4 }, { state: 'wake', time: .3 }, { state: 'idleA', time: move === 'stationary-recovery' ? 3 : .3 }];
   else sequence = [{ state: move, time: 1.2 }];
   return { frames: sequence.reduce((n, s) => n + Math.ceil(s.time * 60), 0), sequence };
 }
@@ -60,4 +60,4 @@ async function protectedHashes() {
   }
   return result;
 }
-window.polish = { moves, start, draw, protectedHashes, states: ['idleA', 'idleB', 'idleC', 'walk', 'run', 'jump', 'turn', 'grabHold', 'grabbed', 'stagger', 'hurt-down-getup', 'taunt', 'victory'] };
+window.polish = { moves, start, draw, protectedHashes, states: ['idleA', 'idleB', 'idleC', 'walk', 'run', 'jump', 'turn', 'grabHold', 'grabbed', 'stagger', 'hurt-down-getup', 'stationary-recovery', 'taunt', 'victory'] };

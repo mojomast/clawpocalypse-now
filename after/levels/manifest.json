@@ -1,0 +1,1150 @@
+[
+  {
+    "id": "sewer",
+    "index": 0,
+    "obstacles": [
+      {
+        "x": 332,
+        "y": 295,
+        "w": 168,
+        "h": 85
+      },
+      {
+        "x": 1314,
+        "y": 295,
+        "w": 168,
+        "h": 85
+      },
+      {
+        "x": 2146,
+        "y": 295,
+        "w": 168,
+        "h": 85
+      },
+      {
+        "x": 3128,
+        "y": 295,
+        "w": 168,
+        "h": 85
+      },
+      {
+        "x": 3960,
+        "y": 295,
+        "w": 168,
+        "h": 85
+      },
+      {
+        "x": 4942,
+        "y": 295,
+        "w": 168,
+        "h": 85
+      },
+      {
+        "id": "sewer:prop:0",
+        "x": 686,
+        "y": 433,
+        "w": 28,
+        "h": 19
+      },
+      {
+        "id": "sewer:prop:1",
+        "x": 1035,
+        "y": 347,
+        "w": 31,
+        "h": 16
+      },
+      {
+        "id": "sewer:prop:2",
+        "x": 1625,
+        "y": 429,
+        "w": 50,
+        "h": 21
+      },
+      {
+        "id": "sewer:prop:3",
+        "x": 2035,
+        "y": 347,
+        "w": 31,
+        "h": 16
+      },
+      {
+        "id": "sewer:prop:4",
+        "x": 2376,
+        "y": 361,
+        "w": 28,
+        "h": 19
+      },
+      {
+        "id": "sewer:prop:5",
+        "x": 2436,
+        "y": 361,
+        "w": 28,
+        "h": 19
+      },
+      {
+        "id": "sewer:prop:6",
+        "x": 2877,
+        "y": 436,
+        "w": 47,
+        "h": 16
+      },
+      {
+        "id": "sewer:prop:7",
+        "x": 3425,
+        "y": 357,
+        "w": 50,
+        "h": 21
+      },
+      {
+        "id": "sewer:prop:8",
+        "x": 4216,
+        "y": 433,
+        "w": 28,
+        "h": 19
+      },
+      {
+        "id": "sewer:prop:9",
+        "x": 4365,
+        "y": 347,
+        "w": 31,
+        "h": 16
+      },
+      {
+        "id": "sewer:prop:10",
+        "x": 4675,
+        "y": 357,
+        "w": 50,
+        "h": 21
+      },
+      {
+        "id": "sewer:prop:11",
+        "x": 4786,
+        "y": 433,
+        "w": 28,
+        "h": 19
+      }
+    ],
+    "placements": [
+      {
+        "id": "sewer:prop:0",
+        "name": "barrel",
+        "x": 700,
+        "spec": {
+          "file": "barrel.png",
+          "w": 34,
+          "h": 56,
+          "foot": [
+            3,
+            37,
+            28,
+            19
+          ]
+        },
+        "baseY": 452,
+        "level": "sewer"
+      },
+      {
+        "id": "sewer:prop:1",
+        "name": "valve",
+        "x": 1050,
+        "spec": {
+          "file": "valve.png",
+          "w": 39,
+          "h": 48,
+          "foot": [
+            4,
+            32,
+            31,
+            16
+          ]
+        },
+        "baseY": 363,
+        "level": "sewer"
+      },
+      {
+        "id": "sewer:prop:2",
+        "name": "crate",
+        "x": 1650,
+        "spec": {
+          "file": "crate.png",
+          "w": 62,
+          "h": 64,
+          "foot": [
+            6,
+            43,
+            50,
+            21
+          ]
+        },
+        "baseY": 450,
+        "level": "sewer"
+      },
+      {
+        "id": "sewer:prop:3",
+        "name": "valve",
+        "x": 2050,
+        "spec": {
+          "file": "valve.png",
+          "w": 39,
+          "h": 48,
+          "foot": [
+            4,
+            32,
+            31,
+            16
+          ]
+        },
+        "baseY": 363,
+        "level": "sewer"
+      },
+      {
+        "id": "sewer:prop:4",
+        "name": "barrel",
+        "x": 2390,
+        "spec": {
+          "file": "barrel.png",
+          "w": 34,
+          "h": 56,
+          "foot": [
+            3,
+            37,
+            28,
+            19
+          ]
+        },
+        "baseY": 380,
+        "level": "sewer"
+      },
+      {
+        "id": "sewer:prop:5",
+        "name": "barrel",
+        "x": 2450,
+        "spec": {
+          "file": "barrel.png",
+          "w": 34,
+          "h": 56,
+          "foot": [
+            3,
+            37,
+            28,
+            19
+          ]
+        },
+        "baseY": 380,
+        "level": "sewer"
+      },
+      {
+        "id": "sewer:prop:6",
+        "name": "pizzaboxes",
+        "x": 2900,
+        "spec": {
+          "file": "pizzaboxes.png",
+          "w": 59,
+          "h": 48,
+          "foot": [
+            6,
+            32,
+            47,
+            16
+          ]
+        },
+        "baseY": 452,
+        "level": "sewer"
+      },
+      {
+        "id": "sewer:prop:7",
+        "name": "crate",
+        "x": 3450,
+        "spec": {
+          "file": "crate.png",
+          "w": 62,
+          "h": 64,
+          "foot": [
+            6,
+            43,
+            50,
+            21
+          ]
+        },
+        "baseY": 378,
+        "level": "sewer"
+      },
+      {
+        "id": "sewer:prop:8",
+        "name": "barrel",
+        "x": 4230,
+        "spec": {
+          "file": "barrel.png",
+          "w": 34,
+          "h": 56,
+          "foot": [
+            3,
+            37,
+            28,
+            19
+          ]
+        },
+        "baseY": 452,
+        "level": "sewer"
+      },
+      {
+        "id": "sewer:prop:9",
+        "name": "valve",
+        "x": 4380,
+        "spec": {
+          "file": "valve.png",
+          "w": 39,
+          "h": 48,
+          "foot": [
+            4,
+            32,
+            31,
+            16
+          ]
+        },
+        "baseY": 363,
+        "level": "sewer"
+      },
+      {
+        "id": "sewer:prop:10",
+        "name": "crate",
+        "x": 4700,
+        "spec": {
+          "file": "crate.png",
+          "w": 62,
+          "h": 64,
+          "foot": [
+            6,
+            43,
+            50,
+            21
+          ]
+        },
+        "baseY": 378,
+        "level": "sewer"
+      },
+      {
+        "id": "sewer:prop:11",
+        "name": "barrel",
+        "x": 4800,
+        "spec": {
+          "file": "barrel.png",
+          "w": 34,
+          "h": 56,
+          "foot": [
+            3,
+            37,
+            28,
+            19
+          ]
+        },
+        "baseY": 452,
+        "level": "sewer"
+      }
+    ],
+    "imageCount": 40,
+    "sha256": "ff06b6bd7f3db8101831a32677c67d2274b5dff8fc9fda2b98e8b7b8317179cd"
+  },
+  {
+    "id": "street",
+    "index": 1,
+    "obstacles": [
+      {
+        "id": "street:prop:0",
+        "x": 239,
+        "y": 363,
+        "w": 23,
+        "h": 17
+      },
+      {
+        "id": "street:prop:1",
+        "x": 786,
+        "y": 473,
+        "w": 29,
+        "h": 19
+      },
+      {
+        "id": "street:prop:2",
+        "x": 1327,
+        "y": 393,
+        "w": 47,
+        "h": 16
+      },
+      {
+        "id": "street:prop:3",
+        "x": 1986,
+        "y": 359,
+        "w": 29,
+        "h": 19
+      },
+      {
+        "id": "street:prop:4",
+        "x": 2031,
+        "y": 371,
+        "w": 29,
+        "h": 19
+      },
+      {
+        "id": "street:prop:5",
+        "x": 2525,
+        "y": 459,
+        "w": 50,
+        "h": 21
+      },
+      {
+        "id": "street:prop:6",
+        "x": 3089,
+        "y": 365,
+        "w": 23,
+        "h": 17
+      },
+      {
+        "id": "street:prop:7",
+        "x": 3477,
+        "y": 446,
+        "w": 47,
+        "h": 16
+      },
+      {
+        "id": "street:prop:8",
+        "x": 3886,
+        "y": 391,
+        "w": 28,
+        "h": 19
+      },
+      {
+        "id": "street:prop:9",
+        "x": 4289,
+        "y": 475,
+        "w": 23,
+        "h": 17
+      },
+      {
+        "id": "street:prop:10",
+        "x": 4736,
+        "y": 359,
+        "w": 29,
+        "h": 19
+      },
+      {
+        "id": "street:prop:11",
+        "x": 5175,
+        "y": 349,
+        "w": 50,
+        "h": 21
+      }
+    ],
+    "placements": [
+      {
+        "id": "street:prop:0",
+        "name": "hydrant",
+        "x": 250,
+        "spec": {
+          "file": "hydrant.png",
+          "w": 29,
+          "h": 52,
+          "foot": [
+            3,
+            35,
+            23,
+            17
+          ]
+        },
+        "baseY": 380,
+        "level": "street"
+      },
+      {
+        "id": "street:prop:1",
+        "name": "trashcan",
+        "x": 800,
+        "spec": {
+          "file": "trashcan.png",
+          "w": 37,
+          "h": 56,
+          "foot": [
+            4,
+            37,
+            29,
+            19
+          ]
+        },
+        "baseY": 492,
+        "level": "street"
+      },
+      {
+        "id": "street:prop:2",
+        "name": "pizzaboxes",
+        "x": 1350,
+        "spec": {
+          "file": "pizzaboxes.png",
+          "w": 59,
+          "h": 48,
+          "foot": [
+            6,
+            32,
+            47,
+            16
+          ]
+        },
+        "baseY": 409,
+        "level": "street"
+      },
+      {
+        "id": "street:prop:3",
+        "name": "trashcan",
+        "x": 2000,
+        "spec": {
+          "file": "trashcan.png",
+          "w": 37,
+          "h": 56,
+          "foot": [
+            4,
+            37,
+            29,
+            19
+          ]
+        },
+        "baseY": 378,
+        "level": "street"
+      },
+      {
+        "id": "street:prop:4",
+        "name": "trashcan",
+        "x": 2045,
+        "spec": {
+          "file": "trashcan.png",
+          "w": 37,
+          "h": 56,
+          "foot": [
+            4,
+            37,
+            29,
+            19
+          ]
+        },
+        "baseY": 390,
+        "level": "street"
+      },
+      {
+        "id": "street:prop:5",
+        "name": "crate",
+        "x": 2550,
+        "spec": {
+          "file": "crate.png",
+          "w": 62,
+          "h": 64,
+          "foot": [
+            6,
+            43,
+            50,
+            21
+          ]
+        },
+        "baseY": 480,
+        "level": "street"
+      },
+      {
+        "id": "street:prop:6",
+        "name": "hydrant",
+        "x": 3100,
+        "spec": {
+          "file": "hydrant.png",
+          "w": 29,
+          "h": 52,
+          "foot": [
+            3,
+            35,
+            23,
+            17
+          ]
+        },
+        "baseY": 382,
+        "level": "street"
+      },
+      {
+        "id": "street:prop:7",
+        "name": "pizzaboxes",
+        "x": 3500,
+        "spec": {
+          "file": "pizzaboxes.png",
+          "w": 59,
+          "h": 48,
+          "foot": [
+            6,
+            32,
+            47,
+            16
+          ]
+        },
+        "baseY": 462,
+        "level": "street"
+      },
+      {
+        "id": "street:prop:8",
+        "name": "barrel",
+        "x": 3900,
+        "spec": {
+          "file": "barrel.png",
+          "w": 34,
+          "h": 56,
+          "foot": [
+            3,
+            37,
+            28,
+            19
+          ]
+        },
+        "baseY": 410,
+        "level": "street"
+      },
+      {
+        "id": "street:prop:9",
+        "name": "hydrant",
+        "x": 4300,
+        "spec": {
+          "file": "hydrant.png",
+          "w": 29,
+          "h": 52,
+          "foot": [
+            3,
+            35,
+            23,
+            17
+          ]
+        },
+        "baseY": 492,
+        "level": "street"
+      },
+      {
+        "id": "street:prop:10",
+        "name": "trashcan",
+        "x": 4750,
+        "spec": {
+          "file": "trashcan.png",
+          "w": 37,
+          "h": 56,
+          "foot": [
+            4,
+            37,
+            29,
+            19
+          ]
+        },
+        "baseY": 378,
+        "level": "street"
+      },
+      {
+        "id": "street:prop:11",
+        "name": "crate",
+        "x": 5200,
+        "spec": {
+          "file": "crate.png",
+          "w": 62,
+          "h": 64,
+          "foot": [
+            6,
+            43,
+            50,
+            21
+          ]
+        },
+        "baseY": 370,
+        "level": "street"
+      }
+    ],
+    "imageCount": 40,
+    "sha256": "60a3a792a3cb3bae9edbde33a343398633166ebec21b411081c5e6f3d5ba24e9"
+  },
+  {
+    "id": "rooftop",
+    "index": 2,
+    "obstacles": [
+      {
+        "id": "rooftop:prop:0",
+        "x": 379,
+        "y": 349,
+        "w": 43,
+        "h": 19
+      },
+      {
+        "id": "rooftop:prop:1",
+        "x": 875,
+        "y": 404,
+        "w": 50,
+        "h": 21
+      },
+      {
+        "id": "rooftop:prop:2",
+        "x": 1479,
+        "y": 349,
+        "w": 43,
+        "h": 19
+      },
+      {
+        "id": "rooftop:prop:3",
+        "x": 1986,
+        "y": 405,
+        "w": 28,
+        "h": 19
+      },
+      {
+        "id": "rooftop:prop:4",
+        "x": 2479,
+        "y": 347,
+        "w": 43,
+        "h": 19
+      },
+      {
+        "id": "rooftop:prop:5",
+        "x": 2977,
+        "y": 408,
+        "w": 47,
+        "h": 16
+      },
+      {
+        "id": "rooftop:prop:6",
+        "x": 3375,
+        "y": 344,
+        "w": 50,
+        "h": 21
+      },
+      {
+        "id": "rooftop:prop:7",
+        "x": 3435,
+        "y": 344,
+        "w": 50,
+        "h": 21
+      },
+      {
+        "id": "rooftop:prop:8",
+        "x": 3879,
+        "y": 405,
+        "w": 43,
+        "h": 19
+      },
+      {
+        "id": "rooftop:prop:9",
+        "x": 4385,
+        "y": 342,
+        "w": 31,
+        "h": 16
+      },
+      {
+        "id": "rooftop:prop:10",
+        "x": 4736,
+        "y": 405,
+        "w": 28,
+        "h": 19
+      },
+      {
+        "id": "rooftop:prop:11",
+        "x": 5179,
+        "y": 339,
+        "w": 43,
+        "h": 19
+      }
+    ],
+    "placements": [
+      {
+        "id": "rooftop:prop:0",
+        "name": "acunit",
+        "x": 400,
+        "spec": {
+          "file": "acunit.png",
+          "w": 55,
+          "h": 56,
+          "foot": [
+            6,
+            37,
+            43,
+            19
+          ]
+        },
+        "baseY": 368,
+        "level": "rooftop"
+      },
+      {
+        "id": "rooftop:prop:1",
+        "name": "crate",
+        "x": 900,
+        "spec": {
+          "file": "crate.png",
+          "w": 62,
+          "h": 64,
+          "foot": [
+            6,
+            43,
+            50,
+            21
+          ]
+        },
+        "baseY": 425,
+        "level": "rooftop"
+      },
+      {
+        "id": "rooftop:prop:2",
+        "name": "acunit",
+        "x": 1500,
+        "spec": {
+          "file": "acunit.png",
+          "w": 55,
+          "h": 56,
+          "foot": [
+            6,
+            37,
+            43,
+            19
+          ]
+        },
+        "baseY": 368,
+        "level": "rooftop"
+      },
+      {
+        "id": "rooftop:prop:3",
+        "name": "barrel",
+        "x": 2000,
+        "spec": {
+          "file": "barrel.png",
+          "w": 34,
+          "h": 56,
+          "foot": [
+            3,
+            37,
+            28,
+            19
+          ]
+        },
+        "baseY": 424,
+        "level": "rooftop"
+      },
+      {
+        "id": "rooftop:prop:4",
+        "name": "acunit",
+        "x": 2500,
+        "spec": {
+          "file": "acunit.png",
+          "w": 55,
+          "h": 56,
+          "foot": [
+            6,
+            37,
+            43,
+            19
+          ]
+        },
+        "baseY": 366,
+        "level": "rooftop"
+      },
+      {
+        "id": "rooftop:prop:5",
+        "name": "pizzaboxes",
+        "x": 3000,
+        "spec": {
+          "file": "pizzaboxes.png",
+          "w": 59,
+          "h": 48,
+          "foot": [
+            6,
+            32,
+            47,
+            16
+          ]
+        },
+        "baseY": 424,
+        "level": "rooftop"
+      },
+      {
+        "id": "rooftop:prop:6",
+        "name": "crate",
+        "x": 3400,
+        "spec": {
+          "file": "crate.png",
+          "w": 62,
+          "h": 64,
+          "foot": [
+            6,
+            43,
+            50,
+            21
+          ]
+        },
+        "baseY": 365,
+        "level": "rooftop"
+      },
+      {
+        "id": "rooftop:prop:7",
+        "name": "crate",
+        "x": 3460,
+        "spec": {
+          "file": "crate.png",
+          "w": 62,
+          "h": 64,
+          "foot": [
+            6,
+            43,
+            50,
+            21
+          ]
+        },
+        "baseY": 365,
+        "level": "rooftop"
+      },
+      {
+        "id": "rooftop:prop:8",
+        "name": "acunit",
+        "x": 3900,
+        "spec": {
+          "file": "acunit.png",
+          "w": 55,
+          "h": 56,
+          "foot": [
+            6,
+            37,
+            43,
+            19
+          ]
+        },
+        "baseY": 424,
+        "level": "rooftop"
+      },
+      {
+        "id": "rooftop:prop:9",
+        "name": "valve",
+        "x": 4400,
+        "spec": {
+          "file": "valve.png",
+          "w": 39,
+          "h": 48,
+          "foot": [
+            4,
+            32,
+            31,
+            16
+          ]
+        },
+        "baseY": 358,
+        "level": "rooftop"
+      },
+      {
+        "id": "rooftop:prop:10",
+        "name": "barrel",
+        "x": 4750,
+        "spec": {
+          "file": "barrel.png",
+          "w": 34,
+          "h": 56,
+          "foot": [
+            3,
+            37,
+            28,
+            19
+          ]
+        },
+        "baseY": 424,
+        "level": "rooftop"
+      },
+      {
+        "id": "rooftop:prop:11",
+        "name": "acunit",
+        "x": 5200,
+        "spec": {
+          "file": "acunit.png",
+          "w": 55,
+          "h": 56,
+          "foot": [
+            6,
+            37,
+            43,
+            19
+          ]
+        },
+        "baseY": 358,
+        "level": "rooftop"
+      }
+    ],
+    "imageCount": 40,
+    "sha256": "e30b250db22d9c3d72d3aa04efae91957c9fa73c8230bc2b1e3c135081e4caaf"
+  },
+  {
+    "id": "skate",
+    "index": 3,
+    "obstacles": [],
+    "placements": [],
+    "imageCount": 40,
+    "sha256": "9db62509d4b4492fc3997b7a7e4d5730d8ad94929a95de9627bcfd12be0d96a3"
+  },
+  {
+    "id": "tower",
+    "index": 4,
+    "obstacles": [],
+    "placements": [],
+    "imageCount": 40,
+    "sha256": "429108bbe5c4115f51b2b845cf3b2ccc1b8f6242530bdd746fdcb58efb37ad89"
+  },
+  {
+    "id": "subway",
+    "index": 5,
+    "obstacles": [],
+    "placements": [],
+    "imageCount": 40,
+    "sha256": "ad1c28571b13c3aca83d41ff4e65dda35a644e11e11227428eb23faec587eb36"
+  },
+  {
+    "id": "harbor",
+    "index": 6,
+    "obstacles": [
+      {
+        "id": "harbor:prop:0",
+        "x": 142.5,
+        "y": 378,
+        "w": 75,
+        "h": 18
+      },
+      {
+        "id": "harbor:prop:1",
+        "x": 606,
+        "y": 452,
+        "w": 28,
+        "h": 16
+      },
+      {
+        "id": "harbor:prop:2",
+        "x": 821.5,
+        "y": 390,
+        "w": 37,
+        "h": 14
+      },
+      {
+        "id": "harbor:prop:3",
+        "x": 1474,
+        "y": 382,
+        "w": 52,
+        "h": 18
+      },
+      {
+        "id": "harbor:prop:4",
+        "x": 1956.5,
+        "y": 378,
+        "w": 75,
+        "h": 18
+      },
+      {
+        "id": "harbor:prop:5",
+        "x": 2492.5,
+        "y": 454,
+        "w": 43,
+        "h": 14
+      },
+      {
+        "id": "harbor:prop:6",
+        "x": 2795.5,
+        "y": 388,
+        "w": 37,
+        "h": 14
+      },
+      {
+        "id": "harbor:prop:7",
+        "x": 3400,
+        "y": 452,
+        "w": 28,
+        "h": 16
+      },
+      {
+        "id": "harbor:prop:8",
+        "x": 3774,
+        "y": 382,
+        "w": 52,
+        "h": 18
+      },
+      {
+        "id": "harbor:prop:9",
+        "x": 3834,
+        "y": 382,
+        "w": 52,
+        "h": 18
+      },
+      {
+        "id": "harbor:prop:10",
+        "x": 4586,
+        "y": 452,
+        "w": 28,
+        "h": 16
+      }
+    ],
+    "placements": [],
+    "imageCount": 40,
+    "sha256": "76a721854924c8a321abec7d40bc28d17b633bd7bfb36eac68ec229ad36d279c"
+  },
+  {
+    "id": "arcade",
+    "index": 7,
+    "obstacles": [
+      {
+        "id": "arcade:cabinet:0",
+        "x": 488,
+        "y": 386,
+        "w": 64,
+        "h": 14
+      },
+      {
+        "id": "arcade:cabinet:1",
+        "x": 1148,
+        "y": 444,
+        "w": 64,
+        "h": 14
+      },
+      {
+        "id": "arcade:cabinet:2",
+        "x": 1528,
+        "y": 388,
+        "w": 64,
+        "h": 14
+      },
+      {
+        "id": "arcade:cabinet:3",
+        "x": 2268,
+        "y": 444,
+        "w": 64,
+        "h": 14
+      },
+      {
+        "id": "arcade:cabinet:4",
+        "x": 2708,
+        "y": 386,
+        "w": 64,
+        "h": 14
+      },
+      {
+        "id": "arcade:cabinet:5",
+        "x": 3228,
+        "y": 444,
+        "w": 64,
+        "h": 14
+      },
+      {
+        "id": "arcade:cabinet:6",
+        "x": 4268,
+        "y": 386,
+        "w": 64,
+        "h": 14
+      },
+      {
+        "id": "arcade:cabinet:7",
+        "x": 4628,
+        "y": 444,
+        "w": 64,
+        "h": 14
+      },
+      {
+        "id": "arcade:cabinet:8",
+        "x": 5218,
+        "y": 378,
+        "w": 64,
+        "h": 14
+      }
+    ],
+    "placements": [],
+    "imageCount": 40,
+    "sha256": "dd81ca788b8270c1ac7d90299cac6a7515acfb1581defc8e527fb177b4213d7b"
+  }
+]

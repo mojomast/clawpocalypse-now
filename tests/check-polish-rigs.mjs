@@ -111,6 +111,7 @@ if (!process.argv.includes('--gait-only')) {
     }
     const combat = Object.values(HERO_MOVES_COMBAT[hero] || {});
     const moves = new Set([...HERO_CHAIN[hero], HERO_KICK[hero], ...MECHANICS, ...combat.map(m => m.name)]);
+    for (const action of ['kick', 'jumpKick', 'kick_knee', 'kick_kneeFinal', 'dashTravel']) moves.add(action);
     if (hero === 'turbofit') assert.ok(moves.has('axeB'), 'actual second chain strike must be covered');
     for (const move of moves) {
       if (!POSES[`${hero}_${move}_active`]) continue;

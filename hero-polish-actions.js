@@ -13,6 +13,14 @@ export function installPolishedActions(poses, chains) {
       for (const phase of ['wind', 'active', 'follow', 'recover']) {
         put('jumpKick_' + phase, { ...poses[`${hero}_kick_${phase}`], thigh_b: 30, shin_b: 70, torso: -12 });
       }
+      // Held strikes chamber the knee instead of reusing an arm attack. The
+      // kick_ prefix deliberately keeps the far foot as the sole support.
+      for (const action of ['kick_knee', 'kick_kneeFinal']) {
+        put(action + '_wind', { ...idle, thigh: -32, shin: 92, thigh_b: 4, shin_b: 12 });
+        put(action + '_active', { ...idle, torso: -4, head: 4, thigh: action.endsWith('Final') ? -94 : -82, shin: 122, thigh_b: -4, shin_b: 16 });
+        put(action + '_follow', { ...idle, thigh: -62, shin: 110, thigh_b: -2, shin_b: 16 });
+        put(action + '_recover', idle);
+      }
     }
     // Third punch is a compact hook; the heavy finisher keeps its own named
     // wind/contact/follow poses and its fourth-hit combat timing.
@@ -20,6 +28,15 @@ export function installPolishedActions(poses, chains) {
     for (const phase of ['wind', 'active', 'follow', 'recover']) {
       const base = poses[`${hero}_${second}_${phase}`] || idle;
       put('hook_' + phase, { ...base, head: (base.head || 0) - 4, tw: phase === 'wind' ? -.45 : phase === 'recover' ? -.1 : .7 });
+    }
+    // J2 rises; J3 is a lower, compact cross-body blow. Keep the weapon guard
+    // safe but change shoulder/elbow silhouette, not merely the head/twist.
+    if (hero !== 'nous_girl') {
+      const active = hero === 'teknium'
+        ? { torso: 11, head: -7, uarm: -35, farm: -100, weapon: -25, thigh: -16, shin: 32 }
+        : { torso: 16, head: -9, uarm: -10, farm: -75, weapon: -40, tw: .3, thigh: -18, shin: 34 };
+      put('hook_active', { ...poses[`${hero}_hook_active`], ...active });
+      put('hook_follow', { ...poses[`${hero}_hook_follow`], ...active, uarm: hero === 'teknium' ? -23 : -8, farm: hero === 'teknium' ? -85 : -78 });
     }
     chains[hero] = [chains[hero][0], second, 'hook'];
     // Back attacks strike with the rear elbow, while the weapon stays guarded.

@@ -342,8 +342,10 @@ function land(state, move, quiet = false) {
     hitAny = true;
     damageNinja(state, n, move.dmg, Math.random);
     react(state, n, move.react, c.attackFacing, move.knock * 1.5); // knock/throw distance scaled for 2x bodies
-    const impact = POLISHED_HEROES.has(state.hero || state.selectedHero) && !move.grabbed
-      ? { ...impactPoint(attackBox(state, move), n, hurtbox), facing: c.attackFacing } : { x: n.x, y: n.y - (n.z || 0) };
+    const impact = POLISHED_HEROES.has(state.hero || state.selectedHero)
+      ? { ...(move.grabbed ? { x: n.x, y: n.y + n.r - 63 - (n.z || 0) }
+        : impactPoint(attackBox(state, move), n, hurtbox)), facing: c.attackFacing }
+      : { x: n.x, y: n.y - (n.z || 0) };
     if (state.fxCue) state.fxCue('hit', { ...impact, heavy: !!move.heavy, shake: move.shake });
   }
   if (move.release && c.grab) releaseGrab(state, move);

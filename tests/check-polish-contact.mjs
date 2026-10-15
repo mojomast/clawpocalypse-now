@@ -5,7 +5,8 @@ import { MOVES, createCombat, combatStep, attackBox, boxHits, hurtbox } from '..
 import { HERO_MOVES_COMBAT } from '../hero-moves.js';
 import { contactShape, contactPose } from '../polish-contact.js';
 import { createAnim } from '../anim.js';
-import { POSES } from '../rig.js';
+import { POSES, solve, createRig } from '../rig.js';
+import { GRAB_MOVES } from '../grab.js';
 const attacks = hero => [...MOVES.punch.map((m, i) => ({ ...m, chain: i + 1, ...(i === 3 ? HERO_MOVES_COMBAT[hero].finisher : {}) })),
   MOVES.kick, MOVES.launcher, MOVES.jumpKick, MOVES.juggle, MOVES.dashAttack, MOVES.backAttack, HERO_MOVES_COMBAT[hero].special];
 let cases = 0;
@@ -47,6 +48,27 @@ for (const hero of ['teknium', 'nous_girl', 'turbofit']) for (const move of atta
   cases++;
 }
 console.log(`Visual contact: ${cases} actual combat hits, both facings; no anticipation damage, bounded melee reach, aligned sparks and frozen contact frames.`);
+
+// Pose selection only; image decoding is verified separately by browser tests.
+globalThis.Image = class {};
+const selector = createRig();
+delete globalThis.Image;
+for (const hero of ['teknium', 'nous_girl', 'turbofit']) {
+  for (const move of [GRAB_MOVES.knee, GRAB_MOVES.kneeFinal]) {
+    const state = { hero, combat: { attack: move, phase: 'active' } };
+    const name = selector.playerPose(state);
+    assert.match(name, /_kick_knee(?:Final)?_active$/, 'held hit must select a supported knee lift');
+    const sol = solve(hero, POSES[name], { poseName: name, animated: true });
+    assert.deepEqual(sol.contacts, ['back'], `${name}: striking knee must not be planted`);
+    assert.ok(sol.M.shin[5] < sol.M.shin_b[5] - 15, `${name}: knee lift not readable`);
+  }
+  if (hero !== 'nous_girl') {
+    const second = hero === 'teknium' ? 'bladeB' : 'axeB';
+    const a = solve(hero, POSES[`${hero}_${second}_active`], { poseName: `${hero}_${second}_active`, animated: true });
+    const b = solve(hero, POSES[`${hero}_hook_active`], { poseName: `${hero}_hook_active`, animated: true });
+    assert.ok(Math.hypot(a.M.hand[4] - b.M.hand[4], a.M.hand[5] - b.M.hand[5]) > 15, `${hero}: J2/J3 hand silhouettes too similar`);
+  }
+}
 
 for (const hero of ['teknium', 'nous_girl', 'turbofit']) for (const move of [MOVES.dash, MOVES.dodgeRoll]) {
   const s = createState(); Object.assign(s, { hero, hpMode: true, coopSecondary: true, level: null }); createCombat(s);

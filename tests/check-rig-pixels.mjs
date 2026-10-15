@@ -51,7 +51,7 @@ for (const { id: hero } of roster) {
   for (const [move] of Object.entries(HERO_MOVES[hero] || {}).slice(0, 2)) {
     poseNames.push(`${hero}_${move}_wind`, `${hero}_${move}_active`, `${hero}_${move}_recover`);
   }
-  if (V2[hero]) for (const state of ['axeB_active', 'hook_active', 'kick_active', 'jumpKick_active', 'grabThrow_active', 'screenThrow_active']) {
+  if (V2[hero]) for (const state of ['axeB_active', 'hook_active', 'kick_active', 'jumpKick_active', 'kick_knee_active', 'kick_kneeFinal_active', 'grabThrow_active', 'screenThrow_active']) {
     if (POSES[`${hero}_${state}`]) poseNames.push(`${hero}_${state}`);
   }
   for (const pose of poseNames) {

@@ -1401,9 +1401,9 @@ export function createRig() {
     const chain = HERO_CHAIN[hero] || [];
     const phase = c.phase === 'wind' ? 'wind' : c.phase === 'active' ? 'active' : 'recover';
     if (HERO_V2[hero]) {
-      const heldAction = hero === 'nous_girl' && c.attack?.grabbed
+      const heldAction = c.attack?.grabbed
         ? c.attack.name === 'grab' ? (c.attack.release ? 'kick_kneeFinal' : 'kick_knee')
-          : c.attack.name === 'grabThrow' ? (c.attack.screen ? 'screenThrow' : 'laneThrow') : null : null;
+          : hero === 'nous_girl' && c.attack.name === 'grabThrow' ? (c.attack.screen ? 'screenThrow' : 'laneThrow') : null : null;
       const action = heldAction || (c.attack?.noHit && c.attack.name === 'dash' ? 'dashTravel'
         : c.attack?.name === 'kick' ? 'kick' : c.attack?.name === 'jumpKick' ? 'jumpKick' : null);
       if (action && POSES[`${hero}_${action}_${phase}`]) return `${hero}_${action}_${phase}`;

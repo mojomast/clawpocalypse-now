@@ -41,9 +41,10 @@ export function installPolishedActions(poses, chains) {
     chains[hero] = [chains[hero][0], second, 'hook'];
     // Back attacks strike with the rear elbow, while the weapon stays guarded.
     // A two-hand guitar solve must not pull that elbow back onto the neck.
-    for (const [phase, uarm_b, farm_b] of [['wind', 20, -100], ['active', 72, -105], ['follow', 82, -110]]) {
+    for (const [phase, uarm_b, farm_b] of [['wind', 20, -100], ['active', hero === 'turbofit' ? 92 : 72, -105], ['follow', hero === 'turbofit' ? 94 : 82, -110]]) {
       put('backAttack_' + phase, { ...poses[`${hero}_backAttack_${phase}`], uarm_b, farm_b,
-        __twoHand: phase === 'wind' ? 'off' : 'free', __variants: {} });
+        __twoHand: phase === 'wind' ? 'off' : 'free',
+        __variants: hero === 'turbofit' && phase !== 'wind' ? { hand_b: 'fist_cam' } : {} });
     }
     // Non-damaging travel carries the weapon in guard, not in its attack pose.
     put('dashTravel_wind', { ...idle, torso: 8, thigh: -24, shin: 44 });

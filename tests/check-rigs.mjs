@@ -94,8 +94,13 @@ for (const kind of ids) {
       if (p.role === 'rope_end') continue; // placed on the rope's last point, not on an attach pixel
       if (V2[kind]) {
         // v2: collars/waistbands overlap the head and thighs, springs hang behind their parent;
-        // the arm/leg chains and the grip stay strictly parent-first.
-        if (['farm', 'hand', 'weapon', 'hand_front', 'shin', 'foot', 'shin_b', 'foot_b', 'farm_b'].includes(child)) assert.ok(index(p.parent) < index(child), `${label}: ${child} drawn under parent ${p.parent}`);
+        // the arm/leg chains follow the order declared in HERO_V2[kind].layers, and the grip wraps weapon.
+        const decl = V2[kind].layers;
+        if (['farm', 'hand', 'shin', 'foot', 'shin_b', 'foot_b', 'farm_b'].includes(child)) {
+          const expectedOrder = child === 'farm_b' && (sol.twoHand || sol.supportBlend > 0) ? true : decl.indexOf(p.parent) < decl.indexOf(child);
+          assert.equal(index(p.parent) < index(child), expectedOrder, `${label}: ${child} vs parent ${p.parent} disagrees with MANIFEST Layers`);
+        }
+        if (['weapon', 'hand_front'].includes(child)) assert.ok(index(p.parent) < index(child), `${label}: ${child} drawn under parent ${p.parent}`);
       } else if ((p.back || (SKIRTED.has(kind) && child === 'thigh')) && p.parent === 'torso') assert.ok(index(child) < index('torso'), `${label}: far/skirt limb must be behind torso`);
       else if (p.parent !== 'uarm_b' && p.parent !== 'thigh_b') assert.ok(index(p.parent) < index(child), `${label}: ${child} drawn under parent ${p.parent}`);
       // The parent's attach pixel and child's pivot must coincide after scales,
@@ -115,7 +120,7 @@ for (const kind of ids) {
     else assert.ok(index('torso') < index('thigh'), `${label}: near leg should cover torso`);
     if (drawOrder.includes('weapon')) {
       const weapon = table.weapon, parent = weapon.parent;
-      assert.equal(index('weapon'), index(parent) + 1, `${label}: weapon must follow gripping hand`);
+      assert.ok(index(parent) < index('weapon'), `${label}: weapon must follow gripping hand`);
       // v2: the weapon sits fixed in the hand, so its direction is measured against the forearm
       const arm = V2[kind] ? table[parent].parent : parent;
       const pm = sol.M[arm], wm = sol.M.weapon;

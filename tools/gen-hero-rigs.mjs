@@ -36,6 +36,16 @@ export function parse(text) {
     if (layers) { current.layers = layers[1].split(',').map(s => s.trim()).filter(Boolean); continue; }
     const wrist = line.match(/^Wrist:\s*c=(-?[\d.]+)\s+hw=([\d.]+)/);
     if (wrist) { current.wrist = { c: +wrist[1], hw: +wrist[2] }; continue; }
+    const linksLine = line.match(/^Links:\s*(.+)/);
+    if (linksLine) {
+      current.links = {};
+      for (const rule of linksLine[1].split(',').map(s => s.trim()).filter(Boolean)) {
+        const [lhs, rhs] = rule.split('=').map(s => s.trim());
+        if (!lhs || !rhs) continue;
+        current.links[lhs] = Object.fromEntries(rhs.split('+').map(s => s.trim().split('@')));
+      }
+      continue;
+    }
     const moveLine = line.match(/Mov[^:]*:\s*(.+)/);
     if (moveLine) current.moves = moveLine[1].trim();
     const grip = line.match(/^Weapon grip:\s*(-?\d+)/);
@@ -98,7 +108,7 @@ export function emit(types) {
         const tail = variants ? `, variants: ${js(variants)}` : '';
         out.push(`    ${slot}: ${js(rest).slice(0, -1)}${tail} },`);
       }
-      v2[t.kind] = { layers: t.layers, wrist: t.wrist };
+      v2[t.kind] = { layers: t.layers, wrist: t.wrist, ...(t.links ? { links: t.links } : {}) };
       if (!t.layers) throw new Error(`${t.kind}: v2 section needs a Layers: line`);
       for (const l of t.layers) if (!slots[l]) throw new Error(`${t.kind}: layer ${l} has no part row`);
     } else {

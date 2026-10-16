@@ -106,7 +106,7 @@ if (!process.argv.includes('--gait-only')) {
         const gp = apply(sol.M.hand_b, far.grip[0] - far.px, far.grip[1] - far.py);
         const target = apply(sol.M.weapon, weapon.grip2[0] - weapon.px, weapon.grip2[1] - weapon.py);
         assert.ok(Math.hypot(gp[0] - target[0], gp[1] - target[1]) <= 2, `${name}: far grip is disconnected`);
-        assert.ok(sol.order.indexOf('uarm_b') > sol.order.indexOf('torso'), `${name}: supported upper arm hidden behind vest`);
+        assert.ok(sol.order.indexOf('uarm_b') < sol.order.indexOf('torso') && sol.order.indexOf('farm_b') > sol.order.indexOf('torso') && sol.order.indexOf('hand_b') < sol.order.indexOf('weapon') && sol.order.indexOf('weapon') < sol.order.indexOf('hand_front_b'), `${name}: support arm must wrap guitar neck (uarm_b < torso < farm_b < hand_b < weapon < hand_front_b)`);
       }
     }
     const combat = Object.values(HERO_MOVES_COMBAT[hero] || {});
@@ -163,7 +163,8 @@ if (!process.argv.includes('--gait-only')) {
     assert.equal(closed.variants.hand_b, 'grip_far');
     assert.equal(open.twoHand, false, 'a reaching hand must release the guitar');
     assert.notEqual(closed.parts.hand_b.file, open.parts.hand_b.file, 'closed and open far hands require distinct actual drawings');
-    assert.deepEqual([closed.parts.hand_b.w, closed.parts.hand_b.h], [12, 19], 'closed source grip replaces the old 15x24 open palm');
+    assert.deepEqual([closed.parts.hand_b.w, closed.parts.hand_b.h], [24, 24], 'sheetC support palm wraps behind neck');
+    assert.equal(closed.parts.hand_front_b.file, 'turbofit_hand_grip_far_front.png', 'sheetC support fingers wrap in front of neck');
   }
 
   // Decode the actual RGBA sprites; coincident joint coordinates cannot make

@@ -72,7 +72,7 @@ for (const h of heroes) {
       const sh = [s.M.uarm_b[4], s.M.uarm_b[5]], wr = [s.M.hand_b[4], s.M.hand_b[5]];
       const reach = Math.hypot(T.farm_b.ax - T.uarm_b.px, T.farm_b.ay - T.uarm_b.py) + Math.hypot(T.hand_b.ax - T.farm_b.px, T.hand_b.ay - T.farm_b.py);
       assert.ok(Math.hypot(wr[0] - sh[0], wr[1] - sh[1]) <= 0.98 * reach + 1e-6, `${label}: far arm overstretched`);
-      assert.ok(i('farm_b') > i('torso') && i('hand_b') > i('weapon'), `${label}: two-hand layer order`);
+      assert.ok(i('farm_b') > i('torso') && (o.includes('hand_front_b') ? i('hand_b') < i('weapon') && i('weapon') < i('hand_front_b') : i('hand_b') > i('weapon')), `${label}: two-hand layer order`);
     }
     // 5a. variants register on the default part's pivot (same slot origin, sane pivot)
     for (const [slot, v] of Object.entries(s.variants)) {

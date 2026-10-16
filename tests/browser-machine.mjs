@@ -6,7 +6,7 @@ import { mkdir } from 'node:fs/promises';
 import { chromium } from 'playwright';
 
 const PORT = 48791;
-const OUT = '/opt/cursor/artifacts/screenshots';
+const OUT = process.env.MACHINE_SHOTS || '/opt/cursor/artifacts/screenshots';
 const url = `http://127.0.0.1:${PORT}/index.html?coach=0`;
 
 const server = spawn('python3', ['-m', 'http.server', String(PORT), '--bind', '127.0.0.1'], {

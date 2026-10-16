@@ -128,7 +128,7 @@ export function createCinematics(audio) {
     // Ensemble scene (the gang is in the vault painting). In-level replies after
     // this use only the heroes actually in the run.
     machineMeet: {
-      typeRate: 46, img: 'machineMeet', fallback: 'intro1', sound: 'chime', accent: 'riser', music: 'sewer', duration: 8,
+      typeRate: 46, img: 'machineMeet', fallback: 'intro1', sound: 'chime', accent: 'riser', music: 'sewer', duration: 8, portraitSkip: ['THE MACHINE'], // the vault painting already shows the Machine (like Don in intro_don)
       title: 'THE VAULT',
       lines: [
         'NOUS GIRL: Something old is waking under the water.',

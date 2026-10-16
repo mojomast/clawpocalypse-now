@@ -16,7 +16,9 @@ export const PORTRAITS = {
   'SHREDCLAW': 'assets/bosses/splash/shredclaw.png'
 };
 // Every story portrait is now a bust (cropped at the chest), so they all fade out at the bottom.
-const BUSTS = new Set(['TEKNIUM', 'NOUS GIRL', 'TURBOFIT', 'SHREDCLAW', 'DONATELLO', 'LEONARDO', 'RAPHAEL', 'MICHELANGELO', 'DON PIEDRO']);
+const BUSTS = new Set(['TEKNIUM', 'NOUS GIRL', 'TURBOFIT', 'SHREDCLAW', 'DONATELLO', 'LEONARDO', 'RAPHAEL', 'MICHELANGELO', 'DON PIEDRO', 'THE MACHINE']);
+// The Machine's PR #4 portrait is a framed opaque card, not a cut-out bust: draw it smaller so it reads as a comm screen.
+const SCALE = { 'THE MACHINE': 0.72 };
 // Which way each bust looks in its source art; a portrait is mirrored so it faces into the frame.
 const FACES = { 'DONATELLO': 'left', 'LEONARDO': 'left', 'MICHELANGELO': 'left', 'RAPHAEL': 'right', 'TEKNIUM': 'right', 'NOUS GIRL': 'right', 'TURBOFIT': 'right', 'DON PIEDRO': 'right' };
 export const VILLAINS = new Set(['SHREDCLAW']);
@@ -99,7 +101,7 @@ export function drawPortraits(ctx, W, H, s, t, floorY, motion) {
   const one = (k, side, alpha, slide, dim) => {
     const sp = sprite(k, dim); if (!sp) return;
     const bust = BUSTS.has(k);
-    let h = bust ? maxH * 0.92 : maxH;
+    let h = (bust ? maxH * 0.92 : maxH) * (SCALE[k] || 1);
     let w = h * sp.width / sp.height;
     const maxW = W * (VILLAINS.has(k) ? 0.5 : (s.portraitMaxW || 0.42)); if (w > maxW) { h *= maxW / w; w = maxW; }
     const pad = 18, dir = side === 'left' ? -1 : 1;

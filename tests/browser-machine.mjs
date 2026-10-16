@@ -15,7 +15,7 @@ const server = spawn('python3', ['-m', 'http.server', String(PORT), '--bind', '1
 });
 await new Promise(r => setTimeout(r, 400));
 
-const browser = await chromium.launch({ headless: true, args: ['--no-sandbox'] });
+const browser = await chromium.launch({ headless: true, args: ['--no-sandbox'], ...(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {}) });
 const shots = [];
 try {
   await mkdir(OUT, { recursive: true });

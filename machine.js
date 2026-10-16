@@ -457,8 +457,10 @@ export function createMachine(opts = {}) {
 
 // Portrait chip while a cinematic line belongs to the Machine (same slot don.js uses for Don).
 let chip = null;
+const MACHINE_CHIP = false;   // story v3: cine-v3.js draws the Machine's portrait with the other speakers, so a chip would be a second Machine
 export function drawMachineSpeaker(ctx, W, H, cinema) {
   try {
+    if (!MACHINE_CHIP) return false;
     const id = cinema && cinema.scene && cinema.scene(); if (!id) return false;
     const panel = cinema.panels && cinema.panels()[id];
     const d = cinema.debug && cinema.debug();

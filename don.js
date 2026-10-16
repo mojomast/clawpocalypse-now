@@ -48,6 +48,7 @@ register();
 
 // Portrait chip for Don's cinematic lines (cinematics.js stacks the lines; the chip shows while his line is current).
 let chip = null, fig = null;
+const DON_CHIP = false;   // story v3: cinematics draw Don's bust themselves (cine-v3.js)
 export const DON_FIGURE = 'assets/cine/title/don_piedro.png';
 export function drawCineSpeaker(ctx, W, H, cinema) {
   try {
@@ -60,6 +61,9 @@ export function drawCineSpeaker(ctx, W, H, cinema) {
         ctx.save(); ctx.globalAlpha = d.phase === 'out' ? 0.6 : 1; ctx.drawImage(fig, W - fw - 40, H - 182 - fh + 6 + bob, fw, fh); ctx.restore();
       }
     }
+    // story v3: the old portrait chip is retired. In intro_don the cutout above is his one figure, and
+    // on any other panel cine-v3.js draws his manga bust, so a chip here would be a second Don.
+    if (id === 'intro_don' || !DON_CHIP) return false;
     const li = d.phase === 'tail' || d.phase === 'out' ? panel.lines.length : d.li;
     const line = li >= 1 ? panel.lines[li - 1] : null;
     if (!line || !/^DON PIEDRO:/.test(line)) return false;

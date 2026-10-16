@@ -67,7 +67,7 @@ export function createCinematics(audio) {
     // story v3: the panel has its own lair backdrop, and the Discord on the CRT is drawn live
     // (cine-v3.js drawDiscord), its messages arriving in step with the lines below.
     intro_0: {
-      typeRate: 46, img: 'intro0', discord: true, portraitSide: 'right', fallback: 'intro', sound: 'blip', accent: 'riser', music: 'intro', duration: 7.4,
+      typeRate: 46, img: 'intro0', discord: true, portraitSide: 'right', portraitMaxW: 0.36, // busts stay clear of the CRT fallback: 'intro', sound: 'blip', accent: 'riser', music: 'intro', duration: 7.4,
       title: 'ORIGIN: THE CONTEXT WINDOW',
       // Width rule: the canvas is 740 px wide and lines draw at 18 px monospace
       // (~10.8 px per character), so a line must stay around 60 characters or it runs

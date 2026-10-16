@@ -18,11 +18,12 @@ Result: console errors **0**, HTTP 404s **0** (index.html gets a `data:` favicon
 | intro_1_nous_girl.png / intro_1_donatello.png | conversation flips sides; the previous speaker stays, dimmed |
 | intro_2_turbofit.png | TurboFit right, Nous Girl dimmed left |
 | intro_don_teknium.png | don.js still draws Don's cutout; Teknium portrait on the left |
-| intro_3_turtles.png | TURTLES group line: all four turtles small, centred |
-| intro_3_hero.png / intro_3_hero_teknium.png | `{HERO}` line maps to the chosen hero (purple turtle / Teknium run) |
+| intro_3_turtles.png | TURTLES group line: the four turtle busts overlap in a row, outer pair behind, facing the middle |
+| intro_3_hero.png / intro_3_hero_teknium.png / intro_3_hero_don_piedro.png | `{HERO}` line maps to the chosen hero (purple turtle / Teknium / Don Piedro runs) |
 | bossEnter.png | Shredclaw portrait right |
 | bossDefeat.png / bossDefeat_teknium.png | `{HERO}` portrait left |
-| ending.png | narration only: no portraits |
+| ending.png / ending_don_piedro.png | the chosen hero stays on stage, on the left, clear of the lobster |
+| portraits_sheet.png | all 9 story cutouts on mid-grey |
 
 ## Backdrops
 All seven v3 backdrops are now live (`V3_READY` lists every panel). The six late ones came as 1024x576
@@ -38,6 +39,23 @@ Where portraits go:
 - BOSS ENTER: Shredclaw on the right, beside the throne.
 - BOSS DEFEAT / ENDING: narration panels keep the chosen hero on stage (`heroPortrait`), on the left,
   clear of the friendly robot lobster on the right of the ending.
+
+## Turtle + Don Piedro manga busts
+`assets/cine/v3/portraits/{donatello,leonardo,raphael,michelangelo,don_piedro}.png` were keyed from
+`/workspace/uploads/story-portraits/portrait_*_src.jpg` (1280x720, hot-pink ground ~#F0047F-#FD02A1).
+The Nous-gang method (a hard RGB threshold in pizza-story/story-v3/mock.py) would cut into bright purple,
+so I used a magentaness key instead:
+- `m = min(R, 1.6B) - G`, with the ground colour sampled per image from the border.
+- Fully opaque below 0.50*m_bg, fully clear above 0.78*m_bg, a 0.6 px edge soften, and only the
+  largest blob kept (small pinholes filled).
+- Despill un-mixes the ground colour from edge pixels, then clamps any leftover pink.
+- Checked at 1:1 on green: the purple, red and orange bandanas, the outlines, Mikey's tongue, the nunchaku chain and Don's lens are intact.
+- Residue check: 0-1 opaque pink pixels per image.
+
+Trimmed and scaled to 512 px tall. The title-screen cutouts in `assets/cine/title/` are unchanged
+and still used by the title and select screens.
+All nine story portraits are now busts with the bottom fade, and they are mirrored so they face into the frame.
+don.js no longer draws its old portrait chip, so intro_don shows one Don: his cutout on the plate.
 
 ## Known gaps
 - Hero names come from heroes.js ("PURPLE TURTLE"), so `{HERO}` lines read e.g. "PURPLE TURTLE

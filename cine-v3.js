@@ -2,18 +2,22 @@
 // Discord screen on Donatello's CRT in the ORIGIN panel. Plain canvas, no assets beyond the
 // portrait PNGs below; cinematics.js owns the timing and calls in here to draw.
 export const PORTRAITS = {
-  'DONATELLO': 'assets/cine/title/turtle_purple.png',
-  'LEONARDO': 'assets/cine/title/turtle_blue.png',
-  'RAPHAEL': 'assets/cine/title/turtle_red.png',
-  'MICHELANGELO': 'assets/cine/title/turtle_orange.png',
+  // manga busts keyed from the story-portrait sources (the title-screen cutouts in
+  // assets/cine/title/ are left alone for the title and select screens)
+  'DONATELLO': 'assets/cine/v3/portraits/donatello.png',
+  'LEONARDO': 'assets/cine/v3/portraits/leonardo.png',
+  'RAPHAEL': 'assets/cine/v3/portraits/raphael.png',
+  'MICHELANGELO': 'assets/cine/v3/portraits/michelangelo.png',
   'TEKNIUM': 'assets/cine/v3/portraits/teknium.png',
   'NOUS GIRL': 'assets/cine/v3/portraits/nous_girl.png',
   'TURBOFIT': 'assets/cine/v3/portraits/turbofit.png',
-  'DON PIEDRO': 'assets/cine/title/don_piedro.png',
+  'DON PIEDRO': 'assets/cine/v3/portraits/don_piedro.png',
   'SHREDCLAW': 'assets/bosses/splash/shredclaw.png'
 };
-// Bust cutouts (cropped at the chest) fade out at the bottom; full figures stand as they are.
-const BUSTS = new Set(['TEKNIUM', 'NOUS GIRL', 'TURBOFIT', 'SHREDCLAW']);
+// Every story portrait is now a bust (cropped at the chest), so they all fade out at the bottom.
+const BUSTS = new Set(['TEKNIUM', 'NOUS GIRL', 'TURBOFIT', 'SHREDCLAW', 'DONATELLO', 'LEONARDO', 'RAPHAEL', 'MICHELANGELO', 'DON PIEDRO']);
+// Which way each bust looks in its source art; a portrait is mirrored so it faces into the frame.
+const FACES = { 'DONATELLO': 'left', 'LEONARDO': 'left', 'MICHELANGELO': 'left', 'RAPHAEL': 'right', 'TEKNIUM': 'right', 'NOUS GIRL': 'right', 'TURBOFIT': 'right', 'DON PIEDRO': 'right' };
 export const VILLAINS = new Set(['SHREDCLAW']);
 export const GROUP = ['LEONARDO', 'DONATELLO', 'RAPHAEL', 'MICHELANGELO'];
 export const NAME_COLOR = {
@@ -96,12 +100,13 @@ export function drawPortraits(ctx, W, H, s, t, floorY, motion) {
     const bust = BUSTS.has(k);
     let h = bust ? maxH * 0.92 : maxH;
     let w = h * sp.width / sp.height;
-    const maxW = W * (VILLAINS.has(k) ? 0.5 : 0.42); if (w > maxW) { h *= maxW / w; w = maxW; }
+    const maxW = W * (VILLAINS.has(k) ? 0.5 : (s.portraitMaxW || 0.42)); if (w > maxW) { h *= maxW / w; w = maxW; }
     const pad = 18, dir = side === 'left' ? -1 : 1;
     const x = (side === 'left' ? pad : W - pad - w) + dir * slide * 46 * motion;
     const y = floorY - h + (bust ? 6 : 0);
     ctx.save(); ctx.globalAlpha *= alpha;
-    if (side === 'right' && !VILLAINS.has(k) && k !== 'DON PIEDRO') { ctx.translate(x + w, y); ctx.scale(-1, 1); ctx.drawImage(sp, 0, 0, w, h); }  // face inward
+    const flip = !VILLAINS.has(k) && FACES[k] && (FACES[k] === 'left') === (side === 'left');   // face inward
+    if (flip) { ctx.translate(x + w, y); ctx.scale(-1, 1); ctx.drawImage(sp, 0, 0, w, h); }
     else ctx.drawImage(sp, x, y, w, h);
     ctx.restore();
   };
@@ -113,10 +118,19 @@ export function drawPortraits(ctx, W, H, s, t, floorY, motion) {
     const back = p.groupT >= 0 ? 1 - 0.7 * ease((t - p.groupT) / 0.3) : 1;   // step back for the TURTLES row
     one(sl.key, side, a * (on ? 1 : 0.85) * back, 1 - a, !on);
   }
-  if (p.groupT >= 0) {   // TURTLES: all four, small, in a row
-    const a = ease((t - p.groupT) / 0.3), keys = GROUP.filter(ready);
-    const h = Math.min(170, maxH * 0.7); let x = W / 2 - keys.length * h * 0.33;
-    for (const k of keys) { const sp = sprite(k, false); if (!sp) continue; const w = h * sp.width / sp.height; ctx.save(); ctx.globalAlpha *= a; ctx.drawImage(sp, x - w / 2 + h * 0.33, floorY - h + (1 - a) * 20, w, h); ctx.restore(); x += h * 0.66; }
+  if (p.groupT >= 0) {   // TURTLES: all four busts in an overlapping row, outer pair behind, facing the middle
+    const a = ease((t - p.groupT) / 0.3), keys = GROUP.filter(ready); if (!keys.length) return;
+    const sps = keys.map(k => sprite(k, false)), ar = Math.max(...sps.map(sp => sp.width / sp.height));
+    const step = 0.6, w = Math.min(W * 0.92 / (1 + step * (keys.length - 1)), maxH * 0.8 * ar), h = w / ar;
+    const x0 = W / 2 - (w + step * w * (keys.length - 1)) / 2;
+    const order = keys.map((k, i) => i).sort((i, j) => Math.abs(j - (keys.length - 1) / 2) - Math.abs(i - (keys.length - 1) / 2));
+    for (const i of order) {
+      const k = keys[i], sp = sps[i]; const bw = h * sp.width / sp.height, x = x0 + i * step * w + (w - bw) / 2;
+      const want = i < keys.length / 2 ? 'right' : 'left', flip = FACES[k] && FACES[k] !== want;
+      ctx.save(); ctx.globalAlpha *= a; ctx.translate(0, floorY - h + 6 + (1 - a) * 20);
+      if (flip) { ctx.translate(x + bw, 0); ctx.scale(-1, 1); ctx.drawImage(sp, 0, 0, bw, h); } else ctx.drawImage(sp, x, 0, bw, h);
+      ctx.restore();
+    }
   }
 }
 

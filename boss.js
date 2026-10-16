@@ -30,6 +30,7 @@ import { SUBWAY_BOSS } from './subway-data.js'; // cheese: subway boss def
 import { HARBOR_BOSS } from './harbor-data.js'; // mr_india: harbor boss def
 import { ARCADE_BOSS } from './arcade-data.js'; // mr_india: arcade boss def
 import { OPTIONS } from './options-live.js'; // baba_booey: Reduced motion for the intro splash card
+import { flashAlpha, colourSafe } from './effects-safe.js'; // baba_booey: reduced-flash + colour-safe telegraph cues
 
 const SZ = 2, PAD = 60, VIEW_W = 740;
 
@@ -508,6 +509,7 @@ export function createBosses(opts = {}) {
     const n = b.n, a = b.atk, col = b.def.color, L = camL(state);
     ctx.save();
     const pulse = 0.5 + 0.5 * Math.sin(t * 22);
+    const cs = colourSafe();
     const lane = (x0, x1, y, depth, k) => {
       const xa = Math.min(x0, x1), w = Math.abs(x1 - x0);
       ctx.fillStyle = `rgba(255,40,40,${0.16 + 0.22 * pulse})`; ctx.fillRect(xa, y - depth, w, depth * 2 + 10);
@@ -542,6 +544,19 @@ export function createBosses(opts = {}) {
       }
       if (a.type === 'swoop') lane(L + VIEW_W - 20, L + 60, a.y, DEPTH + 6, k);
       if (a.type === 'gatling') lane(a.x0, a.x1, a.y, DEPTH, k);
+      // Colour-safe cue: a distinct glyph per attack type so the wind-up is not
+      // carried by red/yellow alone. Drawn shapes only; default path untouched.
+      if (cs) {
+        ctx.save();
+        ctx.strokeStyle = '#ffffff'; ctx.fillStyle = '#ffffff'; ctx.lineWidth = 2;
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        const gx = n.x + a.face * (n.r + 34), gy = cy - 46;
+        ctx.beginPath(); ctx.arc(gx, gy, 12, 0, 7); ctx.stroke();
+        ctx.font = 'bold 13px monospace';
+        const glyph = { swipe: 'S', slam: 'L', charge: 'C', wave: 'W', volley: 'V', mines: 'M', swoop: 'O', gatling: 'G' }[a.type] || '?';
+        ctx.fillText(glyph, gx, gy + 1);
+        ctx.restore();
+      }
     }
     if (a && a.phase === 'active') {
       if (a.type === 'gatling') { // tracer fire sweeping down the lane
@@ -615,7 +630,7 @@ export function createBosses(opts = {}) {
 
   function drawHud(ctx, state, dt, W, H) {
     const F = state.bossFight, b = F && F.active;
-    if (F && F.flash > 0) { ctx.save(); ctx.fillStyle = `rgba(255,255,255,${Math.min(0.55, F.flash)})`; ctx.fillRect(0, 0, W, H); ctx.restore(); }
+    if (F && F.flash > 0) { ctx.save(); ctx.fillStyle = `rgba(255,255,255,${flashAlpha(Math.min(0.55, F.flash))})`; ctx.fillRect(0, 0, W, H); ctx.restore(); }
     drawSplash(ctx, F, W);
     if (!b) return false;
     const def = b.def, frac = b.hp / b.maxHp;

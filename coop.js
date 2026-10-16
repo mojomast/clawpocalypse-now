@@ -37,6 +37,15 @@ export const P2_KEYS = {
 };
 // Pad 2 (standard mapping), same layout as pad 1 in gamepad.js.
 export const P2_PAD = { A: 0, B: 1, X: 2, Y: 3, LB: 4, RB: 5, LT: 6, RT: 7, START: 9 };
+// Pure HUD helper: the continue prompt plus a live countdown, shared by both P2
+// down cards and the P1-out card. `pool` is the shared continue pool and `left`
+// is the seconds remaining in the revive/continue window. Reads nothing, writes
+// nothing.
+export function continueLabel(pool, left, prompt = 'START: continue') {
+  if (!(pool > 0)) return 'no continues left';
+  const secs = Math.max(0, Math.ceil(Number(left) || 0));
+  return `${prompt} (${pool} left) - ${secs}s`;
+}
 export const COOP = {
   margin: 24,            // players stay this far inside the screen edges
   lives: 3, continueT: 10, reviveR: 56, reviveT: 1.5, reviveHp: 0.5,
@@ -89,6 +98,9 @@ export function createCoop(opts = {}) {
     return view;
   }
   const active = () => !!(v && owner);
+  // Seconds left in the current continue/revive window. Local helper so the HUD
+  // reads a value, not a getter call (the public api exposes it as a getter).
+  const continueLeft = () => Math.max(0, COOP.continueT - cont);
   const skating = s => s.level === SKATE_LEVEL;
   const benched = s => !s.walkLevel && !skating(s); // level transitions: P2 rides along
   const inPlay = s => active() && !benched(s) && !v.over;
@@ -128,7 +140,9 @@ export function createCoop(opts = {}) {
 
   // ---- input -------------------------------------------------------------
   const p2Code = code => Object.values(P2_KEYS).includes(code);
+  const inputEnabled = () => !opts.inputEnabled || opts.inputEnabled();
   function onPress(name) {
+    if (!inputEnabled()) return;
     const s = owner;
     if (name === 'start') {
       if (selecting()) { if (!joined) { joined = true; ready = false; pick = nextFree(selectIndex() + 1); } else ready = !ready; return; }
@@ -161,7 +175,7 @@ export function createCoop(opts = {}) {
   const nameOf = code => Object.keys(P2_KEYS).find(k => P2_KEYS[k] === code);
   if (typeof addEventListener === 'function') {
     addEventListener('keydown', e => {
-      if (!p2Code(e.code)) return;
+      if (!inputEnabled() || !p2Code(e.code)) return;
       e.preventDefault && e.preventDefault();
       keys[e.code] = true;
       if (!e.repeat) onPress(nameOf(e.code));
@@ -498,7 +512,7 @@ export function createCoop(opts = {}) {
       if (v.over) {
         ctx.save(); ctx.fillStyle = 'rgba(10,12,20,0.88)'; ctx.fillRect(cx, cy, cw, ch);
         ctx.textAlign = 'center'; ctx.fillStyle = '#ff6b6b'; ctx.font = 'bold 13px monospace'; ctx.fillText('2P DOWN', cx + cw / 2, cy + 40);
-        ctx.fillStyle = '#ffe86b'; ctx.font = '11px monospace'; ctx.fillText(pool > 0 ? `START: continue (${pool} left)` : 'no continues left', cx + cw / 2, cy + 62);
+        ctx.fillStyle = '#ffe86b'; ctx.font = '11px monospace'; ctx.fillText(continueLabel(pool, continueLeft()), cx + cw / 2, cy + 62);
         ctx.fillStyle = '#9fe7ff'; ctx.fillText('or 1P stands close: revive', cx + cw / 2, cy + 80); ctx.restore();
       }
       drawP1Out(ctx);
@@ -519,7 +533,7 @@ export function createCoop(opts = {}) {
       ctx.fillStyle = 'rgba(10,12,20,0.88)'; ctx.fillRect(x, y, w, 44);
       ctx.textAlign = 'center'; ctx.fillStyle = '#ff6b6b'; ctx.font = 'bold 11px monospace'; ctx.fillText('2P DOWN', x + w / 2, y + 13);
       ctx.fillStyle = '#ffe86b'; ctx.font = '10px monospace';
-      ctx.fillText(pool > 0 ? `START: continue (${pool} left)` : 'no continues left', x + w / 2, y + 27);
+      ctx.fillText(continueLabel(pool, continueLeft()), x + w / 2, y + 27);
       ctx.fillStyle = '#9fe7ff'; ctx.fillText('or 1P stands close: revive', x + w / 2, y + 40);
     }
     ctx.restore();
@@ -527,9 +541,19 @@ export function createCoop(opts = {}) {
   }
   function drawP1Out(ctx) {
     if (p1Out) { // P1 waiting on a continue / revive
-      ctx.save(); ctx.fillStyle = 'rgba(10,12,20,0.88)'; ctx.fillRect(12, 132, 300, 40); ctx.strokeStyle = '#ff6b6b'; ctx.strokeRect(12, 132, 300, 40);
-      ctx.textAlign = 'center'; ctx.fillStyle = '#ff6b6b'; ctx.font = 'bold 12px monospace'; ctx.fillText('1P DOWN', 162, 147);
-      ctx.fillStyle = '#ffe86b'; ctx.font = '10px monospace'; ctx.fillText(pool > 0 ? `J / ENTER: continue (${pool} left)  or 2P revive` : 'no continues left: 2P stand close to revive', 162, 164); ctx.restore();
+      // Wider/taller card + two lines: the combined prompt ("J / ENTER: continue
+      // (3 left) - 10s  or 2P revive") overflowed the old 300px single line.
+      ctx.save(); ctx.fillStyle = 'rgba(10,12,20,0.88)'; ctx.fillRect(12, 132, 340, 48); ctx.strokeStyle = '#ff6b6b'; ctx.strokeRect(12, 132, 340, 48);
+      ctx.textAlign = 'center'; ctx.fillStyle = '#ff6b6b'; ctx.font = 'bold 12px monospace'; ctx.fillText('1P DOWN', 182, 147);
+      ctx.font = '10px monospace';
+      if (pool > 0) {
+        const c1 = Math.max(0, COOP.continueT - cont1);
+        ctx.fillStyle = '#ffe86b'; ctx.fillText(continueLabel(pool, c1, 'J / ENTER: continue'), 182, 161);
+        ctx.fillStyle = '#9fe7ff'; ctx.fillText('or 2P stands close: revive', 182, 174);
+      } else {
+        ctx.fillStyle = '#9fe7ff'; ctx.fillText('no continues left: 2P stand close to revive', 182, 164);
+      }
+      ctx.restore();
     }
   }
   function bar(ctx, x, y, w, h, f) { ctx.fillStyle = 'rgba(255,255,255,0.12)'; ctx.fillRect(x, y, w, h); ctx.fillStyle = f <= 0.3 ? '#ff3b3b' : '#63f7a0'; ctx.fillRect(x, y, w * Math.max(0, Math.min(1, f)), h); }
@@ -556,7 +580,7 @@ export function createCoop(opts = {}) {
     leave: () => { joined = false; ready = false; picking = false; drop(owner); },
     get p2() { return v; }, get joined() { return joined; }, get ready() { return ready; }, get picking() { return picking; }, get pick() { return pick; }, set pick(i) { pick = i; },
     as, hudTwoUp: s => owner === s && active() && !benched(s), get p1Out() { return p1Out; }, get pool() { return pool; }, get handed() { return handed; }, continueP1: (s = owner) => continueP1(s), targetFor: (s, sys) => targetFor(s, sys),
-    get revive() { return revive; }, get continueLeft() { return Math.max(0, COOP.continueT - cont); },
+    get revive() { return revive; }, get continueLeft() { return continueLeft(); },
   };
   return api;
 }

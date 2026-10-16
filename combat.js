@@ -459,7 +459,11 @@ export function enemyAI(state, dt) {
       tx = aimX + side * dist; ty = p.y;
       const inRange = Math.abs(dx) <= reachOf(spec) && Math.abs(dy) < DEPTH - 3 && (spec.ranged || Math.abs(dx) >= 24);
       if (inRange && !(n.cool > 0)) {
-        n.atk = { phase: 'wind', t: spec.wind, dur: spec.wind }; n.move = spec.move; n.phase = 'wind';
+        // Early-game telegraph: use the shared windFor() helper (WIND_SCALE by level) for the
+        // wind-up length so authored encounters inherit the intended longer cue. Base damage,
+        // reach and recovery are untouched. wake/stun/down/token state is unchanged.
+        const wind = windFor(state, spec);
+        n.atk = { phase: 'wind', t: wind, dur: wind }; n.move = spec.move; n.phase = 'wind';
         n.vx = base; n.vy = 0; continue;
       }
     } else {

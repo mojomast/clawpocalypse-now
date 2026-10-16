@@ -22,6 +22,7 @@ import { SUBWAY_TRIGGERS } from './subway-data.js'; // cheese: subway beats
 import { HARBOR_TRIGGERS } from './harbor-data.js'; // mr_india: harbor beats
 import { ARCADE_TRIGGERS } from './arcade-data.js'; // mr_india: arcade beats
 import { HEROES as HERO_LIST } from './heroes.js'; // story-v2: hero names for the speaker label
+import { flashAlpha } from './effects-safe.js'; // baba_booey: breach flash honours reducedFlash
 
 const bandTop = level => LEVELS[level]?.walkables[0]?.y ?? 358;
 
@@ -663,7 +664,7 @@ export function drawEventOverlay(ctx, state, W, H) {
   const e = state.events;
   if (!e) return;
   ctx.save();
-  if (e.flash > 0) { ctx.fillStyle = `rgba(255,244,214,${Math.min(0.7, e.flash * 2)})`; ctx.fillRect(0, 0, W, H); }
+  if (e.flash > 0) { ctx.fillStyle = `rgba(255,244,214,${flashAlpha(Math.min(0.7, e.flash * 2))})`; ctx.fillRect(0, 0, W, H); }
   const cam = state.level === 3 || Number.isFinite(state.cameraX) ? (state.cameraX || 0) : camOf(state, e); // baba_booey: bubbles ride the shown (smoothed) camera
   for (const b of e.barks || []) {
     const a = Math.min(1, b.t / 0.15, (b.dur - b.t) / 0.3);

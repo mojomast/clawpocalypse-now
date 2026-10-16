@@ -15,6 +15,28 @@ import { installNousPolish } from './hero-polish-nous.js';
 import { installTekniumPolish } from './hero-polish-teknium.js';
 import { installTurboFitPolish } from './hero-polish-turbofit.js';
 import { installPolishedActions } from './hero-polish-actions.js';
+import { createTintCache } from './tint-cache.js';
+
+// Opt-in experimental pre-tinted cache (roadmap item 10). DEFAULT OFF: the
+// default render path must stay byte-identical, so the cache is only used when
+// `?rigCache=1` is present or a caller explicitly enables it via setTintCache().
+const RIG_CACHE_FLAG = (() => {
+  try {
+    if (typeof location === 'undefined' || !location || !location.search) return false;
+    return new URLSearchParams(location.search).get('rigCache') === '1';
+  } catch { return false; }
+})();
+// One bounded cache, shared by every rig instance in this module.
+const tintCache = createTintCache({ maxEntries: 192, maxPixels: 4_000_000 });
+tintCache.setEnabled(RIG_CACHE_FLAG);
+try { if (typeof window !== 'undefined') window.__ppTintCache = tintCache; } catch { /* no window */ }
+
+// Rigs whose rendered output is a protected contract. These are NEVER routed
+// through the pre-tinted cache, even when it is enabled: they always take the
+// exact original `ctx.filter` + drawImage path, so their pixels cannot shift.
+// Only other kinds (nous_girl, teknium, the enemy rigs and their skinned
+// variants) are eligible for experimental caching.
+const PROTECTED_RIGS = new Set(['turtle_purple', 'turtle_blue', 'turtle_red', 'turtle_orange', 'don_piedro', 'turbofit']);
 
 // `ax/ay` are the attach point in the parent's pixels; `px/py` the local pivot.
 // `_b` (back) limbs reuse the front image with a darker filter and their own
@@ -1336,18 +1358,20 @@ function v2Live(kind, sol, pose, angles, poseName, x, y, flip, scale, dt) {
 
 // Nous's contact stroke: the sheet's crescent lash sprite (sheetD obj 6) laid along the rope
 // chord (fist -> free jack), uniformly sized to the chord, on whip contact frames only.
-function drawLashStroke(ctx, img, sol, baseTint) {
+function drawLashStroke(ctx, img, sol, baseTint, cacheable = false) {
   const pts = Object.values(sol.ropes || {})[0];
   if (!img || !pts || pts.length < 2) return;
   const a = pts[0], b = pts[pts.length - 1], len = Math.hypot(b[0] - a[0], b[1] - a[1]);
   if (len < 10) return;
   const k = len / img.width;
+  const eff = baseTint ? baseTint.trim() : '';
+  const baked = cacheable && eff ? tintCache.get(img, eff) : null;
   ctx.save();
-  if (baseTint) ctx.filter = baseTint.trim();
+  if (baked) ctx.filter = 'none'; else if (eff) ctx.filter = eff;
   ctx.globalAlpha *= 0.6 * Math.min(1, sol.lash);
   ctx.translate(a[0], a[1]); ctx.rotate(Math.atan2(b[1] - a[1], b[0] - a[0]));
   ctx.scale(k, k);
-  ctx.drawImage(img, 0, -img.height * 0.5);
+  ctx.drawImage(baked || img, 0, -img.height * 0.5);
   ctx.restore();
 }
 export function createRig() {
@@ -1411,15 +1435,21 @@ export function createRig() {
     if (flip) ctx.scale(-1, 1);
     if (scale !== 1) ctx.scale(scale, scale);
     const v2 = !!HERO_V2[kind];
+    // Protected rigs never use the pre-tinted cache: their exact filtered draw
+    // path is the contract and must not be replaced by a baked blit.
+    const cacheable = !PROTECTED_RIGS.has(kind);
     const lash = kind === 'nous_girl' && !v2 ? lashAmount(poseName, angles) : 0;
     const smearPart = sol.order.includes('weapon') ? 'weapon' : 'farm';
     for (const name of sol.order) {
       const part = v2 ? sol.parts[name] : table[name], img = images[kind][part.file];
       if (!img) continue;
       if (part.role === 'rope') {
-        if (v2 && table.fx_lash && sol.lash > 0.35 && angles.__phase === 'active') drawLashStroke(ctx, images[kind][table.fx_lash.file], sol, baseTint);
-        ctx.save(); if (part.back) ctx.filter = baseTint + (BACK_TINT[kind] || BACK_TINT_DEFAULT); else if (baseTint) ctx.filter = baseTint.trim();
-        drawRope(ctx, img, sol.ropes[name], part); ctx.restore(); continue;
+        if (v2 && table.fx_lash && sol.lash > 0.35 && angles.__phase === 'active') drawLashStroke(ctx, images[kind][table.fx_lash.file], sol, baseTint, cacheable);
+        ctx.save();
+        const ropeEff = part.back ? baseTint + (BACK_TINT[kind] || BACK_TINT_DEFAULT) : baseTint ? baseTint.trim() : '';
+        const ropeBaked = cacheable && ropeEff ? tintCache.get(img, ropeEff) : null;
+        if (ropeBaked) ctx.filter = 'none'; else if (ropeEff) ctx.filter = ropeEff;
+        drawRope(ctx, ropeBaked || img, sol.ropes[name], part); ctx.restore(); continue;
       }
       if (name === 'weapon' && lash > 0.35) { drawLash(ctx, kind, sol, lash, angles); continue; }
       // smear: the strike leaves ghost copies of the weapon (or the striking fist) along its arc
@@ -1429,20 +1459,26 @@ export function createRig() {
           if (!gm) return;
           ctx.save(); ctx.globalAlpha = (i ? 0.16 : 0.32) * (ctx.globalAlpha || 1);
           ctx.transform(gm[0], gm[1], gm[2], gm[3], gm[4], gm[5]); ctx.scale(gsc[0], gsc[1]);
-          ctx.filter = baseTint + 'brightness(1.8) saturate(0.6)';
-          ctx.drawImage(img, -part.px, -part.py); ctx.restore();
+          const smearEff = baseTint + 'brightness(1.8) saturate(0.6)';
+          const smearBaked = cacheable ? tintCache.get(img, smearEff) : null;
+          if (smearBaked) { ctx.filter = 'none'; ctx.drawImage(smearBaked, -part.px, -part.py); }
+          else { ctx.filter = smearEff; ctx.drawImage(img, -part.px, -part.py); }
+          ctx.restore();
         });
       }
       const m = sol.M[name], s = sol.S[name];
       ctx.save();
       ctx.transform(m[0], m[1], m[2], m[3], m[4], m[5]);
       if (s[0] !== 1 || s[1] !== 1) ctx.scale(s[0], s[1]);
+      let partEff = '';
       if (part.back) {
         const frontArm = kind === 'turbofit' && (sol.twoHand || sol.supportBlend > 0) && (name === 'farm_b' || name === 'hand_b' || name === 'hand_front_b');
         const frontView = FRONT_BACK_TINT[kind] && sol.variants && sol.variants.torso === 'front';
-        ctx.filter = baseTint + (frontArm ? 'brightness(0.88)' : frontView ? FRONT_BACK_TINT[kind] : (BACK_TINT[kind] || BACK_TINT_DEFAULT));
-      } else if (baseTint) ctx.filter = baseTint.trim();
-      ctx.drawImage(img, -part.px, -part.py);
+        partEff = baseTint + (frontArm ? 'brightness(0.88)' : frontView ? FRONT_BACK_TINT[kind] : (BACK_TINT[kind] || BACK_TINT_DEFAULT));
+      } else if (baseTint) partEff = baseTint.trim();
+      const partBaked = cacheable && partEff ? tintCache.get(img, partEff) : null;
+      if (partBaked) { ctx.filter = 'none'; ctx.drawImage(partBaked, -part.px, -part.py); }
+      else { if (partEff) ctx.filter = partEff; ctx.drawImage(img, -part.px, -part.py); }
       ctx.restore();
       if (name === 'weapon' && lash > 0) { ctx.save(); ctx.globalAlpha *= lash; drawLash(ctx, kind, sol, lash, angles); ctx.restore(); }
     }
@@ -1554,5 +1590,12 @@ export function createRig() {
   // Names of each type's moves, for the AI side and for verification.
   const movesFor = kind => Object.keys(ENEMY_MOVES[kind] || {});
 
-  return { draw, ready, playerPose, enemyPose, heroKind, movesFor, images, stats: drawn, blend };
+  return {
+    draw, ready, playerPose, enemyPose, heroKind, movesFor, images, stats: drawn, blend,
+    // Opt-in experimental tint cache (default off). `cacheStats` is a snapshot
+    // so callers cannot mutate the live counters.
+    setTintCache: value => tintCache.setEnabled(value),
+    get cacheStats() { return { ...tintCache.stats }; },
+    tintCache,
+  };
 }

@@ -30,6 +30,10 @@ const MAX_VOICES = 40, PER_CUE = 4, RETRIGGER_MS = 28, MAX_DECODED_TRACKS = 3;
 export function createAudio() {
   let ctx = null, master = null, sfxBus = null, musicGain = null, duckGain = null;
   let muted = false, volume = 0.22, musicVol = 1;
+  // Lifecycle (game.js): remember whether the AudioContext was actually running
+  // when we suspended it, so resume() never falsely resumes a context the browser
+  // is still holding locked behind the autoplay policy (see unlock()).
+  let wasRunningBeforeSuspend = false;
   const buffers = Object.create(null);            // sfx key -> AudioBuffer
   const live = new Set();                          // playing one-shot sources
   const perCue = Object.create(null);              // cue -> [sources]
@@ -359,6 +363,25 @@ export function createAudio() {
       if (master) master.gain.value = muted ? 0 : volume;
       stats.last = 'volume';
       return volume;
+    },
+    // Lifecycle hooks (pause-when-hidden, roadmap item 9). Both are safe no-ops
+    // before an AudioContext exists / on a locked context. They never touch the
+    // manual `muted` flag or the current music theme, so track identity, volume
+    // and mute preferences survive a hidden tab intact.
+    suspend() {
+      if (!ctx) return false;
+      let running = false;
+      try { running = ctx.state === 'running'; } catch (_) { running = false; }
+      if (!running) { wasRunningBeforeSuspend = false; return false; }
+      wasRunningBeforeSuspend = true;
+      try { const p = ctx.suspend(); if (p && p.catch) p.catch(() => { stats.errors += 1; }); } catch (_) { stats.errors += 1; }
+      return true;
+    },
+    resume() {
+      if (!ctx || !wasRunningBeforeSuspend) return false;
+      wasRunningBeforeSuspend = false;
+      try { const p = ctx.resume(); if (p && p.catch) p.catch(() => { stats.errors += 1; }); } catch (_) { stats.errors += 1; }
+      return true;
     },
     get state() { return ctx ? ctx.state : 'none'; },
   };

@@ -42,3 +42,5 @@ jobs:
             ${{ runner.temp }}/cpn-level-layout-smoke/integration.json
             ${{ runner.temp }}/cpn-machine-shots/
             /tmp/opencode/rig-pixel-seams/
+            /tmp/opencode/gameplay-qol-performance/qol/
+            /tmp/opencode/gameplay-qol-performance/runtime/

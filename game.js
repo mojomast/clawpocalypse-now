@@ -48,9 +48,12 @@ import { drawMech } from './mech.js'; // baba_booey: mech walker mini boss part 
 import { createScreens } from './screens.js';
 import { pollGamepad } from './gamepad.js'; // cheese: pad -> same key events as the keyboard
 import { createCoop } from './coop.js'; // cheese: local 2-player co-op
+import { createLifecycle } from './lifecycle.js'; // roadmap item 9: suspend when hidden, clean resume
+import { createPerfMetrics, MAX_SUBSTEPS } from './perf-metrics.js'; // roadmap item 9: opt-in frame-time telemetry
 const cv = document.getElementById('c'), ctx = cv.getContext('2d');
 cv.width = W; cv.height = H;
 const keys = {}; let s = createState(), paused = false, last = 0, cd = 0, heartCd = 0;
+window.__ppKeys = keys; // live P1 key map, for lifecycle/input verification
 // Exposed for live verification and debugging (see window.__ppAudio.stats).
 const audio = createAudio(); window.__ppAudio = audio;
 const fx = createFX(); window.__ppFx = fx;
@@ -79,6 +82,28 @@ function selectNav(code, i) {
   return null;
 }
 window.__ppSelect = { get index() { return selectIndex; }, get active() { return selecting; }, get hero() { return selectedHero; }, nav: selectNav };
+// ---- pause / UI cross-team contract ---------------------------------------
+// The pause/UI team must not have to edit game.js. These three callbacks are the
+// contract; they are passed in createPause opts AND attached to the returned pause
+// object (pause.onTutorialReplay / pause.getDifficulty / pause.onDifficultyChange),
+// so either calling convention works.
+//   onTutorialReplay()      - replay the coach marks on the CURRENT run.
+//   getDifficulty()         - current difficulty string.
+//   onDifficultyChange(v)   - apply 'easy'|'normal'|'hard' to the live run + persist.
+// onTutorialReplay calls pause.close() then coach.reset()/coach.begin(s) so the
+// cards can re-arm mid-run; it is safe to call while not paused.
+function onTutorialReplay() {
+  try { pause.close(); } catch (_) {}
+  try { coach.reset(); coach.begin(s); } catch (_) {}
+}
+function onDifficultyChange(value) {
+  if (value !== 'easy' && value !== 'normal' && value !== 'hard') return selectedDifficulty;
+  selectedDifficulty = value;
+  if (s) s.difficulty = value;
+  try { store.set('pizzaDifficulty', value); } catch { /* no persistent storage in sandboxed apps */ }
+  return selectedDifficulty;
+}
+const getDifficulty = () => selectedDifficulty;
 const props = createProps(); window.__ppProps = props;
 const impacts = createImpacts(); window.__ppImpacts = impacts;
 const breakables = createBreakables({ audio }); window.__ppBreak = breakables;
@@ -95,10 +120,13 @@ const extEnemies = createEnemiesExt({ audio, fx }); window.__ppExt = extEnemies;
 const tower = createTower({ audio, fx }); window.__ppTower = tower; // OpenClaw Tower: elevator ride + atmosphere
 const hud = createHud(); window.__ppHud = hud;
 const moveList = createMoveList(); window.__ppMoves = moveList;
-const coop = createCoop({ rig, anim: null, hud, audio, selecting: () => selecting, selectIndex: () => selectIndex, playing: () => started && !paused && !selecting && !cinema.isActive() && !title.isActive() && !screens.active() && !pause.isOpen() }); window.__ppCoop = coop; // cheese: co-op (anim set below)
+const coop = createCoop({ rig, anim: null, hud, audio, inputEnabled: () => !lifecycle.suspended, selecting: () => selecting, selectIndex: () => selectIndex, playing: () => started && !paused && !selecting && !cinema.isActive() && !title.isActive() && !screens.active() && !pause.isOpen() }); window.__ppCoop = coop; // cheese: co-op (anim set below)
 const parallax = createParallax(); window.__ppParallax = parallax;
 const ambient = createAmbient(); window.__ppAmbient = ambient;
-const pause = createPause(W, H, { audio, fx, defaults: { musicVolume: 0.82, sfxVolume: 0.95, shakeEnabled: true } }); window.__ppPause = pause;
+const pause = createPause(W, H, { audio, fx, defaults: { musicVolume: 0.82, sfxVolume: 0.95, shakeEnabled: true },
+  onTutorialReplay, getDifficulty, onDifficultyChange }); window.__ppPause = pause;
+// Mirror the pause/UI contract onto the object too (see the contract comment above).
+pause.onTutorialReplay = onTutorialReplay; pause.getDifficulty = getDifficulty; pause.onDifficultyChange = onDifficultyChange;
 const anim = createAnim(); window.__ppAnim = anim;
 const footLocks = createFootLocks();
 coop.setAnim(anim); // cheese: co-op P2 uses the same animator
@@ -177,13 +205,51 @@ let hi = +(store.get('pizzaPanicHi') || 0);
 const style = createStyle(); window.__ppStyle = style; // mr_india: combo/style tracking
 const coach = createCoach({ store }); window.__ppCoach = coach; // mr_india: first-run coach marks (guarded store + memory)
 const checkpoint = createCheckpoint({ store }); window.__ppSave = checkpoint; // mr_india: checkpoint save (guarded store + memory fallback)
+// ---- frame-time telemetry (opt-in via ?debug=1) ---------------------------
+// Off unless DEBUG; every call below is a cheap no-op then, so untagged play is
+// byte-for-byte equivalent to before (aside from the no-op calls).
+const perf = createPerfMetrics({ enabled: DEBUG, capacity: 600 }); window.__ppPerf = perf;
+// P1-only attribution. P2 is a view of the shared state and is NOT instrumented, so
+// counters are never presented as party/co-op totals. The attribute object is only
+// built on an actual event and only while telemetry is enabled (no per-tick garbage).
+const p1Attr = () => (perf.enabled ? { hero: selectedHero } : null);
+// ---- input release + page/window lifecycle --------------------------------
+// releaseInputs clears every latched key (P1 map + co-op P2 map), releases any pad
+// buttons the gamepad layer is holding, and resets the on-screen touch controls.
+let touch = null;
+function releaseInputs() {
+  for (const k of Object.keys(keys)) keys[k] = false;
+  try { if (coop && coop.keys) for (const k of Object.keys(coop.keys)) coop.keys[k] = false; } catch (_) {}
+  try { if (typeof window !== 'undefined' && window.__ppGamepad && typeof window.__ppGamepad.releaseAll === 'function') window.__ppGamepad.releaseAll(); } catch (_) {}
+  try { const t = touch || (typeof window !== 'undefined' ? window.__ppTouch : null); if (t && typeof t.reset === 'function') t.reset(); else if (t && typeof t.releaseAll === 'function') t.releaseAll(); } catch (_) {}
+}
+let resumeFrame = false;
+const lifecycle = createLifecycle({
+  doc: typeof document !== 'undefined' ? document : undefined,
+  win: typeof window !== 'undefined' ? window : undefined,
+  audio,
+  // Suspension is read from lifecycle.suspended by loop(); it never opens the pause
+  // menu and never touches paused/title/menu/cinema state.
+  onSuspend: () => {},
+  onResume: () => { resumeFrame = true; }, // clear the timestep accumulator on the first frame back
+  onInputRelease: releaseInputs,
+  // pagehide only, and semantics-preserving: the same watcher loop() calls, never a
+  // mid-stage forced save.
+  onFlush: () => { try { checkpoint.watch(s, { shop: shop.active() }); } catch (_) {} },
+});
+window.__ppLifecycle = lifecycle;
 spawnWave(s);
 window.__ppState = s;
 // Sounds are driven by diffing game state between frames, so gameplay changes in
 // logic.js never have to know about audio.
 let prev = { score: s.score, lives: s.lives, wave: s.wave, over: s.over };
+// P1-only telemetry trackers (see p1Attr above for why attribution is P1, not party).
+let lastP1Phase = null, lastP1Landed = 0, lastContinues = 0;
 let prevBossAlive = false, bossDefeats = 0, endingQueued = false, started = false, lastStepPhase = 0, cineFade = 0;
 addEventListener('keydown', e => {
+  // While hidden/suspended, ignore keys completely: no audio unlock, no menu
+  // navigation and no gameplay mutation. Latched input is released before returning.
+  if (lifecycle.suspended) return;
   audio.unlock(); // first key press starts the AudioContext
   if (cinema.isActive()) {
     // Escape skips the whole cinematic; any other key finishes the line being
@@ -233,6 +299,9 @@ addEventListener('keydown', e => {
       s.level = 0;
       fx.reset();
       prev = { score: 0, lives: s.lives, wave: 0, over: false };
+      // New run: reset telemetry counters and P1 edge trackers so run-scoped metrics
+      // (continues, p1*) start clean.
+      perf.resetCounters(); lastP1Phase = null; lastP1Landed = 0; lastContinues = 0;
       prevBossAlive = false; bossDefeats = 0; endingQueued = false; heartCd = 0;
       initCombat(s);
       spawnWave(s);
@@ -240,7 +309,7 @@ addEventListener('keydown', e => {
       audio.play('start'); audio.play('fight'); audio.music(levelMusic(s.level), 0.8);
       window.__ppState = s;
       selecting = false;
-      if (checkpoint.resume(s)) { prev.score = s.score; prev.lives = s.lives; screens.reset(s); audio.music(levelMusic(s.level), 0.8); return; } // mr_india: continue at the saved stage, skipping the intro
+      if (checkpoint.resume(s)) { prev.score = s.score; prev.lives = s.lives; screens.reset(s); audio.music(levelMusic(s.level), 0.8); perf.note('continues', 1); return; } // mr_india: continue at the saved stage, skipping the intro
       coach.begin(s); // mr_india: first-run coach marks (NEW GAME only; CONTINUE returned above)
       cinema.setHero(heroFor(selectedHero).name);
       cinema.play('intro');
@@ -259,7 +328,7 @@ addEventListener('keydown', e => {
   keys[e.code] = true;
   // First key press also starts the gameplay score (cinematics set their own).
   if (!audio.musicName) audio.music(levelMusic(s.level), 1.0);
-  if (e.code === 'Space') { e.preventDefault(); if (s.over) { s = createState(); s.selectedHero = selectedHero; pause.close(); paused = false; spawnWave(s); fx.reset(); prev = { score: 0, lives: s.lives, wave: s.wave, over: false }; prevBossAlive = false; bossDefeats = 0; endingQueued = false; heartCd = 0; initCombat(s); screens.reset(s); audio.play('start'); audio.play('fight'); audio.music(levelMusic(s.level), 0.8); window.__ppState = s; } }
+  if (e.code === 'Space') { e.preventDefault(); if (s.over) { s = createState(); s.selectedHero = selectedHero; pause.close(); paused = false; spawnWave(s); fx.reset(); prev = { score: 0, lives: s.lives, wave: s.wave, over: false }; perf.resetCounters(); lastP1Phase = null; lastP1Landed = 0; lastContinues = 0; prevBossAlive = false; bossDefeats = 0; endingQueued = false; heartCd = 0; initCombat(s); screens.reset(s); audio.play('start'); audio.play('fight'); audio.music(levelMusic(s.level), 0.8); window.__ppState = s; } }
   // Beat 'em up melee: J punch (3-hit chain), K kick (jump kick in the air), L jump.
   // Taunt: a flex that outranks idling and nothing else.
   if (e.code === 'KeyT') { e.preventDefault(); s.taunt = 0.9; audio.play('pickup'); }
@@ -281,7 +350,7 @@ addEventListener('keydown', e => {
   if (e.code === 'BracketLeft') audio.nudgeVolume(-0.08);
   if (e.code.startsWith('Arrow')) e.preventDefault();
 });
-addEventListener('keyup', e => keys[e.code] = false);
+addEventListener('keyup', e => { if (lifecycle.suspended) return; keys[e.code] = false; });
 function fit() { const k = Math.min(innerWidth / W, innerHeight / H); cv.style.width = W * k + 'px'; cv.style.height = H * k + 'px'; }
 addEventListener('resize', fit); fit();
 const IMG = {}; for (const k of ['turtle', 'ninja', 'pizza', 'sewer']) { const im = new Image(); im.onload = () => { IMG[k] = im; }; im.src = 'assets/' + k + (k === 'sewer' ? '.jpg' : '.png'); }
@@ -593,14 +662,14 @@ function simStep(dt) {
       else audio.play('pickup');
     }
     if (s.score > hi) { hi = s.score; store.set('pizzaPanicHi', hi); }
-    if (s.score > prev.score) audio.play('hit', { combo: s.combo });
+    if (s.score > prev.score) { audio.play('hit', { combo: s.combo }); perf.note('p1ScoreEvents', 1, p1Attr()); }
     if (s.wave > prev.wave) {
       const bossNow = s.ninjas.some(n => n.kind === 'boss');
       audio.play(bossNow ? 'boss' : 'wave');
       audio.music(bossNow ? 'boss' : levelMusic(s.level), 0.8);
     }
     if (s.lives < prev.lives) { audio.play('warn'); }
-    if (s.hp < prev.hp) audio.play('hurt');
+    if (s.hp < prev.hp) { audio.play('hurt'); perf.note('p1DamageEvents', 1, p1Attr()); }
     if (s.hp > prev.hp && s.lives >= prev.lives) audio.play('life');
     // Music director: boss theme while the boss lives, mini-boss loop at a gate, else the level's track
     // (also corrects cutscene hand-backs, which always resume 'sewer'). Same name is a no-op.
@@ -609,6 +678,20 @@ function simStep(dt) {
     if (s.over && !prev.over) { if (!endingQueued && !s.runComplete && s.hpMode) screens.gameOver(s); else { audio.play('over'); audio.music(null, 1.5); } }
     // Last life: a slow heartbeat under the pulsing hearts.
     if (s.hp <= (s.maxHp || 100) * 0.3 && !s.over) { heartCd -= dt; if (heartCd <= 0) { audio.play('heart'); heartCd = 1.4; } } else heartCd = 0;
+    // Telemetry edges (no-ops when ?debug is absent). P1-only signals, named for what
+    // they actually are: score can rise from bonuses (not hits), and `s.combat` is P1's
+    // own combat record (P2 lives on a separate view, so it is never counted here).
+    //   p1AttackStarts  - a new P1 wind-up (rising edge of the 'wind' phase, which is
+    //                     robust to a re-used move object, unlike attack identity)
+    //   p1LandedAttacks - a P1 attack that connected with at least one enemy
+    //   continues       - a continue taken this run (reset on each new run)
+    const c1 = s.combat;
+    if (c1) {
+      if (c1.phase === 'wind' && lastP1Phase !== 'wind') perf.note('p1AttackStarts', 1, p1Attr());
+      lastP1Phase = c1.phase;
+      if ((c1.landed | 0) > lastP1Landed) { perf.note('p1LandedAttacks', (c1.landed | 0) - lastP1Landed, p1Attr()); lastP1Landed = c1.landed | 0; }
+    }
+    if ((s.continues | 0) > lastContinues) { perf.note('continues', 1); lastContinues = s.continues | 0; }
     prev = { score: s.score, lives: s.lives, wave: s.wave, over: s.over, hp: s.hp, level: s.level };
   }
 }
@@ -631,8 +714,16 @@ function withLerp(a, fn) {
 // The rAF chain must survive anything thrown in a frame: tick re-arms it if loop() did not.
 function tick(t) { let ok = false; try { loop(t); ok = true; } catch (e) { reportError('loop', e); } if (!ok) requestAnimationFrame(tick); }
 function loop(t) {
+  // Hidden / pagehide: no simulation, no draw, no animT or audio advance. `last`
+  // tracks t so the first frame back is not a clamped catch-up.
+  if (lifecycle.suspended) { last = t; perf.resetClock(); requestAnimationFrame(tick); return; }
+  // First frame after a resume: drop the timestep accumulator and the stale delta
+  // so no accumulated wall-clock time is replayed, and reset the telemetry clock so
+  // the background gap cannot poison the frame-time percentiles on return.
+  if (resumeFrame) { acc = 0; last = t; perf.resetClock(); resumeFrame = false; }
   if (!loop._ppl) { loop._ppl = 1; const el = document.getElementById('ppLoad'); if (el) { const f = document.getElementById('ppFill'); if (f) f.style.width = '100%'; el.classList.add('done'); setTimeout(() => el.remove(), 300); } }
-  const dt = Math.min(0.05, (t - last) / 1000 || 0); last = t;
+  const rawDt = (t - last) / 1000 || 0;
+  const dt = Math.min(0.05, rawDt); last = t;
   resetFrame(); // mr_india: clean state + clear, whatever the last frame left behind
   animT += dt;
   // mr_india (review t_38085af9708c4a0a): the pause menu closes itself (Resume/Esc/Quit);
@@ -656,11 +747,12 @@ function loop(t) {
     ctx.fillStyle = 'rgba(243,247,250,0.7)'; ctx.font = '13px monospace';
     ctx.fillText('sound starts here', W / 2, H / 2 + 26);
     ctx.textAlign = 'left';
+    perf.resetClock(); // non-gameplay frames must not leave a stale telemetry clock
     requestAnimationFrame(tick);
     return;
   }
-  if (title.isActive()) { title.update(dt); title.draw(ctx, W, H); checkpoint.draw(ctx, W, H, title.ready(), dt); requestAnimationFrame(tick); return; } // mr_india: checkpoint menu over the title
-  if (cinema.isActive()) { cinema.update(dt); cinema.draw(ctx, W, H); drawCineSpeaker(ctx, W, H, cinema); drawMachineSpeaker(ctx, W, H, cinema); cineFade = 0.5; requestAnimationFrame(tick); return; }
+  if (title.isActive()) { title.update(dt); title.draw(ctx, W, H); checkpoint.draw(ctx, W, H, title.ready(), dt); perf.resetClock(); requestAnimationFrame(tick); return; } // mr_india: checkpoint menu over the title
+  if (cinema.isActive()) { cinema.update(dt); cinema.draw(ctx, W, H); drawCineSpeaker(ctx, W, H, cinema); drawMachineSpeaker(ctx, W, H, cinema); cineFade = 0.5; perf.resetClock(); requestAnimationFrame(tick); return; }
   // Boss edges are tracked every frame, including while a cinematic plays: if
   // this only ran inside the gameplay block, a skipped entrance scene would see
   // prevBossAlive still false and re-trigger itself forever.
@@ -676,23 +768,39 @@ function loop(t) {
   }
   // Fixed-timestep simulation (1/120 s) with render interpolation, so motion and
   // timing are the same at any frame rate.
+  perf.beginFrame(t);
   if (bonus.active()) bonus.step(dt, keys); // dolan: bonus stage
   shop.update(dt); // dolan: shop UI (no-op when closed)
   checkpoint.watch(s, { shop: shop.active() }); // mr_india: save on stage clear and when the shop closes
   attempt('style.watch', () => style.watch(s, screens)); // mr_india: per-stage combo/juggle/special/damage tracking
   attempt('coach', () => coach.update(s, dt, { live: !paused && !selecting && !title.isActive() && !cinema.isActive() && !screens.active() && !shop.active() && !bonus.active() && !pause.isOpen() })); // mr_india: coach marks
-  acc = Math.min(acc + dt, 0.1);
-  while (acc >= STEP) { snapPrev(); simStep(STEP); acc -= STEP; }
+  // Encounter time while gameplay is actually live (telemetry; no-op unless ?debug=1).
+  if (perf.enabled && started && !s.over && !selecting && !paused && !title.isActive() && !cinema.isActive() && !screens.active() && !shop.active() && !bonus.active() && !pause.isOpen()) perf.note('encounter', dt * 1000, { level: s.level | 0 });
+  const cap = STEP * MAX_SUBSTEPS; // 12 substeps * 1/120 s = 0.1 s (same catch-up cap as before)
+  const pre = acc + dt;
+  acc = Math.min(pre, cap);
+  // Dropped time: wall time the 50 ms clamp threw away, plus any accumulator time clipped above the cap.
+  perf.noteDropped((Math.max(0, rawDt - dt) + Math.max(0, pre - cap)) * 1000);
+  perf.beginSim();
+  let subs = 0;
+  while (acc >= STEP) { snapPrev(); simStep(STEP); acc -= STEP; subs++; }
+  perf.endSim();
+  perf.noteSubsteps(subs);
   const alpha = acc / STEP;
   if (!paused) fx.tickUI(s, dt);
   screens.update(dt);
+  perf.beginRender();
   withLerp(alpha, () => draw(dt));
+  perf.endRender();
   // Cinematics end on black; gameplay fades back up instead of hard-cutting.
   if (cineFade > 0) { ctx.fillStyle = `rgba(0,0,0,${Math.min(1, cineFade / 0.5)})`; ctx.fillRect(0, 0, W, H); cineFade = Math.max(0, cineFade - dt); }
+  perf.endFrame(t);
   requestAnimationFrame(tick);
 }
 requestAnimationFrame(tick);
 
-window.addEventListener('load', () => createTouchControls());
+// Keep the touch-controls handle so releaseInputs can reset the on-screen buttons
+// (previously the return value was discarded and touch state could stay latched).
+window.addEventListener('load', () => { try { touch = createTouchControls() || null; if (touch) window.__ppTouch = touch; } catch (_) { touch = null; } });
 
 window.__ppOffscreen = { draw: drawOffscreenIndicators };

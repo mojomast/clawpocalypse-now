@@ -11,6 +11,9 @@ const SPEC = {
   swoosh: { file: 'swoosh.png', w: 72, h: 64, mode: 'swing' },
 };
 const LIFE = 0.12;   // ~120ms per pop, as specified
+// Decorative impact budget: FIFO (oldest evicted) so the newest contact cue
+// always survives a burst. The spawn() return value is unchanged.
+export const IMPACT_CAP = 24;
 
 export function createImpacts() {
   function roundRect(ctx, x, y, w, h, r) { const radius = Math.min(r, w / 2, h / 2); ctx.beginPath(); ctx.moveTo(x + radius, y); ctx.arcTo(x + w, y, x + w, y + h, radius); ctx.arcTo(x + w, y + h, x, y + h, radius); ctx.arcTo(x, y + h, x, y, radius); ctx.arcTo(x, y, x + w, y, radius); ctx.closePath(); }
@@ -37,6 +40,7 @@ export function createImpacts() {
     });
     played[name] = (played[name] || 0) + 1;
     total += 1;
+    while (live.length > IMPACT_CAP) live.shift();
     return true;
   }
 

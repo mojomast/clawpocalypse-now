@@ -18,6 +18,7 @@ import { SKATE_LEVEL, LEVELS, damagePlayer } from './logic.js';
 import { shotBlocked } from './machine.js';
 import { boxHits, DEPTH, maxTokens } from './combat.js';
 import { WORLD_W } from './collision.js';
+import { colourSafe } from './effects-safe.js'; // baba_booey: shape cues for colour-safe telegraphs
 
 const SZ = 2, VIEW_W = 740;
 export const EXT_TYPES = {
@@ -309,6 +310,32 @@ export function createEnemiesExt(opts = {}) {
   }
 
   // ---- drawing (world space). drawWorld: ground layer before actors.
+  // Colour-safe telegraph cues (drawn shapes only): a distinct glyph per attack
+  // type so a warning is never carried by red/yellow alone. Only invoked when
+  // OPTIONS.colourSafe is on; the default draw path is untouched.
+  function drawTelegraphGlyph(ctx, a, n, f, t) {
+    ctx.save();
+    ctx.fillStyle = '#f7fff7'; ctx.strokeStyle = '#f7fff7'; ctx.lineWidth = 2; ctx.textAlign = 'center';
+    const pulse = 0.5 + 0.5 * Math.sin(t * 22);
+    if (a.type === 'flame') {
+      const x0 = n.x + f * 26, L = EXT_ATTACKS.flame.length;
+      for (let i = 1; i <= 3; i++) { const gx = x0 + f * L * (i / 4); ctx.beginPath(); ctx.moveTo(gx, n.y - 10); ctx.lineTo(gx + f * 8, n.y); ctx.lineTo(gx, n.y + 10); ctx.stroke(); }
+    } else if (a.type === 'slam') {
+      const x1 = n.x + f * EXT_ATTACKS.slam.reach;
+      ctx.beginPath(); ctx.ellipse((n.x + x1) / 2, n.y + 8, Math.abs(x1 - n.x) / 2, 12, 0, 0, 7); ctx.stroke();
+      ctx.font = 'bold 14px monospace'; ctx.fillText('L', (n.x + x1) / 2, n.y + 13);
+    } else if (a.type === 'rush') {
+      const xa = Math.min(n.x, a.x1), xb = Math.max(n.x, a.x1);
+      for (let i = 1; i <= 3; i++) { const gx = xa + ((xb - xa) * i) / 4; ctx.beginPath(); ctx.moveTo(gx - 6, n.y - 8); ctx.lineTo(gx + 5, n.y); ctx.lineTo(gx - 6, n.y + 8); ctx.stroke(); }
+    } else if (a.type === 'blink') {
+      ctx.beginPath(); ctx.arc(a.dx, a.dy + 8, 22 + 3 * pulse, 0, 7); ctx.stroke();
+      ctx.font = 'bold 15px monospace'; ctx.fillText('O', a.dx, a.dy + 14);
+    } else if (a.type === 'stars') {
+      const xa = Math.min(n.x, n.x + f * 420), xb = Math.max(n.x, n.x + f * 420);
+      for (let i = 1; i <= 5; i++) { const gx = xa + ((xb - xa) * i) / 6; ctx.beginPath(); ctx.moveTo(gx - 5, n.y - 12); ctx.lineTo(gx + 5, n.y - 12); ctx.moveTo(gx, n.y - 17); ctx.lineTo(gx, n.y - 7); ctx.stroke(); }
+    }
+    ctx.restore();
+  }
   function drawWorld(ctx, state, t = 0) {
     const X = state.ext; if (!X) return;
     ctx.save();
@@ -321,6 +348,7 @@ export function createEnemiesExt(opts = {}) {
     }
     ctx.globalAlpha = 1;
     const pulse = 0.5 + 0.5 * Math.sin(t * 22);
+    const cs = colourSafe();
     for (const n of state.ninjas) {
       const a = isExt(n) && !n.dead && n.xs && n.xs.atk; if (!a || a.phase !== 'wind') continue;
       const k = 1 - a.t / a.wind, f = a.face;
@@ -342,6 +370,7 @@ export function createEnemiesExt(opts = {}) {
       } else if (a.type === 'stars') {
         ctx.fillRect(Math.min(n.x, n.x + f * 420), n.y - 4, 420, 8 * k + 2);
       }
+      if (cs) drawTelegraphGlyph(ctx, a, n, f, t);
     }
     ctx.restore(); ctx.textAlign = 'left';
   }

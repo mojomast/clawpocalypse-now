@@ -6,6 +6,7 @@
 // game.js calls pollGamepad(dt, mode) once per frame, mode being one of
 // 'boot' | 'title' | 'cine' | 'select' | 'pause' | 'over' | 'play', or a screens.js mode
 // ('clear' | 'continue' | 'final' | 'initials' | 'scores' | 'credits').
+import { OPTIONS } from './options-live.js';
 
 export const DEADZONE = 0.25;
 const REPEAT_DELAY = 0.38, REPEAT_RATE = 0.14; // menu auto-repeat (s)
@@ -84,14 +85,27 @@ export function createGamepad(opts = {}) {
   const up = code => { held.delete(code); send('keyup', code); };
   const tap = code => { send('keydown', code); send('keyup', code); };
   function releaseAll() { for (const c of [...held]) up(c); }
+  // Full input reset: drop held keys, forget button/direction edges and menu repeat.
+  function reset() { releaseAll(); prevBtn = []; prevDirs = {}; repeatT = {}; }
+  // Live accessibility: deadzone comes from the options store (clamped). Default
+  // OPTIONS.padDeadzone (0.25) equals DEADZONE, so the default path is unchanged.
+  function deadzone() {
+    let v = DEADZONE;
+    try { const raw = Number(OPTIONS && OPTIONS.padDeadzone); if (Number.isFinite(raw)) v = Math.min(0.5, Math.max(0.1, raw)); } catch (_) {}
+    return v;
+  }
+  function padPreset() {
+    try { return (OPTIONS && OPTIONS.padPreset) === 'alternate' ? 'alternate' : 'classic'; } catch (_) { return 'classic'; }
+  }
 
   function poll(dt = 1 / 60, newMode = 'play') {
     let pads = []; try { pads = getPads() || []; } catch (_) { pads = []; }
     // cheese (co-op t_3a33c55607144558): with two or more pads, the first drives P1's
     // keys and the second is published as `pad2` for coop.js. One pad: unchanged.
     const live = pads.filter(p => p && p.connected !== false);
-    pad2 = live.length > 1 ? readPads([live[1]]) : null;
-    const st = readPads(live.length > 1 ? [live[0]] : pads);
+    const dz = deadzone();
+    pad2 = live.length > 1 ? readPads([live[1]], dz) : null;
+    const st = readPads(live.length > 1 ? [live[0]] : pads, dz);
     connected = st.count;
     if (newMode !== mode) { releaseAll(); mode = newMode; repeatT = {}; }
     if (!st.count) { if (held.size) releaseAll(); prevBtn = []; prevDirs = {}; return api; }
@@ -112,6 +126,7 @@ export function createGamepad(opts = {}) {
       }
       for (const i of DASH_BUTTONS) if (edge(i)) {
         const code = facing() < 0 ? 'ArrowLeft' : 'ArrowRight';
+        if (padPreset() === 'alternate') { tap('ShiftLeft'); continue; } // single-press dash
         const wasHeld = held.has(code);
         send('keydown', code); send('keyup', code); send('keydown', code); // two taps = run
         if (wasHeld) held.add(code); else send('keyup', code);
@@ -130,7 +145,7 @@ export function createGamepad(opts = {}) {
     return api;
   }
 
-  const api = { poll, releaseAll, get mode() { return mode; }, get held() { return [...held]; }, get connected() { return connected; }, get pad2() { return pad2; }, log };
+  const api = { poll, releaseAll, reset, get mode() { return mode; }, get held() { return [...held]; }, get connected() { return connected; }, get pad2() { return pad2; }, log };
   return api;
 }
 
@@ -143,6 +158,8 @@ export function pollGamepad(dt, mode) {
       window.__ppGamepad = shared;
       addEventListener('gamepadconnected', e => { console.info('[gamepad] connected: ' + (e.gamepad && e.gamepad.id)); });
       addEventListener('gamepaddisconnected', () => { shared.releaseAll(); console.info('[gamepad] disconnected'); });
+      // Losing focus must not leave a pad button latched as a held key.
+      addEventListener('blur', () => shared.releaseAll());
     }
   }
   return shared.poll(dt, mode);

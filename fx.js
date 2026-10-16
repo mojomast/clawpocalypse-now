@@ -1,6 +1,7 @@
 import { fxPraise } from './style.js'; // mr_india: praise words on the style.js combo milestones
 import { createSpecialFX } from './specialfx.js'; const sfx = createSpecialFX(); // mr_india: per-hero special FX sheets (t_fd630e9e9b1c4c85)
 import { OPTIONS } from './options-live.js';
+import { reducedFlash, shakeEnabled, flashAlpha } from './effects-safe.js'; // mr_india: independent flash/shake gates
 // Purely visual effects. Events are derived by diffing game state between
 // frames (like audio), so logic.js and gameplay rules are untouched.
 export function createFX() {
@@ -10,13 +11,19 @@ export function createFX() {
   const sprite = (ctx, im, x, y, h) => { const w = h * im.width / im.height; ctx.drawImage(im, x - w / 2, y - h / 2, w, h); };
   const drips = Array.from({ length: 14 }, (_, i) => ({ x: 25 + i * 52 + (i * 37) % 20, y: Math.random() * 510, v: 40 + (i * 17) % 50, l: 6 + (i % 4) * 3 }));
   fx.reset = () => { fx.rings = []; fx.shown = 0; fx.overT = 0; fx.hop = 0; fx.parts = []; fx.pops = []; fx.seen.clear(); fx.prev = null; fx.shake = fx.flash = 0; };
+  // Decorative particle/pop budgets. FIFO eviction keeps the NEWEST entries, so a
+  // burst cannot evict the contact cue pushed on the same frame. fx.parts/fx.pops
+  // stay plain arrays for the existing callers.
+  const PART_CAP = 160, POP_CAP = 40;
+  const pushPart = q => { fx.parts.push(q); while (fx.parts.length > PART_CAP) fx.parts.shift(); };
+  const pushPop = q => { fx.pops.push(q); while (fx.pops.length > POP_CAP) fx.pops.shift(); };
   fx.step = (s, dt) => {
     sfx.step(s, dt); // mr_india: special FX sheets (before the hit-pause early return)
     if (fx.hold > 0) { fx.hold -= dt; return; } // visual hit-pause
     fx.t += dt; fx.hop = Math.max(0, fx.hop - dt);
     for (const r of fx.rings) r.t += dt; fx.rings = fx.rings.filter(r => r.t < 0.6);
     const p = s.player, pv = fx.prev;
-    if (pv && pv.powerups && s.powerups.length < pv.powerups) fx.pops.push({ x: p.x, y: p.y - 30, text: 'PICKUP', t: 0, c: '#ffe14d' });
+    if (pv && pv.powerups && s.powerups.length < pv.powerups) pushPop({ x: p.x, y: p.y - 30, text: 'PICKUP', t: 0, c: '#ffe14d' });
     if (pv) {
       const dx = p.x - pv.px, dy = p.y - pv.py;
       if (Math.abs(dx) > 0.01) fx.face = dx > 0 ? 1 : -1;
@@ -34,17 +41,17 @@ export function createFX() {
         for (const [n, m] of fx.seen) if (!s.ninjas.includes(n) && m.x > -10) at = at || m;
         for (const n of s.ninjas) { const m = fx.seen.get(n); if (m && n.hp < m.hp) at = at || n; }
         at = at || { x: p.x + 60, y: p.y };
-        fx.pops.push({ x: at.x, y: at.y - 20, text: '+' + gained, t: 0, c: '#ffe14d' });
-        if (s.combo > 1) fx.pops.push({ x: at.x, y: at.y - 42, text: 'COMBO x' + s.combo, t: 0, c: '#ff8a1e' });
+        pushPop({ x: at.x, y: at.y - 20, text: '+' + gained, t: 0, c: '#ffe14d' });
+        if (s.combo > 1) pushPop({ x: at.x, y: at.y - 42, text: 'COMBO x' + s.combo, t: 0, c: '#ff8a1e' });
         // Escalating praise on the style.js milestones (10 RADICAL, 25 TUBULAR, 50 COWABUNGA); the live counter pops on the same hits.
         const praise = fxPraise(pv.combo || 0, s.combo || 0);
-        if (praise) { fx.pops.push({ x: at.x, y: at.y - 66, text: praise, t: -0.15, c: s.combo >= 25 ? '#7CFC5A' : '#ffe14d' }); }
+        if (praise) { pushPop({ x: at.x, y: at.y - 66, text: praise, t: -0.15, c: s.combo >= 25 ? '#7CFC5A' : '#ffe14d' }); }
       }
     }
     // ninja hits (hp down) and deaths (vanished, not off the left edge)
     for (const n of s.ninjas) {
       const m = fx.seen.get(n);
-      if (m && n.hp < m.hp) { m.hit = 0.15; m.kb = 10; fx.parts.push({ x: n.x - n.r * 0.5, y: n.y, vx: 0, vy: 0, r: 0, star: 1, t: 0, life: 0.25 }); }
+      if (m && n.hp < m.hp) { m.hit = 0.15; m.kb = 10; pushPart({ x: n.x - n.r * 0.5, y: n.y, vx: 0, vy: 0, r: 0, star: 1, t: 0, life: 0.25 }); }
       if (m) { m.x = n.x; m.y = n.y; m.hp = n.hp; m.hit = Math.max(0, m.hit - dt); m.kb *= 0.8; }
       else fx.seen.set(n, { boss: n.kind === 'boss', x: n.x, y: n.y, hp: n.hp, hit: 0, kb: 0, ph: Math.random() * 6 });
     }
@@ -52,9 +59,9 @@ export function createFX() {
       if (m.x > -10 && !s.over) {
         fx.hold = 0.04;
         if (m.boss) { fx.shake = Math.max(fx.shake, 0.4 * OPTIONS.shakeScale); fx.rings.push({ x: m.x, y: m.y, t: 0 });
-          for (let i = 0; i < 36; i++) { const a = Math.random() * 6.28, v = 120 + Math.random() * 260; fx.parts.push({ x: m.x, y: m.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 80, r: 3 + Math.random() * 5, t: 0, life: 0.7 + Math.random() * 0.5, c: ['#ff5252', '#ffb300', '#444', '#fff3a0'][i % 4] }); } }
-        fx.parts.push({ x: m.x, y: m.y, vx: 0, vy: 0, r: 6, smoke: 1, t: 0, life: 0.5 });
-        for (let i = 0; i < 12; i++) { const a = Math.random() * 6.28, v = 60 + Math.random() * 140; fx.parts.push({ x: m.x, y: m.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, r: 2 + Math.random() * 2, t: 0, life: 0.4 + Math.random() * 0.3, c: i % 2 ? '#d23b2a' : '#e8b04a' }); }
+          for (let i = 0; i < 36; i++) { const a = Math.random() * 6.28, v = 120 + Math.random() * 260; pushPart({ x: m.x, y: m.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 80, r: 3 + Math.random() * 5, t: 0, life: 0.7 + Math.random() * 0.5, c: ['#ff5252', '#ffb300', '#444', '#fff3a0'][i % 4] }); } }
+        pushPart({ x: m.x, y: m.y, vx: 0, vy: 0, r: 6, smoke: 1, t: 0, life: 0.5 });
+        for (let i = 0; i < 12; i++) { const a = Math.random() * 6.28, v = 60 + Math.random() * 140; pushPart({ x: m.x, y: m.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, r: 2 + Math.random() * 2, t: 0, life: 0.4 + Math.random() * 0.3, c: i % 2 ? '#d23b2a' : '#e8b04a' }); }
       }
       fx.seen.delete(n);
     }
@@ -67,7 +74,7 @@ export function createFX() {
     fx.shake = Math.max(0, fx.shake - dt); fx.flash = Math.max(0, fx.flash - dt); fx.squash = Math.max(0, fx.squash - dt);
     fx.prev = { px: p.x, py: p.y, pz: s.pizzas.length, pw: s.powerups.length, lives: s.lives, wave: s.wave, score: s.score, combo: s.combo || 0 };
   };
-  fx.begin = ctx => { ctx.save(); if (fx.shake > 0 && fx.shakeEnabled !== false) { const k = fx.shake * 24; ctx.translate((Math.random() - .5) * k, (Math.random() - .5) * k); } };
+  fx.begin = ctx => { ctx.save(); if (fx.shake > 0 && shakeEnabled() && fx.shakeEnabled !== false) { const k = fx.shake * 24; ctx.translate((Math.random() - .5) * k, (Math.random() - .5) * k); } };
   fx.bg = (ctx, W) => {
     ctx.fillStyle = 'rgba(120,200,90,0.55)';
     for (const d of drips) ctx.fillRect(d.x, d.y, 2, d.l);
@@ -93,7 +100,7 @@ export function createFX() {
     const m = fx.seen.get(n) || { hit: 0, kb: 0, ph: 0 };
     const bob = Math.sin(fx.t * 10 + m.ph) * 3;
     ctx.save(); ctx.translate(m.kb, bob);
-    if (m.hit > 0) ctx.filter = 'brightness(4) saturate(0)';
+    if (m.hit > 0) ctx.filter = reducedFlash() ? 'brightness(2) saturate(0.35)' : 'brightness(4) saturate(0)';
     at(ctx, n.x, n.y, 1, 1, Math.sin(fx.t * 10 + m.ph) * 0.06, fn);
     ctx.restore();
   };
@@ -122,7 +129,7 @@ export function createFX() {
     }
     ctx.textAlign = 'left';
   };
-  fx.end = (ctx, W, H) => { ctx.restore(); if (fx.flash > 0) { ctx.fillStyle = `rgba(255,0,0,${fx.flash * 0.8})`; ctx.fillRect(0, 0, W, H); } };
+  fx.end = (ctx, W, H) => { ctx.restore(); if (fx.flash > 0) { ctx.fillStyle = `rgba(255,0,0,${flashAlpha(fx.flash * 0.8)})`; ctx.fillRect(0, 0, W, H); } };
   // per-frame UI animation (runs on game over too, not while paused)
   fx.tickUI = (s, dt) => {
     fx.ui += dt;

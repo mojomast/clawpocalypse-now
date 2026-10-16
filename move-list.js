@@ -40,8 +40,9 @@ export function createMoveList() {
       let y = py + 58;
       for (const line of key) { ctx.fillStyle = line.endsWith('—') || line === line.toUpperCase() ? '#ffe86b' : '#d9f4e2'; ctx.fillText(line, px + 20, y); y += 26; }
       ctx.fillStyle = 'rgba(255,255,255,.45)';
-      ctx.font = '11px monospace';
-      ctx.fillText('Shared inputs: J punch  K kick  L jump  I throw pizza  T taunt', px + 20, H - 80);
+      ctx.font = '10px monospace';
+      ctx.fillText('Shared inputs: J punch  K kick  L jump  Space throw pizza  T taunt', px + 20, H - 80);
+      ctx.fillText('PAD  X punch  B kick  A jump  Y throw', px + 20, H - 64);
       ctx.restore();
     }
   };

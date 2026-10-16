@@ -1,6 +1,11 @@
 // touch-controls.js — small on-screen buttons for phones/tablets. They drive the
 // game through the same keydown/keyup path as the keyboard, so no gameplay code,
 // combat state or input semantics have to be duplicated.
+const ARIA = {
+  ArrowLeft: 'Move left', ArrowRight: 'Move right', ArrowUp: 'Move up', ArrowDown: 'Move down',
+  KeyJ: 'Punch', KeyK: 'Kick', KeyL: 'Jump', Space: 'Throw pizza', ShiftLeft: 'Dash', Escape: 'Pause',
+};
+
 export function createTouchControls({ W = 740, H = 510 } = {}) {
   if (typeof window === 'undefined' || !('ontouchstart' in window) || !(navigator && navigator.maxTouchPoints)) return false;
 
@@ -17,6 +22,7 @@ export function createTouchControls({ W = 740, H = 510 } = {}) {
   ];
 
   const hold = new Set();
+  const recs = [];
   function send(code, state, e) {
     try {
       if (e) e.preventDefault();
@@ -27,15 +33,26 @@ export function createTouchControls({ W = 740, H = 510 } = {}) {
     }
   }
 
+  // Release every held code and clear the pressed look. Wired to blur and to the
+  // tab being hidden so a finger lifted off-screen cannot latch a key down.
+  function releaseAll() {
+    for (const code of [...hold]) { try { send(code, false); } catch (_) {} }
+    hold.clear();
+    for (const r of recs) { try { r.clear(); } catch (_) {} }
+  }
+
   function makeButton(label, code, left, top) {
     const b = document.createElement('div');
     b.className = 'ppTouchBtn';
     b.textContent = label;
+    b.setAttribute('role', 'button');
+    b.setAttribute('aria-label', ARIA[code] || label);
     b.style.left = left + 'px';
     b.style.top = top + 'px';
     let down = false;
-    const begin = (e) => { if (down) return; down = true; b.classList.add('down'); send(code, true, e); };
-    const end = (e) => { if (!down) return; down = false; b.classList.remove('down'); send(code, false, e); };
+    const begin = (e) => { if (down) return; down = true; hold.add(code); b.classList.add('down'); send(code, true, e); };
+    const end = (e) => { if (!down) return; down = false; hold.delete(code); b.classList.remove('down'); send(code, false, e); };
+    recs.push({ code, el: b, clear() { down = false; b.classList.remove('down'); } });
     b.style.pointerEvents = 'auto';
     b.addEventListener('touchstart', begin, { passive: false });
     b.addEventListener('touchend', end, { passive: false });
@@ -69,6 +86,10 @@ export function createTouchControls({ W = 740, H = 510 } = {}) {
     root.style.transform = 'translate(-50%,-50%) scale(' + k + ')';
   };
   window.addEventListener('resize', adjust);
+  window.addEventListener('blur', releaseAll);
+  if (document.addEventListener) {
+    document.addEventListener('visibilitychange', () => { if (document.hidden) releaseAll(); });
+  }
   adjust();
-  return true;
+  return { root, releaseAll, reset: releaseAll, get hold() { return [...hold]; }, buttons: recs.map(r => r.el) };
 }

@@ -2,6 +2,7 @@
 // Public surface kept stable for game.js and worker modules: drawBar,
 // createHud -> { player, enemy, boss, drawBar, top, controls, status, track }.
 import { LEVELS } from './collision.js';
+import { OPTIONS } from './options-live.js'; // mr_india: HUD text honours subtitleScale
 
 const THEME = {
   ember: '#ffe86b', jade: '#63f7a0', cyan: '#68e8ff', rose: '#ff6e8f',
@@ -36,12 +37,19 @@ function panel(ctx, x, y, w, h, options = {}) {
   ctx.stroke();
   ctx.restore();
 }
-function stat(ctx, text, x, y, size = 11, color = THEME.ivory, align = 'left', weight = 'normal') {
-  ctx.font = `${weight === 'bold' ? 'bold ' : ''}${size}px monospace`;
+function stat(ctx, text, x, y, size = 11, color = THEME.ivory, align = 'left', weight = 'normal', maxWidth = null) {
+  // Route through OPTIONS.fontFor so subtitleScale scales HUD text too. At the
+  // default scale of 1 this is byte-identical to `${size}px monospace`.
+  ctx.font = `${weight === 'bold' ? 'bold ' : ''}${OPTIONS.fontFor(size)}`;
   ctx.fillStyle = color;
   ctx.textAlign = align;
   ctx.textBaseline = 'middle';
-  ctx.fillText(text, x, y);
+  // maxWidth condenses long labels into their declared region (canvas only
+  // squeezes when the text would exceed it), so a large subtitleScale cannot
+  // push a label into a neighbouring field. At scale 1 they never exceed it and
+  // the output is unchanged.
+  if (Number.isFinite(maxWidth)) ctx.fillText(text, x, y, maxWidth);
+  else ctx.fillText(text, x, y);
 }
 function pct(value, max) {
   return Math.max(0, Math.min(1, max > 0 ? value / max : 0));
@@ -130,7 +138,7 @@ export function createHud() {
       ctx.fillStyle = 'rgba(0,0,0,0.45)'; ctx.fill();
       roundRectPath(ctx, bx, by, bw * pct(bar.value, bar.max), bh, 3);
       ctx.fillStyle = bar.color; ctx.fill();
-      stat(ctx, `${bar.label} ${Math.ceil(bar.value)}`, bx + 2, by - 5, 7, bar.color, 'left', 'bold');
+      stat(ctx, `${bar.label} ${Math.ceil(bar.value)}`, bx + 2, by - 5, 9, bar.color, 'left', 'bold', bw - 4);
       ctx.restore();
     });
   }
@@ -198,15 +206,15 @@ export function createHud() {
       roundRectPath(ctx, railX - 2, cardY + 14, 38, 52, 9);
       ctx.lineWidth = 2; ctx.strokeStyle = '#96a8ff'; ctx.stroke();
       ctx.restore();
-      stat(ctx, 'SHIELD', railX + 17, cardY + 74, 8, '#96a8ff', 'center', 'bold');
+      stat(ctx, 'SHIELD', railX + 17, cardY + 74, 9, '#96a8ff', 'center', 'bold');
     }
     ctx.restore();
 
     // Hero label and weapon tier.
     ctx.save();
-    stat(ctx, opts.tag ? opts.tag + ' HERO' : 'HERO', cardX + 58, cardY + 12, 8, opts.tag === '2P' ? 'rgba(61,240,255,0.85)' : 'rgba(130,240,150,0.65)', 'left', 'bold');
-    stat(ctx, heroName(s.selectedHero), cardX + 58, cardY + 25, 12, shieldActive ? '#D8E5FF' : THEME.ember, 'left', 'bold');
-    stat(ctx, 'WEAPON', cardX + 202, cardY + 14, 8, 'rgba(130,240,150,0.65)', 'left', 'bold');
+    stat(ctx, opts.tag ? opts.tag + ' HERO' : 'HERO', cardX + 58, cardY + 12, 9, opts.tag === '2P' ? 'rgba(61,240,255,0.85)' : 'rgba(130,240,150,0.65)', 'left', 'bold', 138);
+    stat(ctx, heroName(s.selectedHero), cardX + 58, cardY + 25, 12, shieldActive ? '#D8E5FF' : THEME.ember, 'left', 'bold', 138);
+    stat(ctx, 'WEAPON', cardX + 202, cardY + 14, 9, 'rgba(130,240,150,0.65)', 'left', 'bold');
     drawWeapon(ctx, cardX + 204, cardY + 26, Math.max(0, s.weaponLevel || 0));
     if (s.weaponDurability > 0) stat(ctx, `${s.weaponDurability}`, cardX + 248, cardY + 25, 9, 'rgba(255,232,107,0.75)', 'left', 'bold');
     drawTimers(ctx, cardX + 58, cardY + 38, s);
@@ -216,7 +224,7 @@ export function createHud() {
     const hpX = cardX + 58, hpY = cardY + 70, hpW = 180, hpH = 14;
     drawBar(ctx, hpX, hpY, hpW, hpH, { frac: tr.frac, trail: tr.trail, color: low ? '#ff3b3b' : '#63f7a0', trailColor: low ? '#ffd8d8' : '#ffe9a8', ticks: Math.min(20, Math.max(max, 10)), glow: low ? 'rgba(255,70,70,0.35)' : 'rgba(160,240,140,0.35)' });
     stat(ctx, 'HP', hpX - 8, hpY + hpH / 2, 11, THEME.ivory, 'right', 'bold');
-    stat(ctx, `${Math.ceil(hp)} / ${max}`, hpX + hpW + 7, hpY + hpH / 2, 10, THEME.ivory, 'left', 'bold');
+    stat(ctx, `${Math.ceil(hp)} / ${max}`, hpX + hpW + 7, hpY + hpH / 2, 10, THEME.ivory, 'left', 'bold', 70);
 
     // Lives and combo.
     ctx.save();
@@ -239,7 +247,7 @@ export function createHud() {
       roundRectPath(ctx, mx, my, hpW, 5, 2); ctx.fillStyle = 'rgba(255,255,255,0.12)'; ctx.fill();
       let when = Math.min(s.comboTimer / 2.5, 1);
       roundRectPath(ctx, mx, my, hpW * when, 5, 2); ctx.fillStyle = '#ffe86b'; ctx.fill();
-      stat(ctx, `${s.comboTimer.toFixed(1)}s`, mx + hpW + 7, my + 3, 8, 'rgba(255,232,107,0.75)', 'left');
+      stat(ctx, `${s.comboTimer.toFixed(1)}s`, mx + hpW + 7, my + 3, 9, 'rgba(255,232,107,0.75)', 'left');
     }
     // 2-player layout: each player's score lives inside their own card.
     if (opts.score) {
@@ -268,10 +276,10 @@ export function createHud() {
       const bx = W / 2 - 41, by = 14;
       roundRectPath(ctx, bx, by, 82, 62, 10); ctx.fillStyle = 'rgba(5,18,14,0.82)'; ctx.fill();
       roundRectPath(ctx, bx, by, 82, 62, 10); ctx.lineWidth = 1.5; ctx.strokeStyle = 'rgba(130,240,150,0.35)'; ctx.stroke();
-      stat(ctx, 'ARENA', W / 2, by + 11, 8, 'rgba(130,240,150,0.6)', 'center', 'bold');
+      stat(ctx, 'ARENA', W / 2, by + 11, 9, 'rgba(130,240,150,0.6)', 'center', 'bold');
       stat(ctx, stage, W / 2, by + 28, stage.length > 8 ? 10 : 13, '#9bd6a3', 'center', 'bold');
-      stat(ctx, `WAVE ${s.wave || 0}`, W / 2, by + 42, 8, 'rgba(255,255,255,0.72)', 'center', 'bold');
-      stat(ctx, `HI ${Math.floor(hi || 0).toString().padStart(6, '0')}`, W / 2, by + 54, 8, 'rgba(255,255,255,0.56)', 'center', 'bold');
+      stat(ctx, `WAVE ${s.wave || 0}`, W / 2, by + 42, 9, 'rgba(255,255,255,0.72)', 'center', 'bold');
+      stat(ctx, `HI ${Math.floor(hi || 0).toString().padStart(6, '0')}`, W / 2, by + 54, 9, 'rgba(255,255,255,0.56)', 'center', 'bold');
       return;
     }
     const lowBoss = false;
@@ -287,7 +295,7 @@ export function createHud() {
     const badgeX = cardX - 92, badgeY = cardY + 7;
     roundRectPath(ctx, badgeX, badgeY, 82, 50, 10); ctx.fillStyle = 'rgba(5,18,14,0.82)'; ctx.fill();
     roundRectPath(ctx, badgeX, badgeY, 82, 50, 10); ctx.lineWidth = 1.5; ctx.strokeStyle = 'rgba(130,240,150,0.35)'; ctx.stroke();
-    stat(ctx, 'ARENA', badgeX + 41, badgeY + 12, 8, 'rgba(130,240,150,0.6)', 'center', 'bold');
+    stat(ctx, 'ARENA', badgeX + 41, badgeY + 12, 9, 'rgba(130,240,150,0.6)', 'center', 'bold');
     stat(ctx, stage, badgeX + 41, badgeY + 34, 14, '#9bd6a3', 'center', 'bold');
     stat(ctx, `WAVE ${s.wave || 0}`, badgeX + 41, badgeY + 50, 9, 'rgba(255,255,255,0.72)', 'center', 'bold');
     // Combo multiplier is separated from the score so it reads as a modifier,
@@ -305,7 +313,7 @@ export function createHud() {
     const x = 604, y = 10, w = 124, h = 66;
     panel(ctx, x, y, w, h, { fill: 'rgba(5,18,14,0.78)', stroke: 'rgba(130,240,150,0.30)', radius: 10, glow: 'rgba(150,240,255,0.04)' });
     ctx.save();
-    stat(ctx, 'SOUND', x + 12, y + 14, 8, 'rgba(130,240,150,0.65)', 'left', 'bold');
+    stat(ctx, 'SOUND', x + 12, y + 14, 9, 'rgba(130,240,150,0.65)', 'left', 'bold');
     if (audio?.muted) {
       stat(ctx, 'MUTED', x + w - 10, y + 14, 11, '#ff4d5a', 'right', 'bold');
     } else stat(ctx, `${Math.round((audio?.volume || 0) * 100)}%`, x + w - 10, y + 14, 11, THEME.ember, 'right', 'bold');
@@ -314,17 +322,24 @@ export function createHud() {
     let vol = audio?.muted ? 0 : (audio?.volume || 0);
     roundRectPath(ctx, x + 12, y + 24, (w - 24) * vol, 8, 4);
     ctx.fillStyle = audio?.muted ? '#ff4d5a' : '#63f7a0'; ctx.fill();
-    stat(ctx, 'M toggle  [ ] level', x + w / 2, y + 46, 8, 'rgba(255,255,255,0.45)', 'center');
+    stat(ctx, 'M toggle  [ ] level', x + w / 2, y + 46, 9, 'rgba(255,255,255,0.45)', 'center', null, w - 16);
     ctx.restore();
   }
   function controls(ctx, W, H, info) {
     const text = `J PUNCH  K KICK  L JUMP  J+K BACK  J+L SPECIAL  Q MACHINE  -> RUN${info.chain > 1 ? '   CHAIN x' + info.chain : ''}${info.airborne ? '   AIR' : ''}`;
     ctx.save();
-    // The footer legend stays full width so it never clips the score card or status panel.
-    ctx.globalAlpha = 0.52;
-    stat(ctx, 'CONTROLS', W / 2, H - 24, 8, 'rgba(130,240,150,0.7)', 'center', 'bold');
-    ctx.globalAlpha = 0.78;
-    stat(ctx, text, W / 2, H - 12, 8, 'rgba(200,230,210,0.78)', 'center', 'normal');
+    // Translucent backing plate so the footer legend stays readable whatever is
+    // rendered behind it. It sits at the very bottom and is narrower than the
+    // frame, so it cannot clip the top score/status panels or the 2P card.
+    const plateW = Math.min(W - 24, 760), plateH = 34, plateX = W / 2 - plateW / 2, plateY = H - plateH - 2;
+    roundRectPath(ctx, plateX, plateY, plateW, plateH, 8);
+    ctx.fillStyle = 'rgba(4,14,10,0.5)'; ctx.fill();
+    ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(130,240,150,0.18)';
+    roundRectPath(ctx, plateX, plateY, plateW, plateH, 8); ctx.stroke();
+    ctx.globalAlpha = 0.7;
+    stat(ctx, 'CONTROLS', W / 2, H - 24, 9, 'rgba(130,240,150,0.7)', 'center', 'bold', plateW - 24);
+    ctx.globalAlpha = 0.9;
+    stat(ctx, text, W / 2, H - 12, 9, 'rgba(200,230,210,0.9)', 'center', 'normal', plateW - 20);
     ctx.globalAlpha = 1; ctx.restore();
   }
   function enemy(ctx, n, dt) {
@@ -354,7 +369,7 @@ export function createHud() {
     const headerY = y - 16;
     ctx.fillStyle = 'rgba(5,5,5,0.45)'; roundRectPath(ctx, x - 2, headerY - 12, w + 4, 26, 6); ctx.fill();
     stat(ctx, name, W / 2, headerY, 15, '#ffd7f6', 'center', 'bold');
-    stat(ctx, `HP ${Math.ceil(b.hp)} / ${b.maxHp}`, W / 2, headerY + 14, 8, 'rgba(255,255,255,0.65)', 'center', 'bold');
+    stat(ctx, `HP ${Math.ceil(b.hp)} / ${b.maxHp}`, W / 2, headerY + 14, 9, 'rgba(255,255,255,0.65)', 'center', 'bold');
     // Larger, slightly taller boss bar so the bottom HUD has real presence.
     drawBar(ctx, x, y, w, h, { frac: tr.frac, trail: tr.trail, color: '#ff4bd4', trailColor: '#ffd7f4', ticks: Math.min(20, b.maxHp || 1), glow: 'rgba(255,90,200,0.35)', trackColor: '#260824' });
     // Segmented HP notches at 33% intervals show the boss phase structure.

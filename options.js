@@ -11,6 +11,9 @@ export const DEFAULTS = {
   textSpeed: 1,           // typewriter speed multiplier (0.5 = half speed, twice as long)
   colourSafe: false,      // telegraphs add a shape cue, not just a colour change
   holdToAdvance: false,   // dialogue only advances on a press, never on a timer
+  screenShake: true,      // camera shake on impacts (independent of flash/motion)
+  padDeadzone: 0.25,      // left-stick deadzone
+  padPreset: 'classic',   // 'classic' | 'alternate' (single-press dash)
 };
 
 export const OPTION_META = {
@@ -20,6 +23,9 @@ export const OPTION_META = {
   textSpeed: { label: 'Text speed', min: 0.5, max: 2, step: 0.25 },
   colourSafe: { label: 'Colour-safe cues', note: 'Telegraphs get a shape, not just a colour' },
   holdToAdvance: { label: 'Hold to advance', note: 'Dialogue waits for you' },
+  screenShake: { label: 'Screen shake', note: 'Camera shake on impacts (independent of flash/motion)' },
+  padDeadzone: { label: 'Pad deadzone', min: 0.1, max: 0.5, step: 0.05 },
+  padPreset: { label: 'Pad preset', options: ['classic', 'alternate'], note: 'alternate: P1 pad single-press dash' },
 };
 
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
@@ -28,8 +34,11 @@ const sanitise = raw => {
   if (!raw || typeof raw !== 'object') return out;
   for (const key of Object.keys(DEFAULTS)) {
     const v = raw[key];
-    if (typeof DEFAULTS[key] === 'boolean') out[key] = !!v;
-    else if (typeof DEFAULTS[key] === 'number' && Number.isFinite(v)) {
+    if (typeof DEFAULTS[key] === 'boolean') { if (v !== undefined) out[key] = !!v; }
+    else if (typeof DEFAULTS[key] === 'string') {
+      const meta = OPTION_META[key] || {};
+      if (Array.isArray(meta.options) && meta.options.includes(v)) out[key] = v;
+    } else if (typeof DEFAULTS[key] === 'number' && Number.isFinite(v)) {
       const meta = OPTION_META[key] || {};
       out[key] = clamp(v, meta.min != null ? meta.min : 0, meta.max != null ? meta.max : 4);
     }
@@ -37,12 +46,31 @@ const sanitise = raw => {
   return out;
 };
 
+// OS preference for reduced motion. Absent in Node and often blocked in the Orbit
+// sandbox, so every access is guarded and a missing matchMedia is simply "no".
+function prefersReducedMotion() {
+  try {
+    return !!(globalThis.matchMedia && globalThis.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  } catch (_) { return false; }
+}
+const hasStored = (raw, key) => !!(raw && typeof raw === 'object' && raw[key] !== undefined);
+
 export function createOptions() {
   const KEY = 'pp.options';
   // The live values are held in this module so game code can read them without a
   // dependency chain, and so a test can drive them directly.
   const values = { ...DEFAULTS };
-  Object.assign(values, sanitise(readRaw()));
+  const raw = readRaw();
+  Object.assign(values, sanitise(raw));
+  // Seed from the OS only when the player has never saved an explicit choice. A
+  // stored false is a deliberate preference and must survive an OS reduce hint.
+  // reducedFlash is seeded conservatively from the same motion preference: the OS
+  // asked for less motion, so softer flashing is the kind default — but this is a
+  // comfort default, NOT a photosensitivity or WCAG safety guarantee.
+  if (prefersReducedMotion()) {
+    if (!hasStored(raw, 'reducedFlash')) values.reducedFlash = true;
+    if (!hasStored(raw, 'reducedMotion')) values.reducedMotion = true;
+  }
   let listeners = [];
 
   function readRaw() {
@@ -67,7 +95,17 @@ export function createOptions() {
     if (typeof DEFAULTS[key] !== 'boolean') return values[key];
     return set(key, !values[key]);
   }
-  function reset() { for (const k of Object.keys(DEFAULTS)) values[k] = DEFAULTS[k]; persist(); }
+  function reset() {
+    // Notify listeners for every value that actually changed, so mirrored flags
+    // (e.g. the pause -> fx.shakeEnabled bridge) cannot go stale after a reset.
+    for (const k of Object.keys(DEFAULTS)) {
+      const next = DEFAULTS[k];
+      if (values[k] === next) continue;
+      values[k] = next;
+      for (const fn of listeners) { try { fn(k, next); } catch { /* a listener must not break the game */ } }
+    }
+    persist();
+  }
   function onChange(fn) { listeners.push(fn); return () => { listeners = listeners.filter(f => f !== fn); }; }
 
   // Shorthands the rest of the game reads. Each one is a plain getter so a toggle
@@ -82,8 +120,23 @@ export function createOptions() {
     get textSpeed() { return values.textSpeed; },
     get colourSafe() { return values.colourSafe; },
     get holdToAdvance() { return values.holdToAdvance; },
-    // Screen-shake multiplier: reduced flash damps shake to a third.
-    get shakeScale() { return values.reducedFlash ? 0.33 : 1; },
+    get screenShake() { return values.screenShake; },
+    // Alias: unowned modules (arcade/screens via window.__ppFx) read OPTIONS.shakeEnabled.
+    get shakeEnabled() { return values.screenShake; },
+    get padDeadzone() { return values.padDeadzone; },
+    get padPreset() { return values.padPreset; },
+    // Screen-shake multiplier. Two independent needs can suppress/dampen it,
+    // and neither is aliased to the other:
+    //   - screenShake (its own toggle) === false -> hard off;
+    //   - reducedMotion (master motion policy) -> off, so a player who turns off
+    //     flashing but not motion still gets no camera shake;
+    //   - reducedFlash alone -> damped to a third (juice kept, smaller).
+    // Defaults (all off) => 1.
+    get shakeScale() {
+      if (!values.screenShake) return 0;
+      if (values.reducedMotion) return 0;
+      return values.reducedFlash ? 0.33 : 1;
+    },
     // Camera ease multiplier: reduced motion snaps instead of gliding.
     get motionScale() { return values.reducedMotion ? 0 : 1; },
     // A typewriter rate adjusted for text speed (never faster than 4x, never zero).

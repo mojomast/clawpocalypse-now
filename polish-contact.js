@@ -27,7 +27,9 @@ export function contactShape(state, move) {
   const slots = /_(?:jumpKick|kick)_active$/.test(name) ? ['foot', 'shin']
     : move.behind ? ['hand_b', 'farm_b', 'uarm_b'] : ['weapon', 'hand', 'farm'];
   for (const slot of slots) {
-    const p = T[slot], hull = HERO_SUPPORT[hero]?.[slot.replace(/_b$/, '')];
+    const p = sol.parts?.[slot] || T[slot];
+    const vKey = sol.variants?.[slot] ? `${slot}@${sol.variants[slot]}` : null;
+    const hull = (vKey && HERO_SUPPORT[hero]?.[vKey]) || HERO_SUPPORT[hero]?.[slot.replace(/_b$/, '')];
     if (p && hull) for (const [u, v] of hull) points.push(apply(sol.M[slot], u - p.px, v - p.py));
   }
   if (hero === 'nous_girl') for (const rope of Object.values(sol.ropes)) points.push(...rope);

@@ -497,6 +497,7 @@ function chainSolve(kind, A, names) {
     let ang = A[name];
     if (v2) {
       const role = p.role;
+      if (role === 'cap') { M[name] = m; S[name] = S[p.parent] || [1, 1]; return m; }
       if (role === 'hand' && table.weapon?.parent === name) ang = wristAngle(kind, (A.weapon || 0) + (table.weapon.grip || 0)) - HOLD[kind] + (A.__wristFix || 0);
       else if (role === 'hand') ang = A[name === 'hand_b' ? 'wrist_b' : 'wrist'] || 0;
       else if (role === 'weapon') ang = HOLD[kind];
@@ -931,18 +932,27 @@ function solveV2(kind, input, opts) {
     if (table[slot]?.variants?.[variant] && !(slot === 'hand_b' && twoHand)) variants[slot] = variant;
   }
   if (opts.variants) { for (const k of Object.keys(variants)) delete variants[k]; Object.assign(variants, opts.variants); }
-  let order = orderFor(kind).filter(n => table[n] && !(n === 'hand_front' && variants.hand));
+  const links = HERO_V2[kind]?.links;
+  if (links) {
+    for (const [slot, variant] of Object.entries({ ...variants })) {
+      const linked = links[`${slot}@${variant}`];
+      if (!linked) continue;
+      for (const [depSlot, depVar] of Object.entries(linked)) {
+        if (!variants[depSlot] && table[depSlot]?.variants?.[depVar]) variants[depSlot] = depVar;
+      }
+    }
+  }
+  let order = orderFor(kind).filter(n => table[n] && !(n === 'hand_front' && variants.hand && !variants.hand_front) && !(n === 'hand_front_b' && !variants.hand_front_b));
   if (twoHand || supportBlend > 0) {
-    // the far forearm crosses in front of the body, under the near arm; the far hand closes
-    // over the guitar neck, so it is drawn after the weapon
-    order = order.filter(n => n !== 'farm_b' && n !== 'hand_b');
-    order.splice(order.indexOf('uarm'), 0, 'farm_b');
-    order.splice(order.indexOf('weapon') + 1, 0, 'hand_b');
-    if (kind === 'turbofit') {
-      // A supporting arm crosses the chest as one chain. Hiding just its upper
-      // arm behind the vest left a detached-looking forearm and shoulder cap.
-      order = order.filter(n => n !== 'uarm_b');
-      order.splice(order.indexOf('farm_b'), 0, 'uarm_b');
+    // the far forearm crosses in front of the body, under the near arm; the far hand wraps
+    // the guitar neck (palm behind the weapon, fingers in front when hand_front_b is active)
+    const farChain = orderFor(kind).indexOf('hand_b') < orderFor(kind).indexOf('farm_b') ? ['hand_b', 'farm_b'] : ['farm_b', 'hand_b'];
+    order = order.filter(n => n !== 'farm_b' && n !== 'hand_b' && n !== 'hand_front_b');
+    const nearStart = Math.min(...['uarm', 'farm', 'hand'].filter(n => order.includes(n)).map(n => order.indexOf(n)));
+    order.splice(nearStart, 0, ...farChain);
+    if (variants.hand_front_b) {
+      order.splice(order.indexOf('weapon') + 1, 0, 'hand_front_b');
+      M.hand_front_b = M.hand_b; S.hand_front_b = [1, 1];
     }
   }
   const parts = {};
@@ -1373,8 +1383,10 @@ export function createRig() {
       ctx.save();
       ctx.transform(m[0], m[1], m[2], m[3], m[4], m[5]);
       if (s[0] !== 1 || s[1] !== 1) ctx.scale(s[0], s[1]);
-      if (part.back) ctx.filter = baseTint + (BACK_TINT[kind] || BACK_TINT_DEFAULT);
-      else if (baseTint) ctx.filter = baseTint.trim();
+      if (part.back) {
+        const frontArm = kind === 'turbofit' && (sol.twoHand || sol.supportBlend > 0) && (name === 'farm_b' || name === 'hand_b' || name === 'hand_front_b');
+        ctx.filter = baseTint + (frontArm ? 'brightness(0.88)' : (BACK_TINT[kind] || BACK_TINT_DEFAULT));
+      } else if (baseTint) ctx.filter = baseTint.trim();
       ctx.drawImage(img, -part.px, -part.py);
       ctx.restore();
       if (name === 'weapon' && lash > 0) { ctx.save(); ctx.globalAlpha *= lash; drawLash(ctx, kind, sol, lash, angles); ctx.restore(); }

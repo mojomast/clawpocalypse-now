@@ -21,6 +21,50 @@ A beat-'em-up in plain HTML5 canvas + JavaScript (formerly *Pizza Panic*). No bu
 
 Gamepad and touch controls are also supported.
 
+### Optional Challenge route (prototype)
+
+**Classic** remains the default campaign. **Challenge** changes one non-boss sewer
+encounter and one non-boss street encounter: different enemy roles enter from
+opposite sides, with the same enemy count and total HP as their Classic versions.
+Other authored encounters, bosses, breathers and rewards are unchanged. Equal
+budgets do not guarantee equal difficulty; this is a playtestable prototype.
+
+Choose a route with **R / pad Y** on character select (M / pad BACK still mutes),
+or use **Pause → Options** to
+queue a route for the **next stage**. A queued change never rewrites the current
+arena. The HUD shows the active route; stage-clear results show the route just
+completed. Continue restores the saved stage's route. Old saves default to Classic.
+The existing local high-score table is still shared, not split into route rankings.
+
+Damage upgrades now apply at eligible P1/P2 contacts instead of inferring player
+damage from all enemy HP loss. Environmental damage and automatic ally attacks
+do not receive that bonus. Immune contacts do not grant successful-hit feedback.
+
+### Co-op TEAM LINK (prototype)
+
+With both players active, land a melee or pizza hit on the same non-boss enemy
+within **two seconds** of each other to earn up to **+6 shared TEAM UP meter**.
+Either player can set up the link. Each enemy can award it once, with a cap of
+**30 actual bonus meter points per stage**. Near a full meter, the cue shows only
+the amount actually added. A finishing hit can complete a link.
+
+Same-player hits, blocked/immune contacts, automatic ally attacks and hazards
+do not qualify. Leaving or going down clears pending setups without resetting
+the stage's earned credit or letting the same enemy pay out again. Solo meter
+rules and ordinary damage/scoring are unchanged. This is a small co-op incentive,
+not a verified balance improvement; compare it in human solo/co-op playtests.
+
+### Controller and audio recovery
+
+After returning from the background or reconnecting a controller, **release its
+sticks and buttons to neutral once**, then press again. This also covers P2 and
+the stick-click assist/Machine controls. Ordinary menu changes do not impose a
+new neutral-input requirement; keyboard and touch remain independent.
+
+Failed audio pack/decode loads can retry after a cooldown without reloading the
+game. Music keeps the requested theme and avoids duplicate loops when a delayed
+load completes. Background suspend/resume preserves mute and volume settings.
+
 ### Settings and help
 
 Pause with **P / Esc**, then open **Options**. Up/Down moves through the paginated

@@ -26,6 +26,7 @@ import { tintFor, createPaletteStore } from './palettes.js';
 import { createProps } from './props.js';
 import { createImpacts } from './impacts.js';
 import { ensureEvents, stepEvents, drawEventOverlay } from './events.js';
+import { normalizeRoute } from './challenge-routes.js';
 import { createBreakables } from './breakables.js'; // dolan: smashable props + pickups
 import { createAssist } from './assist.js'; // dolan: team-up super meter + Nous gang assist
 import { createMachine, drawMachineSpeaker } from './machine.js'; // the Machine Beneath the Skin: summonable ally
@@ -65,6 +66,8 @@ const paletteStore = createPaletteStore(); window.__ppPalettes = paletteStore;
 const progressRecord = s => ({ stagesCleared: s.stagesCleared || s.wave - 1 || 0, coins: s.coins || 0, bonusRuns: s.bonusRuns || 0, assists: s.assists || 0, bestCombo: s.bestCombo || s.combo || 0, noDamageClears: s.noDamageClears || 0 });
 let selectedHero = 'turtle_blue', selecting = false, selectIndex = 0;
 let selectedDifficulty = 'normal';
+// A selection for a new run; the live encounter always reads s.route instead.
+let selectedRoute = 'classic';
 try { selectedDifficulty = (localStorage.getItem('pizzaDifficulty') || 'normal'); } catch { /* sandboxed storage throws SecurityError */ }
 const SELECT_COLS = 4;
 // Select-screen keyboard map; returns the new index, or null when the key is not navigation.
@@ -104,6 +107,15 @@ function onDifficultyChange(value) {
   return selectedDifficulty;
 }
 const getDifficulty = () => selectedDifficulty;
+const getRoute = () => selecting ? selectedRoute : normalizeRoute(s.nextRoute);
+const getActiveRoute = () => normalizeRoute(s.route);
+const getRouteContext = () => selecting ? 'new' : 'stage';
+function onRouteChange(value) {
+  const route = normalizeRoute(value);
+  if (selecting) selectedRoute = route;
+  else s.nextRoute = route; // never rewrite an already spawned stage
+  return route;
+}
 const props = createProps(); window.__ppProps = props;
 const impacts = createImpacts(); window.__ppImpacts = impacts;
 const breakables = createBreakables({ audio }); window.__ppBreak = breakables;
@@ -120,18 +132,20 @@ const extEnemies = createEnemiesExt({ audio, fx }); window.__ppExt = extEnemies;
 const tower = createTower({ audio, fx }); window.__ppTower = tower; // OpenClaw Tower: elevator ride + atmosphere
 const hud = createHud(); window.__ppHud = hud;
 const moveList = createMoveList(); window.__ppMoves = moveList;
-const coop = createCoop({ rig, anim: null, hud, audio, inputEnabled: () => !lifecycle.suspended, selecting: () => selecting, selectIndex: () => selectIndex, playing: () => started && !paused && !selecting && !cinema.isActive() && !title.isActive() && !screens.active() && !pause.isOpen() }); window.__ppCoop = coop; // cheese: co-op (anim set below)
+const coop = createCoop({ rig, anim: null, hud, audio, assist, inputEnabled: () => !lifecycle.suspended, selecting: () => selecting, selectIndex: () => selectIndex, playing: () => started && !paused && !selecting && !cinema.isActive() && !title.isActive() && !screens.active() && !pause.isOpen() }); window.__ppCoop = coop; // cheese: co-op (anim set below)
 const parallax = createParallax(); window.__ppParallax = parallax;
 const ambient = createAmbient(); window.__ppAmbient = ambient;
 const pause = createPause(W, H, { audio, fx, defaults: { musicVolume: 0.82, sfxVolume: 0.95, shakeEnabled: true },
-  onTutorialReplay, getDifficulty, onDifficultyChange }); window.__ppPause = pause;
+  onTutorialReplay, getDifficulty, onDifficultyChange, getRoute, getActiveRoute, getRouteContext, onRouteChange }); window.__ppPause = pause;
 // Mirror the pause/UI contract onto the object too (see the contract comment above).
 pause.onTutorialReplay = onTutorialReplay; pause.getDifficulty = getDifficulty; pause.onDifficultyChange = onDifficultyChange;
+pause.getRoute = getRoute; pause.getActiveRoute = getActiveRoute; pause.onRouteChange = onRouteChange;
+pause.getRouteContext = getRouteContext;
 const anim = createAnim(); window.__ppAnim = anim;
 const footLocks = createFootLocks();
 coop.setAnim(anim); // cheese: co-op P2 uses the same animator
 // Stage clear / continue / ending + credits (screens.js). Quit returns to the title.
-const screens = createScreens({ audio, onClearClose: (n, d) => { if (n === 2 && bonus.start(s)) return; shop.open(s, { level: d && d.level }); }, onQuit: () => { paused = false; pause.close(); title.start(() => { selecting = true; cineFade = 0.4; }); } }); window.__ppScreens = screens; // dolan: bonus stage after the 2nd stage clear
+const screens = createScreens({ audio, onClearClose: (n, d) => { if (n === 2 && bonus.start(s)) return; shop.open(s, { level: d && d.level }); }, onQuit: () => { paused = false; pause.close(); selectedRoute = 'classic'; title.start(() => { selecting = true; cineFade = 0.4; }); } }); window.__ppScreens = screens; // dolan: bonus stage after the 2nd stage clear
 // The rig's root is the torso pivot and its feet sit ~45px below that, so the
 // root is placed above the entity's feet line. Scaled to match the old sprites.
 // Iteration 7: characters are 2x. Hero/enemy parts were re-sliced at torso 68px,
@@ -220,7 +234,13 @@ let touch = null;
 function releaseInputs() {
   for (const k of Object.keys(keys)) keys[k] = false;
   try { if (coop && coop.keys) for (const k of Object.keys(coop.keys)) coop.keys[k] = false; } catch (_) {}
-  try { if (typeof window !== 'undefined' && window.__ppGamepad && typeof window.__ppGamepad.releaseAll === 'function') window.__ppGamepad.releaseAll(); } catch (_) {}
+  try {
+    const pad = typeof window !== 'undefined' && window.__ppGamepad;
+    // Lifecycle releases (unlike ordinary menu mode changes) require a physical
+    // neutral sample before controller input can enter either player's controls.
+    if (pad && typeof pad.requireNeutral === 'function') pad.requireNeutral();
+    if (pad && typeof pad.releaseAll === 'function') pad.releaseAll();
+  } catch (_) {}
   try { const t = touch || (typeof window !== 'undefined' ? window.__ppTouch : null); if (t && typeof t.reset === 'function') t.reset(); else if (t && typeof t.releaseAll === 'function') t.releaseAll(); } catch (_) {}
 }
 let resumeFrame = false;
@@ -273,7 +293,7 @@ addEventListener('keydown', e => {
     if (e.repeat || /^(Shift|Control|Alt|Meta)/.test(e.code)) return;
     // Esc skips to the finished title; any other key finishes the narration line,
     // then advances a beat; once PRESS START shows, a press starts the game.
-    if (title.ready() && checkpoint.has()) { const act = checkpoint.menuKey(e); if (act === 'continue') { const d = checkpoint.load() || {}; selectedDifficulty = d.difficulty || selectedDifficulty; selectIndex = Math.max(0, HEROES.findIndex(h => h.id === d.hero)); title.press(); dispatchEvent(new KeyboardEvent('keydown', { code: 'Enter' })); } else if (act === 'new') title.press(); return; } // mr_india: CONTINUE / NEW GAME / CLEAR SAVE
+    if (title.ready() && checkpoint.has()) { const act = checkpoint.menuKey(e); if (act === 'continue') { const d = checkpoint.load() || {}; selectedDifficulty = d.difficulty || selectedDifficulty; selectedRoute = normalizeRoute(d.route); selectIndex = Math.max(0, HEROES.findIndex(h => h.id === d.hero)); title.press(); dispatchEvent(new KeyboardEvent('keydown', { code: 'Enter' })); } else if (act === 'new') { selectedRoute = 'classic'; title.press(); } return; } // mr_india: CONTINUE / NEW GAME / CLEAR SAVE
     if (e.code === 'Escape') title.skipAll(); else title.press();
     return;
   }
@@ -285,6 +305,8 @@ addEventListener('keydown', e => {
   if (!selecting && !paused && !cinema.isActive() && !screens.active() && coach.handleKey(e)) { e.preventDefault(); return; } // mr_india: coach marks: Enter next card, Esc skip all
   if (!paused && (e.code === 'Escape' || e.code === 'KeyP')) { paused = true; pause.open('main'); audio.play('pause'); e.preventDefault && e.preventDefault(); return; }
   if (selecting) {
+    if (e.code === 'KeyR') { e.preventDefault(); selectedRoute = selectedRoute === 'classic' ? 'challenge' : 'classic'; audio.play('menuMove'); return; }
+    if (e.code === 'KeyM') { audio.toggle(); return; }
     // Grid navigation (4 + 3 cards): Left/Right step through the roster, Up/Down jump
     // rows, number keys 1-7 pick directly. A/D/W/S mirror the arrows.
     const nav = selectNav(e.code, selectIndex);
@@ -294,6 +316,8 @@ addEventListener('keydown', e => {
       selectedHero = HEROES[selectIndex].id;
       s = createState();
       s.selectedHero = selectedHero;
+      s.route = selectedRoute;
+      s.nextRoute = selectedRoute;
       s.difficulty = selectedDifficulty;
       s.difficulty = selectedDifficulty;
       s.level = 0;
@@ -309,7 +333,7 @@ addEventListener('keydown', e => {
       audio.play('start'); audio.play('fight'); audio.music(levelMusic(s.level), 0.8);
       window.__ppState = s;
       selecting = false;
-      if (checkpoint.resume(s)) { prev.score = s.score; prev.lives = s.lives; screens.reset(s); audio.music(levelMusic(s.level), 0.8); perf.note('continues', 1); return; } // mr_india: continue at the saved stage, skipping the intro
+      if (checkpoint.resume(s)) { selectedRoute = normalizeRoute(s.route); prev.score = s.score; prev.lives = s.lives; screens.reset(s); audio.music(levelMusic(s.level), 0.8); perf.note('continues', 1); return; } // mr_india: continue at the saved stage, skipping the intro
       coach.begin(s); // mr_india: first-run coach marks (NEW GAME only; CONTINUE returned above)
       cinema.setHero(heroFor(selectedHero).name);
       cinema.play('intro');
@@ -320,7 +344,6 @@ addEventListener('keydown', e => {
     if (e.code === 'KeyE') { selectedDifficulty = 'easy'; try { store.set('pizzaDifficulty', selectedDifficulty); } catch { /* no persistent storage in sandboxed apps */ } }
     if (e.code === 'KeyN') { selectedDifficulty = 'normal'; try { store.set('pizzaDifficulty', selectedDifficulty); } catch { /* no persistent storage in sandboxed apps */ } }
     if (e.code === 'KeyH') { selectedDifficulty = 'hard'; try { store.set('pizzaDifficulty', selectedDifficulty); } catch { /* no persistent storage in sandboxed apps */ } }
-    if (e.code === 'KeyM') audio.toggle();
     if (e.code.startsWith('Arrow')) e.preventDefault();
     return;
   }
@@ -328,7 +351,7 @@ addEventListener('keydown', e => {
   keys[e.code] = true;
   // First key press also starts the gameplay score (cinematics set their own).
   if (!audio.musicName) audio.music(levelMusic(s.level), 1.0);
-  if (e.code === 'Space') { e.preventDefault(); if (s.over) { s = createState(); s.selectedHero = selectedHero; pause.close(); paused = false; spawnWave(s); fx.reset(); prev = { score: 0, lives: s.lives, wave: s.wave, over: false }; perf.resetCounters(); lastP1Phase = null; lastP1Landed = 0; lastContinues = 0; prevBossAlive = false; bossDefeats = 0; endingQueued = false; heartCd = 0; initCombat(s); screens.reset(s); audio.play('start'); audio.play('fight'); audio.music(levelMusic(s.level), 0.8); window.__ppState = s; } }
+  if (e.code === 'Space') { e.preventDefault(); if (s.over) { s = createState(); s.selectedHero = selectedHero; s.route = selectedRoute; s.nextRoute = selectedRoute; pause.close(); paused = false; spawnWave(s); fx.reset(); prev = { score: 0, lives: s.lives, wave: s.wave, over: false }; perf.resetCounters(); lastP1Phase = null; lastP1Landed = 0; lastContinues = 0; prevBossAlive = false; bossDefeats = 0; endingQueued = false; heartCd = 0; initCombat(s); screens.reset(s); audio.play('start'); audio.play('fight'); audio.music(levelMusic(s.level), 0.8); window.__ppState = s; } }
   // Beat 'em up melee: J punch (3-hit chain), K kick (jump kick in the air), L jump.
   // Taunt: a flex that outranks idling and nothing else.
   if (e.code === 'KeyT') { e.preventDefault(); s.taunt = 0.9; audio.play('pickup'); }
@@ -544,8 +567,8 @@ function draw(dt = 1 / 60) {
     ctx.fillStyle = 'rgba(0,0,0,0.88)'; ctx.fillRect(0, 0, W, H);
     ctx.textAlign = 'center';
     ctx.fillStyle = '#ffe86b'; ctx.font = 'bold 40px monospace'; ctx.fillText('CHARACTER SELECT', W / 2, 52);
-    ctx.fillStyle = '#dce8e0'; ctx.font = '13px monospace'; ctx.fillText('Left / Right changes, Enter or Space confirms, M toggles sound', W / 2, 80);
-    const cols = 4, cellW = 170, cellH = 172, cardScale = 0.82; // two rows fit between the subtitle and the READY lines
+    ctx.fillStyle = '#dce8e0'; ctx.font = '13px monospace'; ctx.fillText('Arrows choose hero; Enter starts; R / pad Y route; M / BACK sound', W / 2, 80);
+    const cols = 4, cellW = 170, cellH = 172, cardScale = 0.82; // shared grid geometry with the P2 selector
     const sx = W / 2 - (cols * cellW) / 2 + cellW / 2;
     const sy = 158; // leaves room for the subtitle above the top row of cards
     HEROES.forEach((h, i) => {
@@ -564,21 +587,31 @@ function draw(dt = 1 / 60) {
       ctx.restore();
     });
     const cur = HEROES[selectIndex];
-    ctx.globalAlpha = 1; ctx.fillStyle = '#9bd6a3'; ctx.font = 'bold 15px monospace';
-    ctx.fillText('READY: ' + cur.name, W / 2, H - 78); // mr_india (soak): lines re-spaced, DIFFICULTY no longer overprints START
-    ctx.fillStyle = '#f5f5f5'; ctx.font = '13px monospace';
-    ctx.fillText(cur.stat, W / 2, H - 60);
+    // The selected card already names the hero. A duplicate READY line here
+    // overlaps the second row's names once the route selector is displayed.
+    ctx.globalAlpha = 1; ctx.fillStyle = '#f5f5f5'; ctx.font = '13px monospace';
+    ctx.fillText(cur.stat, W / 2, H - 75);
+    ctx.fillStyle = '#ffe86b'; ctx.font = 'bold 13px monospace';
+    ctx.fillText(`ROUTE: ${selectedRoute.toUpperCase()}  (R / pad Y; touch: pause > Options)`, W / 2, H - 58);
     ctx.fillStyle = '#9bd6a3'; ctx.font = 'bold 13px monospace';
     ctx.fillText(`DIFFICULTY: ${selectedDifficulty.toUpperCase()}  (E easy / N normal / H hard)`, W / 2, H - 40);
     ctx.fillStyle = '#ffe86b'; ctx.font = 'bold 18px monospace'; ctx.fillText('PRESS ENTER / SPACE TO START', W / 2, H - 18);
     ctx.textAlign = 'left';
     coop.drawSelect(ctx, W, H); // cheese: co-op P2 cursor + join hint
+    // Hero selection returns before the normal overlay draw below; keep the
+    // Options route chooser visible here for touch users and pad navigation.
+    if (pause.isOpen()) guard('pause.select', () => pause.draw(ctx));
     return;
   }
   guard('arcade.post', () => arcade.post(ctx, s)); // mr_india: arcade glitch overlay (palette swap, RGB split), under dialogue/screens
   // Scripted-beat dialogue sits above everything except the game-over card.
   if (!s.over && !screens.active()) guard('events.overlay', () => drawEventOverlay(ctx, s, W, H));
   guard('screens', () => screens.draw(ctx, W, H));
+  if (!screens.active() && !selecting && !s.over) guard('route.badge', () => {
+    ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.72)'; ctx.fillRect(W / 2 - 64, 80, 128, 20);
+    ctx.fillStyle = '#ffe86b'; ctx.font = 'bold 11px monospace'; ctx.textAlign = 'center';
+    ctx.fillText(`ROUTE: ${normalizeRoute(s.route).toUpperCase()}`, W / 2, 94, 122); ctx.restore();
+  });
   guard('style', () => style.draw(ctx, W, H, s, screens, dt)); // mr_india: live combo counter + STYLE line on the clear card
   if (!paused && !screens.active() && !cinema.isActive()) guard('coach', () => coach.draw(ctx, W, H)); // mr_india: coach marks overlay
   guard('bonus', () => bonus.draw(ctx, W, H)); // dolan: bonus stage draws over the frozen world
@@ -629,6 +662,7 @@ function simStep(dt) {
     // Scripted beats run before the world steps, so spawns join this frame.
     stepEvents(s, dt);
     update(s, dt);
+    if (s.wave > prev.wave) s.route = normalizeRoute(s.nextRoute); // stage-entry latch, before any beat in the next sim step
     if (s.taunt > 0) s.taunt = Math.max(0, s.taunt - dt);
     attempt('breakables.step', () => breakables.step(s, dt)); // dolan: prop hits, debris, pickups
     attempt('subway.step', () => subway.step(s, dt)); // cheese: subway train, stations, signal hazards
@@ -728,7 +762,7 @@ function loop(t) {
   animT += dt;
   // mr_india (review t_38085af9708c4a0a): the pause menu closes itself (Resume/Esc/Quit);
   // clear game.js 'paused' when it does, and honour Quit to Title.
-  if (paused && !pause.isOpen()) { paused = false; if (pause.pendingQuit()) { pause.clearQuit(); title.start(() => { selecting = true; cineFade = 0.4; }); } }
+  if (paused && !pause.isOpen()) { paused = false; if (pause.pendingQuit()) { pause.clearQuit(); selectedRoute = 'classic'; title.start(() => { selecting = true; cineFade = 0.4; }); } }
   pollGamepad(dt, !started ? 'boot' : cinema.isActive() ? 'cine' : title.isActive() ? 'title' : screens.active() ? screens.mode() : pause.isOpen() ? 'pause' : selecting ? 'select' : s.over ? 'over' : 'play'); // cheese: gamepad
   // Cinematics wait for the first key press: browsers refuse to start audio
   // before a user gesture, so an auto-playing intro would be silent.

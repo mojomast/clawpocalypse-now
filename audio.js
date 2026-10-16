@@ -27,20 +27,21 @@ const MUSIC_LEVEL = 0.34, SFX_LEVEL = 0.8;
 const DIALOGUE_DUCK = 0.5;
 const MAX_VOICES = 40, PER_CUE = 4, RETRIGGER_MS = 28, MAX_DECODED_TRACKS = 3;
 
-export function createAudio() {
+// Optional clock/wait overrides keep retry tests deterministic without waiting for pack backoff.
+export function createAudio({ now = () => Date.now(), wait = ms => new Promise(r => setTimeout(r, ms)), retryCooldownMs = 5000 } = {}) {
   let ctx = null, master = null, sfxBus = null, musicGain = null, duckGain = null;
   let muted = false, volume = 0.22, musicVol = 1;
   // Lifecycle (game.js): remember whether the AudioContext was actually running
   // when we suspended it, so resume() never falsely resumes a context the browser
   // is still holding locked behind the autoplay policy (see unlock()).
-  let wasRunningBeforeSuspend = false;
+  let lifecycleSuspended = false, lifecycleRunning = false, transition = null;
   const buffers = Object.create(null);            // sfx key -> AudioBuffer
   const live = new Set();                          // playing one-shot sources
   const perCue = Object.create(null);              // cue -> [sources]
   const lastAt = Object.create(null);              // cue -> ms of last trigger
   const lastPick = Object.create(null);            // variant group -> last index
   const stats = { plays: 0, last: null, errors: 0, scene: null, voices: 0, capSkips: 0, ducked: false, throttled: 0,
-    sfxLoaded: 0, sfxTotal: Object.keys(SFX).length, musicReady: false, track: null, loadErrors: 0 };
+    sfxLoaded: 0, sfxTotal: Object.keys(SFX).length, musicReady: false, track: null, loadErrors: 0, pendingTrack: null };
   // Small random pitch spread so repeated cues never sound machine-identical.
   const vary = (amt = 0.06) => 1 + (Math.random() * 2 - 1) * amt;
 
@@ -76,34 +77,52 @@ export function createAudio() {
         if (res.ok) return await res.arrayBuffer();
       } catch (_) { /* retry below */ }
       stats.loadErrors += 1;
-      await new Promise(r => setTimeout(r, 400 * 2 ** attempt));
+      if (attempt < 5) await wait(400 * 2 ** attempt);
     }
     return null;
   }
   const decode = bytes => new Promise((resolve, reject) => {
     try { const p = ctx.decodeAudioData(bytes, resolve, reject); if (p && p.then) p.then(resolve, reject); } catch (e) { reject(e); }
   });
-  let sfxLoading = null;
+  const cooldown = () => now() + retryCooldownMs;
+  let sfxLoading = null, sfxBytes = null, sfxRetryAt = 0;
   function loadSfx() {
-    if (sfxLoading || typeof fetch !== 'function') return sfxLoading;
-    sfxLoading = fetchBytes(SFX_PACK).then(all => {
-      if (!all || !ctx) return;
-      return Promise.all(Object.entries(SFX).map(([key, [off, len]]) =>
-        decode(all.slice(off, off + len)).then(b => { buffers[key] = b; stats.sfxLoaded += 1; }, () => { stats.loadErrors += 1; })));
+    if (sfxLoading || stats.sfxLoaded === stats.sfxTotal || now() < sfxRetryAt || typeof fetch !== 'function') return sfxLoading;
+    const request = (sfxBytes ? Promise.resolve(sfxBytes) : fetchBytes(SFX_PACK)).then(all => {
+      if (!all || !ctx) return false;
+      sfxBytes = all;
+      return Promise.all(Object.entries(SFX).filter(([key]) => !buffers[key]).map(([key, [off, len]]) =>
+        decode(all.slice(off, off + len)).then(b => { buffers[key] = b; stats.sfxLoaded += 1; return true; }, () => { stats.loadErrors += 1; return false; })))
+        .then(results => results.every(Boolean));
+    }).catch(() => { stats.loadErrors += 1; return false; });
+    sfxLoading = request.then(ok => {
+      if (!ok) sfxRetryAt = cooldown();
+      sfxLoading = null;
     });
     return sfxLoading;
   }
-  let musicPack = null;
+  let musicPack = null, musicRetryAt = 0;
   function musicBytes() {
-    if (!musicPack && typeof fetch === 'function') musicPack = fetchBytes(MUSIC_PACK).then(b => { stats.musicReady = !!b; return b; });
+    if (!musicPack && now() >= musicRetryAt && typeof fetch === 'function') {
+      const p = fetchBytes(MUSIC_PACK).catch(() => { stats.loadErrors += 1; return null; });
+      const result = p.then(b => {
+        stats.musicReady = !!b;
+        if (!b && musicPack === result) { musicRetryAt = cooldown(); musicPack = null; }
+        return b;
+      });
+      musicPack = result;
+    }
     return musicPack || Promise.resolve(null);
   }
   const decoded = new Map(); // track -> Promise<AudioBuffer>, most recently used last
+  const decodeRetryAt = new Map();
   function track(key) {
     if (decoded.has(key)) { const p = decoded.get(key); decoded.delete(key); decoded.set(key, p); return p; }
+    if (now() < (decodeRetryAt.get(key) || 0)) return Promise.resolve(null);
     const range = MUSIC[key];
-    const p = musicBytes().then(all => (all && range && ctx ? decode(all.slice(range[0], range[0] + range[1])) : null));
-    p.catch(() => { stats.loadErrors += 1; decoded.delete(key); });
+    const p = musicBytes().then(all => (all && range && ctx ? decode(all.slice(range[0], range[0] + range[1])) : null))
+      .catch(() => { stats.loadErrors += 1; decodeRetryAt.set(key, cooldown()); return null; });
+    p.then(buf => { if (!buf && decoded.get(key) === p) decoded.delete(key); });
     decoded.set(key, p);
     // Decoded PCM is big (~30 MB a track): keep only the newest few (never the playing one).
     for (const k of [...decoded.keys()]) {
@@ -217,7 +236,7 @@ export function createAudio() {
   };
 
   // ---- music ----
-  let musicTheme = null, activeKey = null, current = null, musicToken = 0, duckTimer = null;
+  let musicTheme = null, activeKey = null, current = null, pendingKey = null, musicToken = 0, duckTimer = null;
   function fadeOutCurrent(f) {
     if (!current) return;
     const { src, bus } = current, now = ctx.currentTime;
@@ -229,11 +248,20 @@ export function createAudio() {
     } catch (_) {}
     setTimeout(() => { try { bus.disconnect(); } catch (_) {} }, (f + 0.3) * 1000);
     current = null;
+    activeKey = null;
+    stats.track = null;
   }
   function startTrack(key, f) {
     const token = ++musicToken;
+    pendingKey = key; stats.pendingTrack = key;
     track(key).then(buf => {
-      if (token !== musicToken || !buf || !ctx || activeKey !== key) return;
+      if (token !== musicToken) return;
+      pendingKey = null; stats.pendingTrack = null;
+      if (!buf || !ctx || THEME_TRACKS[musicTheme] !== key || lifecycleSuspended) return;
+      // A successful decode can complete before the first gesture. Hold the desired
+      // theme, but do not schedule a source at the frozen AudioContext clock.
+      if (ctx.state !== 'running') return;
+      fadeOutCurrent(f);
       const now = ctx.currentTime;
       const bus = ctx.createGain();
       bus.gain.setValueAtTime(0.0001, now);
@@ -242,15 +270,21 @@ export function createAudio() {
       const src = ctx.createBufferSource();
       src.buffer = buf; src.loop = true;
       src.connect(bus); src.start(now);
-      current = { key, src, bus }; stats.track = key;
-    }).catch(() => { stats.errors += 1; });
+      current = { key, src, bus }; activeKey = key; stats.track = key;
+    }).catch(() => { stats.errors += 1; if (token === musicToken) { pendingKey = null; stats.pendingTrack = null; } });
+  }
+  function requestMusic(f) {
+    const key = musicTheme ? THEME_TRACKS[musicTheme] : null;
+    if (!key || key === activeKey || pendingKey === key || now() < musicRetryAt || now() < (decodeRetryAt.get(key) || 0) || !ctx || ctx.state !== 'running' || lifecycleSuspended) return;
+    startTrack(key, f);
   }
   function setMusic(name, fade = 0.5) {
     const next = name && THEME_TRACKS[name] ? name : null;
     const c = ensure();
     // No AudioContext (headless/old browser): remember the choice, stay silent.
     if (!c) { musicTheme = next; stats.scene = next; return musicTheme; }
-    if (next === musicTheme) return musicTheme;
+    if (next === musicTheme) { if (c) { loadSfx(); requestMusic(Math.max(0.05, fade)); } return musicTheme; }
+    const previousKey = musicTheme ? THEME_TRACKS[musicTheme] : null;
     musicTheme = next;
     stats.scene = next;
     stats.last = next ? `music:${next}` : 'music:off';
@@ -259,11 +293,9 @@ export function createAudio() {
       musicGain.gain.cancelScheduledValues(now);
       musicGain.gain.setValueAtTime(musicGain.gain.value, now);
       musicGain.gain.linearRampToValueAtTime(muted ? 0 : MUSIC_LEVEL * musicVol, now + 0.05);
-      if (key && key === activeKey) return musicTheme; // same recording under another name: keep looping
-      // Crossfade: the old loop fades out while the new one fades in on a fresh bus.
-      fadeOutCurrent(f);
-      activeKey = key;
-      if (key) startTrack(key, f); else musicToken += 1;
+      if (key !== previousKey) { musicToken += 1; pendingKey = null; stats.pendingTrack = null; }
+      if (!key) fadeOutCurrent(f);
+      else requestMusic(f); // Keep the old loop until a replacement is ready.
     } catch (error) { stats.errors += 1; }
     return musicTheme;
   }
@@ -287,7 +319,7 @@ export function createAudio() {
   }
 
   // Per-frame: hold the music down while a cutscene or a dialogue line is up.
-  let duckedNow = false, resumeAt = -1e9;
+  let duckedNow = false;
   function update(dt, state) {
     if (!state) return;
     let dialogue = false;
@@ -297,6 +329,28 @@ export function createAudio() {
     }
     stats.ducked = dialogue;
     if (dialogue !== duckedNow) { duckedNow = dialogue; if (dialogue) duck(DIALOGUE_DUCK, 0); else if (musicTheme) duck(1, 0); }
+  }
+
+  // Serialize context transitions: a resume requested before suspend settles must
+  // run afterward, rather than racing the browser's still-pending suspend().
+  function transitionContext() {
+    if (!ctx || transition) return;
+    const shouldRun = !lifecycleSuspended && lifecycleRunning;
+    if ((ctx.state === 'running') === shouldRun) {
+      if (shouldRun) requestMusic(0.5);
+      return;
+    }
+    try {
+      const stateBefore = ctx.state;
+      transition = Promise.resolve(shouldRun ? ctx.resume() : ctx.suspend())
+        .then(() => {
+          transition = null;
+          // An interrupted/locked context may resolve resume() without running.
+          // Wait for another gesture instead of spinning through microtasks; a
+          // changed lifecycle intent still needs to be applied after this call.
+          if (ctx.state !== stateBefore || shouldRun !== (!lifecycleSuspended && lifecycleRunning)) transitionContext();
+        }, () => { stats.errors += 1; transition = null; });
+    } catch (_) { stats.errors += 1; transition = null; }
   }
 
   return {
@@ -320,7 +374,9 @@ export function createAudio() {
     unlock() {
       const c = ensure();
       if (!c) return false;
-      if (c.state === 'suspended') { resumeAt = typeof performance !== 'undefined' ? performance.now() : Date.now(); c.resume().catch(() => { stats.errors += 1; }); }
+      lifecycleRunning = true;
+      if (!lifecycleSuspended) transitionContext();
+      loadSfx();
       return true;
     },
     // Returns true when the cue exists (even if its samples are still loading).
@@ -331,15 +387,16 @@ export function createAudio() {
       if (now - (lastAt[name] || -1e9) < RETRIGGER_MS) { stats.throttled += 1; return true; }
       lastAt[name] = now;
       const c = ensure();
-      // While the context is still locked (no gesture yet) one-shots would queue up at a
-      // frozen clock and all fire on unlock, so drop them, except right after unlock().
-      const canPlay = c && (c.state === 'running' || now - resumeAt < 800);
+      // Drop one-shots while locked or suspended: scheduling at a frozen clock
+      // would burst the entire queue on unlock/resume.
+      const canPlay = c && c.state === 'running' && !lifecycleSuspended;
+      if (c) loadSfx();
       if (c && !muted && canPlay) { try { sound(name, opts); } catch (error) { stats.errors += 1; return false; } }
       stats.plays += 1; stats.last = name;
       return true;
     },
     // Switch the looping score. null (or an unknown name) fades out; the same
-    // name is a no-op, so a scene can call it every frame.
+    // name is a no-op while active/loading; failed loads retry after cooldown.
     music(name, fade = 0.5) { return setMusic(name, fade); },
     // Dip the music around a stinger or a line of type: duck(0.25) pulls it
     // down, duck(1) restores it; the second argument auto-restores after N secs.
@@ -370,17 +427,18 @@ export function createAudio() {
     // and mute preferences survive a hidden tab intact.
     suspend() {
       if (!ctx) return false;
-      let running = false;
-      try { running = ctx.state === 'running'; } catch (_) { running = false; }
-      if (!running) { wasRunningBeforeSuspend = false; return false; }
-      wasRunningBeforeSuspend = true;
-      try { const p = ctx.suspend(); if (p && p.catch) p.catch(() => { stats.errors += 1; }); } catch (_) { stats.errors += 1; }
+      if (lifecycleSuspended) return false;
+      // A locked context is not ours to wake on lifecycle resume.
+      if (ctx.state !== 'running' && !(transition && lifecycleRunning)) return false;
+      lifecycleRunning = true;
+      lifecycleSuspended = true;
+      transitionContext();
       return true;
     },
     resume() {
-      if (!ctx || !wasRunningBeforeSuspend) return false;
-      wasRunningBeforeSuspend = false;
-      try { const p = ctx.resume(); if (p && p.catch) p.catch(() => { stats.errors += 1; }); } catch (_) { stats.errors += 1; }
+      if (!ctx || !lifecycleSuspended) return false;
+      lifecycleSuspended = false;
+      transitionContext();
       return true;
     },
     get state() { return ctx ? ctx.state : 'none'; },

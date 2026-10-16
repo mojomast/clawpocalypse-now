@@ -23,6 +23,7 @@ import { HARBOR_TRIGGERS } from './harbor-data.js'; // mr_india: harbor beats
 import { ARCADE_TRIGGERS } from './arcade-data.js'; // mr_india: arcade beats
 import { HEROES as HERO_LIST } from './heroes.js'; // story-v2: hero names for the speaker label
 import { flashAlpha } from './effects-safe.js'; // baba_booey: breach flash honours reducedFlash
+import { normalizeRoute, routeTriggers } from './challenge-routes.js';
 
 const bandTop = level => LEVELS[level]?.walkables[0]?.y ?? 358;
 
@@ -113,9 +114,25 @@ export const TRIGGERS = [
   ...ARCADE_TRIGGERS, // mr_india: arcade interior beats (level 7, arcade-data.js)
 ];
 
+// Resolve authored routes once: the frame loop reuses these arrays and the
+// original Classic trigger objects. Only the two Challenge variants are copies.
+const LEVEL_BEATS = { classic: [], challenge: [] };
+for (const route of ['classic', 'challenge']) {
+  for (const t of routeTriggers(TRIGGERS, route)) {
+    (LEVEL_BEATS[route][t.level] ||= []).push(t);
+  }
+  for (let level = 0; level < LEVELS.length; level++) {
+    LEVEL_BEATS[route][level] = Object.freeze(LEVEL_BEATS[route][level] || []);
+  }
+}
+const NO_BEATS = Object.freeze([]);
+export function levelBeats(level, route = 'classic') {
+  return LEVEL_BEATS[normalizeRoute(route)][level] || NO_BEATS;
+}
+
 // Read-only plan of a walking level for checks and reports.
-export function levelPlan(level) {
-  const beats = TRIGGERS.filter(t => t.level === level);
+export function levelPlan(level, route = 'classic') {
+  const beats = levelBeats(level, route).slice();
   const kinds = [...new Set(beats.flatMap(t => t.kinds))].filter(k => SEGMENTED_KINDS.includes(k));
   const events = [];
   for (const t of beats) {
@@ -467,8 +484,9 @@ export function stepEvents(state, dt) {
   e.barks = e.barks.filter(b => b.t < b.dur && !(b.n && b.n.dead));
 
   const level = state.level | 0;
-  for (const t of TRIGGERS) {
-    if (t.level !== level || state.level === 3) continue;
+  const beats = levelBeats(level, state.route);
+  for (const t of beats) {
+    if (state.level === 3) continue;
     const key = t.level + ':' + t.x;
     if (e.fired[key]) continue;
     if (state.player.x < t.x) continue;
@@ -580,7 +598,7 @@ export function stepEvents(state, dt) {
   // (sewer) wave.
   if (state.bossSeen && !state.ninjas.some(n => n.kind === 'boss' && !n.dead)) { state.runComplete = true; state.holdWave = true; }
   if (state.hpMode && state.holdWave && state.walkLevel && !state.runComplete && !state.ninjas.some(n => !n.dead)) {
-    const all = TRIGGERS.filter(t => t.level === level).every(t => e.fired[t.level + ':' + t.x]);
+    const all = beats.every(t => e.fired[t.level + ':' + t.x]);
     const width = (LEVELS[level] && LEVELS[level].width) || WORLD_W;
     if (all && state.player.x > width - 420) { state.holdWave = false; state.walkLevel = false; state.levelsDone = (state.levelsDone || 0) + 1; e.log.push({ type: 'levelEnd', level }); e.go = null; e.barks = []; }
   }

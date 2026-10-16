@@ -11,7 +11,7 @@
 // Hold lasts GRAB_HOLD seconds, then the enemy breaks free. Bosses (elite), drones,
 // airborne/downed enemies and a shield brute with its guard up can't be grabbed.
 // The hero has i-frames for the whole throw animation (move.invuln).
-import { damageNinja } from './logic.js';
+import { effectiveHit } from './logic.js';
 export const GRAB_HOLD = 1.5;
 export const KNEES_TO_RELEASE = 3;
 export const SCREEN_THROW_T = 0.7;
@@ -45,8 +45,8 @@ export function releaseGrab(state, move) {
   const n = g.n; n.grabbed = false; c.grab = null;
   if (move.screen) {
     // KO: finish whatever HP is left through the normal damage path (score, drops).
-    if (!n.dead && n.hp > 0) damageNinja(state, n, n.hp, Math.random);
-    n.dead = true;
+    const killed = n.dead || effectiveHit(state, n, n.hp, Math.random, { owner: state.coopSecondary ? 'p2' : 'p1', source: 'screen-throw' }).killed;
+    if (!killed) return; // an adopted immune fighter cannot be finished via a held-body release
     (state.screenThrows ||= []).push({ x: n.x, y: n.y, z: n.z || 0, kind: n.kind, face: c.facing, t: 0 });
     if (state.audioCue) state.audioCue('impact');
   }

@@ -389,7 +389,7 @@ try {
   const secsOf = s => Number((/(\d+)s/.exec(s) || [0, 0])[1]);
   assert.ok(secsOf(l2) < secsOf(l10), 'countdown decreases as left decreases');
   assert.equal(continueLabel(0, 5), 'no continues left', 'empty pool message');
-  assert.equal(continueLabel(2, 0), 'START: continue (2 left) - 0s', 'zero left floors to 0s');
+  assert.equal(continueLabel(2, 0), 'START: continue (2 left) - ready', 'continue remains available after countdown reaches zero');
   assert.equal(continueLabel(2, 1.2, 'J / ENTER: continue'), 'J / ENTER: continue (2 left) - 2s', 'custom prompt variant');
   assert.deepEqual(P2_KEYS, {
     left: 'Numpad4', right: 'Numpad6', up: 'Numpad8', down: 'Numpad5',

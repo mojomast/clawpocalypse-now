@@ -44,3 +44,6 @@ jobs:
             /tmp/opencode/rig-pixel-seams/
             /tmp/opencode/gameplay-qol-performance/qol/
             /tmp/opencode/gameplay-qol-performance/runtime/
+            /tmp/opencode/challenge-routes/
+            /tmp/opencode/teamwork-reliability/teamwork/
+            /tmp/opencode/teamwork-reliability/reliability/

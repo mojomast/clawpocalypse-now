@@ -20,7 +20,7 @@
 // (state.coopSecondary), and enemyAI honours state.coopFilter.
 import { createCombat, combatTap, combatPress, combatStep, combatWalk, combatDash, enemyAI, attackBox } from './combat.js';
 import { drawContactCue, presentationReach } from './polish-contact.js';
-import { throwPizza, healPlayer, damagePlayer, damageNinja, hurtR, SKATE_LEVEL, W as LW, CAMERA_EASE_RATE } from './logic.js';
+import { throwPizza, healPlayer, damagePlayer, effectiveHit, hurtR, SKATE_LEVEL, W as LW, CAMERA_EASE_RATE } from './logic.js';
 import { LEVELS, WORLD_W, resolveWalkable } from './collision.js';
 import { HEROES } from './heroes.js';
 import { drawShots, drawBoard } from './skate.js';
@@ -30,6 +30,8 @@ import { CRANE, HARBOR_LEVEL_INDEX } from './harbor-data.js';
 import { PICKUPS } from './breakables.js';
 import { drawGrab } from './grab.js';
 import { createFootLocks } from './foot-lock.js';
+import { step as stepTeamwork, stageCredit as teamLinkStageCredit } from './teamwork.js';
+import { OPTIONS } from './options-live.js';
 
 export const P2_KEYS = {
   left: 'Numpad4', right: 'Numpad6', up: 'Numpad8', down: 'Numpad5',
@@ -44,6 +46,7 @@ export const P2_PAD = { A: 0, B: 1, X: 2, Y: 3, LB: 4, RB: 5, LT: 6, RT: 7, STAR
 export function continueLabel(pool, left, prompt = 'START: continue') {
   if (!(pool > 0)) return 'no continues left';
   const secs = Math.max(0, Math.ceil(Number(left) || 0));
+  if (secs === 0) return `${prompt} (${pool} left) - ready`;
   return `${prompt} (${pool} left) - ${secs}s`;
 }
 export const COOP = {
@@ -87,7 +90,7 @@ export function createCoop(opts = {}) {
   function makeView(s, heroId, x, y) {
     const view = Object.create(s);
     Object.assign(view, {
-      coopSecondary: true, coopP: 2, selectedHero: heroId,
+      coopSecondary: true, coopP: 2, hitOwnerState: s, selectedHero: heroId,
       player: { x, y, r: s.player.r, speed: s.player.speed, shield: false, level: s.level, z: 0 },
       hp: s.maxHp || 100, maxHp: s.maxHp || 100, lives: COOP.lives, over: false, invuln: 2,
       combo: 0, comboTimer: 0, bestCombo: 0, rapidTimer: 0, spreadTimer: 0, weaponLevel: 1, weaponDurability: 0,
@@ -118,9 +121,16 @@ export function createCoop(opts = {}) {
     s.coopFilter = n => n.coopT !== 2;
     joined = true; picking = false; cont = 0; revive = 0; stats.joins++; seenCont = s.continues | 0;
     lastWave = s.wave; lastLevel = s.level;
+    // The real P2 view and root both have to exist before a hit can set up a
+    // link. Meter accounting stays in assist's shared TEAM UP bar.
+    s.onTeamLink = event => {
+      const assist = opts.assist || (typeof window !== 'undefined' && window.__ppAssist);
+      event.commit(assist && assist.grantTeamLink ? assist.grantTeamLink(s, event.amount) : 0);
+    };
+    stepTeamwork(s, 0, v, p1Out);
     return v;
   }
-  function drop(s) { v = null; if (s) delete s.coopFilter; }
+  function drop(s) { v = null; if (s) { delete s.coopFilter; delete s.onTeamLink; stepTeamwork(s, 0, null, p1Out); } }
 
   // Public join: from the select screen (ready), mid-level, or a test.
   function join(s, heroId) {
@@ -325,8 +335,8 @@ export function createCoop(opts = {}) {
       z.x += z.vx * dt; z.y += (z.vy || 0) * dt;
       if (z.dead) continue;
       for (const n of s.ninjas) {
-        if (n.dead || !(Math.abs(z.x - n.x) < z.r + hurtR(n) * 0.55 && Math.abs(z.y - n.y) <= 14 + z.r)) continue;
-        z.dead = !z.piercing; damageNinja(v, n, v.weaponLevel - 1);
+        if (n.dead || n.down > 0 || n.wake > 0 || n.grabbed || !(Math.abs(z.x - n.x) < z.r + hurtR(n) * 0.55 && Math.abs(z.y - n.y) <= 14 + z.r)) continue;
+        z.dead = !z.piercing; effectiveHit(v, n, v.weaponLevel - 1, Math.random, { owner: 'p2', source: 'projectile' });
         if (z.dead) break;
       }
     }
@@ -372,6 +382,7 @@ export function createCoop(opts = {}) {
     adopt(s);
     if (!v) return;
     checkOut(s);
+    stepTeamwork(s, dt, v, p1Out || benched(s) || handed);
     if (s.wave !== lastWave || s.level !== lastLevel) { // new level: regroup next to P1
       lastWave = s.wave; lastLevel = s.level;
       const pos = spawnPosition(s, 60);
@@ -493,6 +504,17 @@ export function createCoop(opts = {}) {
   }
   // Screen space, after the P1 card: P2's card (pipi's hud.player at 3/4 size),
   // score, continue / revive prompts and the drop-in picker.
+  function drawLinkHint(ctx, Wd) {
+    const lines = ['TEAM LINK: 1P + 2P', 'Hit same foe within 2s'];
+    const size = Math.round(10 * OPTIONS.subtitleScale), y = 133;
+    ctx.save(); ctx.textAlign = 'right'; ctx.font = OPTIONS.fontFor(10);
+    const width = Math.ceil(Math.max(...lines.map(line => ctx.measureText(line).width))) + 12;
+    const h = 2 * size + 8;
+    // Leave the right edge free for the combo badge that appears below the card.
+    ctx.fillStyle = 'rgba(8,18,30,0.86)'; ctx.fillRect(Wd - 126 - width, y, width, h);
+    ctx.fillStyle = '#eafff5'; lines.forEach((line, i) => ctx.fillText(line, Wd - 132, y + size + 1 + i * (size + 2)));
+    ctx.restore();
+  }
   function drawHud(ctx, s, dt, Wd, Hd) {
     if (owner !== s) return;
     if (picking) {
@@ -516,6 +538,7 @@ export function createCoop(opts = {}) {
         ctx.fillStyle = '#9fe7ff'; ctx.fillText('or 1P stands close: revive', cx + cw / 2, cy + 80); ctx.restore();
       }
       drawP1Out(ctx);
+      if (!v.over && !p1Out) drawLinkHint(ctx, Wd);
       return;
     }
     // Fallback compact 2P strip (no hud module): hero, HP bar, lives, score.
@@ -538,6 +561,7 @@ export function createCoop(opts = {}) {
     }
     ctx.restore();
     drawP1Out(ctx);
+    if (!v.over && !p1Out) drawLinkHint(ctx, Wd);
   }
   function drawP1Out(ctx) {
     if (p1Out) { // P1 waiting on a continue / revive
@@ -580,7 +604,7 @@ export function createCoop(opts = {}) {
     leave: () => { joined = false; ready = false; picking = false; drop(owner); },
     get p2() { return v; }, get joined() { return joined; }, get ready() { return ready; }, get picking() { return picking; }, get pick() { return pick; }, set pick(i) { pick = i; },
     as, hudTwoUp: s => owner === s && active() && !benched(s), get p1Out() { return p1Out; }, get pool() { return pool; }, get handed() { return handed; }, continueP1: (s = owner) => continueP1(s), targetFor: (s, sys) => targetFor(s, sys),
-    get revive() { return revive; }, get continueLeft() { return continueLeft(); },
+    get revive() { return revive; }, get continueLeft() { return continueLeft(); }, teamLinkStageCredit: s => teamLinkStageCredit(s || owner),
   };
   return api;
 }

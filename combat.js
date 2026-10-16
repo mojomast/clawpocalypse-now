@@ -18,7 +18,7 @@
 // Animation contract (Hermes, rig.js): c.attack.name is a mechanic name
 // (launcher, juggle, dashAttack, grab, grabThrow, backAttack, healthSpecial) or
 // punch/kick/jumpKick; enemies set ninja.move / ninja.phase.
-import { CHAR_SCALE, movePlayer, damageNinja, damagePlayer, isWalkable, resolveWalkable, levelForIndex, clamp } from './logic.js';
+import { CHAR_SCALE, movePlayer, effectiveHit, damagePlayer, isWalkable, resolveWalkable, levelForIndex, clamp } from './logic.js';
 import { shotBlocked } from './machine.js'; // hex dome eats projectiles while the Machine is shielding
 
 const GRAVITY = 1400, JUMP_V = 560; // taller jump to match the 2x characters
@@ -320,6 +320,8 @@ function land(state, move, quiet = false) {
   if (move.noHit) return null;                 // locomotion: no hitbox at all
   const list = targets(state, move);
   if (!list.length) { if (!quiet && state.audioCue) state.audioCue('whiff'); return null; }
+  // hits is the attack's contact-window progression counter (also used by
+  // multi-hit timing), not a successful-damage statistic. landed is effective.
   c.hits += 1;
   if (c.struck) for (const n of list) c.struck.add(n);
   let hitAny = false;
@@ -328,6 +330,8 @@ function land(state, move, quiet = false) {
     // kick, a back attack, a throw or the special.
     const front = Math.sign(state.player.x - n.x) === Math.sign(n.face || -1);
     if (n.kind === 'blocker' && !n.stun && !move.pierceGuard && front && !n.atk) {
+      const guard = effectiveHit(state, n, move.dmg, Math.random, { owner: state.coopSecondary ? 'p2' : 'p1', source: 'melee', blocked: true });
+      if (guard.immune || guard.dead) continue;
       n.hitFlash = 0.06; n.knock = 60 * c.attackFacing; n.stun = 0.08; n.guardHit = 0.25;
       // A perfect block is one caught at the heart of the swing's first impact frame.
       n.parry = !!(move.heavy || (c.timer <= 0.05));
@@ -340,8 +344,9 @@ function land(state, move, quiet = false) {
       if (n.parry) c.chain += 0;
       continue;
     }
+    const outcome = effectiveHit(state, n, move.dmg, Math.random, { owner: state.coopSecondary ? 'p2' : 'p1', source: 'melee' });
+    if (!outcome.landed) continue; // adopted boss immunity: no fake reaction/audio/FX/juggle
     hitAny = true;
-    damageNinja(state, n, move.dmg, Math.random);
     react(state, n, move.react, c.attackFacing, move.knock * 1.5); // knock/throw distance scaled for 2x bodies
     const impact = POLISHED_HEROES.has(state.hero || state.selectedHero)
       ? { ...(move.grabbed ? { x: n.x, y: n.y + n.r - 63 - (n.z || 0) }
@@ -597,7 +602,8 @@ export function combatStep(state, dt) {
       for (const o of state.ninjas) {
         if (o === n || o.dead || o.down || o.falling || o.grabbed || o.thrownBy === n || Math.abs(o.x - n.x) > (o.r + n.r) * SZ * 0.55 || Math.abs(o.y - n.y) > DEPTH) continue;
         o.thrownBy = n;
-        damageNinja(state, o, 2, Math.random); react(state, o, 'knockdown', Math.sign(n.knock || 1), 240);
+        const collision = effectiveHit(state, o, 2, Math.random, { source: 'thrown-body' });
+        if (collision.landed) react(state, o, 'knockdown', Math.sign(n.knock || 1), 240);
       }
     }
     if (n.down > 0) {

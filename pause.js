@@ -7,6 +7,7 @@
 // asserts the boxes rather than someone eyeballing a screenshot.
 import { OPTIONS } from './options-live.js';
 import { P2_KEYS, P2_PAD } from './coop.js';
+import { normalizeRoute } from './challenge-routes.js';
 
 // One shared pitch for every element, so a row's hint can never collide with the
 // next row's label. Layout is computed by optionsLayout(), which shrinks the pitch
@@ -82,6 +83,7 @@ const CONTROL_LINES = [
 
 function boolDisplay(v) { return v ? 'ON' : 'OFF'; }
 function rowDisplay(row) {
+  if (row.display) return row.display();
   if (row.kind === 'bool') return boolDisplay(!!row.value());
   if (row.kind === 'number') return row.fmt ? row.fmt(Number(row.value())) : String(row.value());
   if (row.kind === 'enum') return String(row.value()).toUpperCase();
@@ -89,6 +91,7 @@ function rowDisplay(row) {
   return '';
 }
 function rowHint(row) {
+  if (row.hintText) return row.hintText();
   if (row.note) return row.note;
   if (row.kind === 'bool') return 'Left/Right or Enter';
   if (row.kind === 'number') return 'Left/Right';
@@ -216,6 +219,25 @@ export function createPause(W, H, opts = {}) {
       id: 'difficulty', label: 'Difficulty', kind: 'enum', options: ['easy', 'normal', 'hard'], note: 'damage taken changes now',
       value: () => { try { return String(opts.getDifficulty() || 'normal'); } catch (_) { return 'normal'; } },
       set: v => { try { opts.onDifficultyChange(v); } catch (_) {} },
+    });
+  }
+  if (typeof opts.getRoute === 'function' && typeof opts.onRouteChange === 'function') {
+    const activeRoute = () => {
+      try { return normalizeRoute((api && api.getActiveRoute || opts.getActiveRoute)?.()); } catch (_) { return 'classic'; }
+    };
+    const pendingRoute = () => {
+      try { return normalizeRoute((api && api.getRoute || opts.getRoute)()); } catch (_) { return 'classic'; }
+    };
+    const routeContext = () => {
+      try { return (api && api.getRouteContext || opts.getRouteContext)?.() === 'new' ? 'new' : 'stage'; } catch (_) { return 'stage'; }
+    };
+    rows.push({
+      id: 'route', label: () => routeContext() === 'new' ? 'New run route' : 'Next stage route', kind: 'enum', options: ['classic', 'challenge'],
+      note: 'applies at the next stage, not during this one',
+      value: pendingRoute,
+      display: () => routeContext() === 'new' ? `${pendingRoute().toUpperCase()} (SELECTED)` : `${pendingRoute().toUpperCase()} (${pendingRoute() === activeRoute() ? 'ACTIVE' : 'PENDING'})`,
+      hintText: () => routeContext() === 'new' ? 'Selected route for the new run' : `Current: ${activeRoute().toUpperCase()}  |  applies next stage`,
+      set: v => { try { (api && api.onRouteChange || opts.onRouteChange)(normalizeRoute(v)); } catch (_) {} },
     });
   }
   rows.push({ id: 'back', label: 'Back', kind: 'back' });
@@ -354,7 +376,7 @@ export function createPause(W, H, opts = {}) {
       const sel = (start + i) === root.index;
       ctx.fillStyle = sel ? '#ffffff' : '#9fb8a5';
       ctx.font = (sel ? 'bold ' : '') + '18px monospace';
-      ctx.fillText(row.label, W / 2, b.nameY);
+      ctx.fillText(typeof row.label === 'function' ? row.label() : row.label, W / 2, b.nameY);
       ctx.fillStyle = '#ffe86b';
       ctx.font = 'bold 16px monospace';
       ctx.fillText(rowDisplay(row), W / 2, b.valY);
@@ -406,7 +428,7 @@ export function createPause(W, H, opts = {}) {
     save: saveOptions, load: loadOptions,
     pendingQuit() { return root.pendingQuit; }, clearQuit() { root.pendingQuit = false; },
     menu() { return root.menu; }, optionsLayout, controlsLayout,
-    optionRows: () => rows.map(r => ({ id: r.id, label: r.label, kind: r.kind, note: r.note })),
+    optionRows: () => rows.map(r => ({ id: r.id, label: typeof r.label === 'function' ? r.label() : r.label, kind: r.kind, note: r.note })),
     optionPages, controlsLines: () => CONTROL_LINES,
     index: () => root.index, notice: () => root.notice,
   };
@@ -415,5 +437,9 @@ export function createPause(W, H, opts = {}) {
   api.onTutorialReplay = opts.onTutorialReplay;
   api.getDifficulty = opts.getDifficulty;
   api.onDifficultyChange = opts.onDifficultyChange;
+  api.getRoute = opts.getRoute;
+  api.getRouteContext = opts.getRouteContext;
+  api.getActiveRoute = opts.getActiveRoute;
+  api.onRouteChange = opts.onRouteChange;
   return api;
 }

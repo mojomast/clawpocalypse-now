@@ -103,7 +103,7 @@ export function createSubway(opts = {}) {
       // Signals clip grounded OpenClaw goons on the roof too (not bosses or drones).
       for (const n of s.ninjas) {
         if (n.dead || n.levelBoss || n.kind === 'drone' || n.kind === 'boss' || n.flyover || (n.z || 0) > HAZARD.lowClearZ) continue;
-        if (!n.__sigHit && Math.abs(h.x - n.x) < 18 && Math.abs(n.y - p.y) < 400) { n.__sigHit = h; damageNinja(s, n, 1); }
+        if (!n.__sigHit && Math.abs(h.x - n.x) < 18 && Math.abs(n.y - p.y) < 400) { n.__sigHit = h; damageNinja(s, n, 1, Math.random, { source: 'subway-hazard' }); }
       }
     }
     sw.hz = sw.hz.filter(h => h.x > cam - 200);

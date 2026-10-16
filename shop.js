@@ -3,10 +3,10 @@
 // except after the final stage. The world is frozen while it is open.
 // Currency s.coins: +1 per enemy KO (stepWorld), +5 per stage clear (screens.js),
 // +1 per 1000 delivery-bonus points (bonus.js), ruby +3 / emerald +1 (breakables.js).
-// Damage upgrades never touch combat.js: stepWorld diffs enemy hp each sim step
-// and removes an extra (dmgMult - 1) x the loss, carrying fractions per enemy.
+// Logic applies damage upgrades on attributable hits and records actual extra
+// HP removed in s.shopExtraDmg; stepWorld observes that counter and awards KO coins.
 // Everything lives on the state object, so a new run starts clean.
-import { damageNinja, LEVEL_ORDER } from './logic.js';
+import { LEVEL_ORDER } from './logic.js';
 
 export const ITEMS = [
   { id: 'hp', name: 'MAX HP +20', desc: 'Raises max HP by 20 and heals 20.', prices: [8, 14, 22], max: 3 },
@@ -30,35 +30,28 @@ export function createShop({ audio, onDone } = {}) {
   for (const k of ['bg', 'hp', 'dmg', 'life', 'meter', 'ammo', 'coin']) { try { const im = new Image(); im.src = 'assets/shop/' + k + (k === 'bg' ? '.jpg' : '.png'); img[k] = im; } catch (_) {} }
   const ready = im => im && im.complete && im.naturalWidth;
   const play = n => { try { audio && audio.play(n); } catch (_) {} };
-  let owner = null, hpSeen = new WeakMap(), carry = new WeakMap(), kos = new WeakSet(), tracked = [];
+  let owner = null, kos = new WeakSet(), tracked = [];
   let ui = null; // { s, sel, t, idle, shown, shake, line, lineT, visit: {} }
   const stats = { opened: 0, bought: 0, refused: 0, extraDmg: 0 };
 
   function ensure(s) {
     if (owner === s) return;
-    owner = s; hpSeen = new WeakMap(); carry = new WeakMap(); kos = new WeakSet(); tracked = [];
+    owner = s; kos = new WeakSet(); tracked = [];
     if (!Number.isFinite(s.coins)) s.coins = 0;
     if (!s.shopBuys || typeof s.shopBuys !== 'object') s.shopBuys = {};
     for (const k of ['hp', 'dmg', 'life', 'meter', 'ammo']) if (!Number.isFinite(s.shopBuys[k])) s.shopBuys[k] = 0;
     if (!Number.isFinite(s.dmgMult)) s.dmgMult = 1;
+    if (!Number.isFinite(s.shopExtraDmg)) s.shopExtraDmg = 0;
+    stats.extraDmg = s.shopExtraDmg;
     if (!Number.isFinite(s.superStart)) s.superStart = 0;
     if (!Number.isFinite(s.weaponLevel)) s.weaponLevel = 1;
     if (!Number.isFinite(s.maxHp)) s.maxHp = 100;
-    for (const n of s.ninjas || []) { hpSeen.set(n, n.hp); if (n.dead) kos.add(n); }
+    for (const n of s.ninjas || []) if (n.dead) kos.add(n);
   }
-  // Per sim step (game.js, after bosses.step): KO coins + the damage multiplier.
+  // Per sim step (game.js, after bosses.step): KO coins + damage stat sync.
   function stepWorld(s) {
     ensure(s);
-    const mult = s.dmgMult || 1;
-    for (const n of s.ninjas) {
-      const prev = hpSeen.get(n);
-      if (mult > 1 && prev != null && !n.dead && n.hp < prev) {
-        const want = (prev - n.hp) * (mult - 1) + (carry.get(n) || 0), extra = Math.floor(want);
-        carry.set(n, want - extra);
-        if (extra > 0) { stats.extraDmg += extra; if (n.hp - extra <= 0) damageNinja(s, n, extra); else n.hp -= extra; }
-      }
-      hpSeen.set(n, n.hp);
-    }
+    stats.extraDmg = s.shopExtraDmg;
     // KOs: logic.js drops dead enemies from s.ninjas, so also check last step's list.
     for (const n of tracked.concat(s.ninjas)) if ((n.dead || n.hp <= 0) && !kos.has(n)) { kos.add(n); s.coins += KO_COIN; }
     tracked = s.ninjas.slice();

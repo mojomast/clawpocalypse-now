@@ -3,8 +3,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node tests/check-rig-sources.mjs && node tests/check-polish-protected.mjs && node tests/check-polish-locomotion.mjs && node tests/check-rigs.mjs && node tests/check-hero-v2.mjs && node check-animation.mjs && node tests/check-polish-rigs.mjs && node tests/check-polish-nous.mjs && node tests/check-polish-timing.mjs && node tests/check-polish-contact.mjs && node tests/check-polish-recovery.mjs && node tests/check-levels.mjs && node tests/check-machine.mjs && node tests/check-audit-combat.mjs && node tests/check-audit-state.mjs && npm run test:qol && npm run test:runtime",
-    "test:browser": "node browser-smoke.mjs && node tests/browser-machine.mjs && node tests/browser-audit.mjs && node tests/browser-qol.mjs && node tests/browser-runtime.mjs",
+    "test": "node tests/check-rig-sources.mjs && node tests/check-polish-protected.mjs && node tests/check-polish-locomotion.mjs && node tests/check-rigs.mjs && node tests/check-hero-v2.mjs && node check-animation.mjs && node tests/check-polish-rigs.mjs && node tests/check-polish-nous.mjs && node tests/check-polish-timing.mjs && node tests/check-polish-contact.mjs && node tests/check-polish-recovery.mjs && node tests/check-levels.mjs && node tests/check-machine.mjs && node tests/check-audit-combat.mjs && node tests/check-audit-state.mjs && npm run test:qol && npm run test:runtime && npm run test:challenge && npm run test:teamwork && npm run test:recovery",
+    "test:browser": "node browser-smoke.mjs && node tests/browser-machine.mjs && node tests/browser-audit.mjs && node tests/browser-qol.mjs && node tests/browser-runtime.mjs && node tests/browser-effective-hits.mjs && node tests/browser-challenge-routes.mjs && node tests/browser-teamwork.mjs && node tests/browser-reliability.mjs",
+    "test:teamwork": "node tests/check-teamwork-core.mjs && node tests/check-teamwork-assist.mjs && node tests/check-teamwork.mjs",
+    "test:recovery": "node tests/check-input-recovery.mjs && node tests/check-audio-recovery.mjs",
+    "test:challenge": "node tests/check-effective-hits.mjs && node tests/check-challenge-routes.mjs && node tests/check-challenge-routes-save.mjs",
     "test:qol": "node tests/check-qol.mjs",
     "test:runtime": "node tests/check-runtime.mjs && node tests/check-runtime-wind.mjs && node tests/check-render-cache.mjs",
     "test:render-cache": "node tests/browser-render-cache.mjs",

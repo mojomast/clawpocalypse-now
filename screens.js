@@ -3,6 +3,7 @@
 // gameOver/ending/handleKey/update/draw); everything else lives here.
 import { HEROES } from './heroes.js';
 import { levelMusic } from './audio.js';
+import { normalizeRoute } from './challenge-routes.js';
 
 export const STAGE_NAMES = { 0: 'SEWER', 1: 'STREET', 3: 'SKATE RUN', 2: 'ROOFTOP' };
 const STAGE_NUM = { 0: 1, 1: 2, 3: 3, 2: 4 };
@@ -89,7 +90,7 @@ export function createScreens({ audio, onQuit, onClearClose } = {}) {
     ctx.restore(); return true;
   }
 
-  function newStage(s) { st.stage = { level: s.level, t: 0, kos: 0, combo: 0, hits: s.hpHit || 0, coins0: s.coins || 0 }; }
+  function newStage(s) { st.stage = { level: s.level, route: normalizeRoute(s.route), t: 0, kos: 0, combo: 0, hits: s.hpHit || 0, coins0: s.coins || 0 }; }
   // Call when a fresh run starts (character select confirm or restart).
   function reset(s) { st.mode = null; st.t = 0; st.run = { t: 0, kos: 0, combo: 0, continues: 0, stages: 0 }; st.rollDone = false; newStage(s); }
   // Per sim step: snapshot before the world steps, count knockouts after.
@@ -116,7 +117,7 @@ export function createScreens({ audio, onQuit, onClearClose } = {}) {
     s.score += total;
     s.coins = (s.coins || 0) + 5; const coinsGot = Math.max(0, s.coins - (g.coins0 || 0)); // dolan: +5 pizza coins per stage clear
     st.run.stages += 1;
-    st.data = { level, name: STAGE_NAMES[level] || 'STAGE', num: STAGE_NUM[level] || st.run.stages, secs, kos: g.kos, combo: g.combo, hits, timeBonus, perfect, comboBonus, total };
+    st.data = { level, route: normalizeRoute(g.route), name: STAGE_NAMES[level] || 'STAGE', num: STAGE_NUM[level] || st.run.stages, secs, kos: g.kos, combo: g.combo, hits, timeBonus, perfect, comboBonus, total };
     st.data.coins = coinsGot; st.data.heroes = winners(s); st.data.rank = stageRank(st.data); st.data.stamped = false; fxs.parts = []; fxs.shake = 0; fxs.tickAt = -1;
     st.mode = 'clear'; st.t = 0;
     newStage(s);
@@ -258,6 +259,7 @@ export function createScreens({ audio, onQuit, onClearClose } = {}) {
     else { ctx.font = 'bold 44px monospace'; ctx.fillStyle = '#ffe86b'; ctx.fillText('STAGE CLEAR!', 0, 14); }
     ctx.restore();
     center(ctx, `STAGE ${d.num}  \u2022  ${d.name}`, 170, 'bold 16px monospace', '#9bd6a3');
+    center(ctx, `${d.route.toUpperCase()} ROUTE`, 187, 'bold 12px monospace', '#ffe86b');
     const roll = (a, dur, v) => Math.round(v * Math.min(1, Math.max(0, (t - a) / dur)));
     const rows = [
       ['TIME', `${Math.floor(d.secs / 60)}:${String(d.secs % 60).padStart(2, '0')}`],

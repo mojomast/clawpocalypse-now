@@ -6,7 +6,7 @@
 // Bosses take a reduced hit and are not knocked down, so phases stay intact.
 // The beam's own damage never refills the meter. R3 is read here, the same way
 // assist.js reads L3, so gamepad.js does not put it on PLAY_MAP.
-import { damageNinja } from './logic.js';
+import { effectiveHit } from './logic.js';
 import { ensureEvents, speakLine, readTime, READ } from './events.js';
 
 export const PORTRAIT = 'assets/allies/machine/portrait.png';
@@ -95,7 +95,13 @@ export function createMachine(opts = {}) {
   const playScene = opts.playScene || null;
   const cinemaActive = opts.cinemaActive || (() => false);
   const getPads = opts.getPads || (() => {
-    try { return typeof navigator !== 'undefined' && navigator.getGamepads ? [...navigator.getGamepads()] : []; }
+    try {
+      // An empty usablePads array is authoritative: do not fall through to raw
+      // hardware while the controller's neutral-return latch is active.
+      const usable = typeof window !== 'undefined' && window.__ppGamepad && window.__ppGamepad.usablePads;
+      if (usable !== undefined) return usable;
+      return typeof navigator !== 'undefined' && navigator.getGamepads ? [...navigator.getGamepads()] : [];
+    }
     catch (_) { return []; }
   });
   const play = n => { try { audio && audio.play && audio.play(n); } catch (_) {} };
@@ -195,7 +201,8 @@ export function createMachine(opts = {}) {
       if (along <= prev || along > sweep) continue;
       c.hit.add(n);
       const boss = isBoss(n);
-      damageNinja(o, n, boss ? MACHINE.BOSS_DMG : MACHINE.BEAM_DMG, Math.random);
+      const hit = effectiveHit(o, n, boss ? MACHINE.BOSS_DMG : MACHINE.BEAM_DMG, Math.random, { source: 'machine' });
+      if (!hit.landed) continue;
       n.hitFlash = 0.14;
       n.face = -c.face;
       if (boss) {

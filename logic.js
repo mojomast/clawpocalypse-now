@@ -1,4 +1,5 @@
 import { LEVELS, levelForIndex, resolveWalkable, isWalkable, moveWalkable } from './collision.js';
+import { record as recordTeamLink } from './teamwork.js';
 export { LEVELS, levelForIndex, isWalkable, resolveWalkable, moveWalkable } from './collision.js';
 export const W = 740, H = 510;
 // Every hazard telegraphs for this long before it can hit. One number, shared with
@@ -228,29 +229,55 @@ function dropPowerupFor(state, ninja, rand) {
   const chance = ninja.kind === 'boss' ? 1 : ninja.kind === 'trooper' ? 0.55 : 0.22;
   if (rand() <= chance) spawnPowerup(state, { x: ninja.x, y: ninja.y }, rand);
 }
-// One damage path for every source (pizza, punch, kick, jump kick), so combo,
-// scoring and power-up drop rules can never drift apart between subsystems.
-export function damageNinja(state, ninja, dmg, rand = Math.random) {
-  if (!ninja || ninja.dead) return null;
+// Only direct player contacts receive shop damage. Keep the legacy damageNinja
+// return (enemy or null) for existing callers; effectiveHit exposes the explicit
+// contact result without making environmental damage into a player attack.
+export function effectiveHit(state, ninja, dmg, rand = Math.random, meta = {}) {
+  const owner = meta.owner || null, source = meta.source || 'environment';
+  // Publish only a resolved, effective contact. The returned event is committed
+  // by the meter integration with its actual (possibly capped) meter gain.
+  const publish = result => {
+    result.teamLink = recordTeamLink(state, ninja, result);
+    if (result.teamLink) {
+      const root = state.hitOwnerState || state;
+      if (typeof root.onTeamLink === 'function') root.onTeamLink(result.teamLink);
+    }
+    return result;
+  };
+  const rejected = reason => ({ owner, source, amount: 0, bonus: 0, blocked: reason === 'blocked', immune: reason === 'immune', dead: reason === 'dead', killed: false, landed: false });
+  if (!ninja || ninja.dead || ninja.hp <= 0) return rejected('dead');
   // Gate ALL adopted boss kinds (boss, rider, levelBoss, etc.) by identity against the
   // active fighter, not by ninja.kind; boss.js does not rewrite kind on adopt.
   const _bossFight = state && state.bossFight;
   const _bossFighter = _bossFight && _bossFight.active;
-  if (_bossFighter && _bossFighter.n === ninja && (_bossFighter.invuln || 0) > 0) return null;
+  if (_bossFighter && _bossFighter.n === ninja && (_bossFighter.invuln || 0) > 0) return rejected('immune');
+  if (meta.blocked) return rejected('blocked');
   normalize(ninja);
+  const before = ninja.hp;
+  const root = state.hitOwnerState || state;
+  let bonus = 0;
+  if ((owner === 'p1' || owner === 'p2') && (source === 'melee' || source === 'projectile' || source === 'screen-throw') && Number.isFinite(root.dmgMult) && root.dmgMult > 1) {
+    const carries = root._hitBonusCarry ||= new WeakMap();
+    const want = Math.max(1, dmg) * (root.dmgMult - 1) + (carries.get(ninja) || 0);
+    bonus = Math.floor(want + 1e-9);
+    carries.set(ninja, Math.max(0, want - bonus));
+  }
+  const dealt = Math.max(1, dmg) + bonus;
+  const effectiveBonus = Math.min(bonus, Math.max(0, before - Math.max(1, dmg)));
+  root.shopExtraDmg = (root.shopExtraDmg || 0) + effectiveBonus;
   state.combo += 1;
   state.comboTimer = 2.5;
   state.bestCombo = Math.max(state.bestCombo || 0, state.combo);
   if (state.weaponLevel > 1 && !isFinite(state.weaponDurability || 0)) state.weaponDurability = 24 * state.weaponLevel;
   if (ninja.kind === 'boss') {
-    ninja.hp -= Math.max(1, dmg);
+    ninja.hp -= dealt;
     state.score += (ninja.hp <= 0 ? 600 : 90) * state.wave * state.combo;
     if (ninja.hp <= 0) { ninja.dead = true; state.weaponLevel = Math.min(5, state.weaponLevel + 1); dropPowerupFor(state, ninja, rand); dropPowerupFor(state, ninja, rand); }
   } else {
     // hp, not kind, decides survival: keeps one-hit mooks unchanged while letting
     // scripted elites (hp > 1) take several hits.
-    ninja.hp -= Math.max(1, dmg);
-    if (ninja.hp > 0) { state.score += 40 * state.wave * state.combo; return ninja; }
+    ninja.hp -= dealt;
+    if (ninja.hp > 0) { state.score += 40 * state.wave * state.combo; return publish({ owner, source, amount: Math.min(before, dealt), bonus: effectiveBonus, blocked: false, immune: false, dead: false, killed: false, landed: true }); }
     ninja.dead = true;
     if (state.weaponLevel > 1) state.weaponDurability = Math.max(state.weaponDurability || 0, 24 * state.weaponLevel);
     const base = ninja.kind === 'trooper' ? 180 : ninja.kind === 'runner' ? 150 : 100;
@@ -261,7 +288,11 @@ export function damageNinja(state, ninja, dmg, rand = Math.random) {
     state.weaponDurability = Math.max(0, (state.weaponDurability || 0) - 1);
     if (state.weaponDurability <= 0) { state.weaponLevel = Math.max(1, state.weaponLevel - 1); state.weaponDurability = state.weaponLevel > 1 ? 24 * state.weaponLevel : 0; }
   }
-  return ninja;
+  return publish({ owner, source, amount: Math.min(before, dealt), bonus: effectiveBonus, blocked: false, immune: false, dead: false, killed: !!ninja.dead, landed: true });
+}
+export function damageNinja(state, ninja, dmg, rand = Math.random, meta) {
+  const result = effectiveHit(state, ninja, dmg, rand, meta);
+  return result.landed ? ninja : null;
 }
 export function update(state, dt, rand = Math.random) {
   if (state.over) return state;
@@ -302,7 +333,7 @@ export function update(state, dt, rand = Math.random) {
     for (const n of state.ninjas) {
       if (n.dead || n.down > 0 || n.wake > 0 || n.grabbed || !(state.hpMode ? hitsBody(z, n) : collides(z, n))) continue;
       z.dead = !z.piercing;
-      damageNinja(state, n, state.weaponLevel - 1, rand);
+      effectiveHit(state, n, state.weaponLevel - 1, rand, { owner: 'p1', source: 'projectile' });
       if (!z.piercing) break;
     }
   }

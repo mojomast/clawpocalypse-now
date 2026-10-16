@@ -45,6 +45,52 @@ meaningful change rather than waiting until all tuning is finished.
   or add enemies merely because the party completes a fight faster.
 - Include join, death, revive, continue, controller disconnect, and rejoin.
 
+## Challenge-route prototype and effective hits
+
+Compare Classic and Challenge with the same hero, difficulty, input device and
+player count. The prototype should change only its two designated non-boss
+encounters; verify every other fight, boss, breather and reward remains intact.
+
+- Can a first-time player find the route selector and tell which route is active?
+  If a selection is queued, can they tell when it takes effect?
+- In each alternate fight, ask which enemy they targeted first and why. Look for
+  a different decision, not simply a longer clear time.
+- Check ranged cleanup, camera edges and flanking in solo and co-op. Do not
+  describe an unchanged enemy/HP budget as proof of equivalent difficulty.
+- Quit/reload and Continue at a stage boundary. The route must match the saved
+  encounter plan; starting a fresh Classic run must not inherit Challenge actors.
+- Attack an invulnerable boss: no damage should mean no successful-hit reward or
+  misleading hit reaction. Distinguish rejection from a block/parry cue.
+- Compare damage upgrades on eligible melee/projectile attacks by either player,
+  including lethal hits and multi-target moves. Hazards must not silently inherit
+  a player upgrade; each KO should generate its normal reward exactly once.
+- Check that continuing remains available when the co-op down countdown reaches
+  zero, and that the prompt describes this honestly rather than implying a cap.
+
+No human fun/fairness result follows from passing the automated checks. Expand
+the prototype only after short matched solo/co-op sessions support doing so.
+
+## Teamwork and recovery checks
+
+- Compare solo meter gains against the same pre-teamwork scenario. Joining a
+  second player must not change ordinary damage, continue rules or route choice.
+- In co-op, alternate genuine contacts on one enemy. Both players should
+  understand the shared TEAM UP contribution and who helped; repeated same-player
+  hits, automatic ally damage and immune contacts must not farm it.
+- Try linking near a full meter, after a down/revive, after leaving/rejoining and
+  at a stage boundary. Credit must respect its cap and reset rules. Check its cue
+  alongside the route badge, maximum subtitle size and boss HUD.
+- On a physical controller, hold a stick, attack button, L3 or R3 while switching
+  away from the game. On return, nothing should reactivate until the controller
+  has returned to neutral. Then a fresh input should work normally. Include P2,
+  disconnect/reconnect and one controller remaining when another disconnects.
+- Normal pause-menu navigation is a separate case: it must remain usable without
+  unnecessary neutral-input barriers. Verify keyboard and touch input separately.
+- Interrupt audio loading in a fresh isolated browser profile, restore networking,
+  and confirm music can recover without changing the selected scene or reloading.
+  Listen for duplicate loops, bursts of queued effects, incorrect theme changes,
+  and lost mute/volume preferences. Automated audio mocks do not prove audibility.
+
 ## Accessibility and effects
 
 - Check default settings, OS reduced-motion with no saved preference, and an

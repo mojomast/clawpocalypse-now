@@ -4,8 +4,9 @@
 // a Nous gang hero who is not the player's pick: a 1.2s cut-in banner, then a
 // screen-wide strike (4 dmg + knockdown on every on-screen ninja; bosses capped
 // at 3 so boss.js keeps its phase/defeat flow). Pad Back stays mute (gamepad.js).
-import { damageNinja } from './logic.js';
+import { effectiveHit } from './logic.js';
 import { react } from './combat.js';
+import { OPTIONS } from './options-live.js';
 
 export const ASSISTS = [
   { id: 'teknium', name: 'TEKNIUM', move: 'DATA STORM!', color: '#38f0ff' },
@@ -23,12 +24,24 @@ export function createAssist({ audio } = {}) {
   const play = n => { try { audio && audio.play(n); } catch (_) {} };
   const ready = im => im && im.complete && im.naturalWidth;
   let owner = null, seen = new WeakMap(), lastHp = null, lastSpecial = 0, pick = 0, padPrev = false;
-  let cut = null, flash = 0, pulse = 0;
-  const stats = { fired: 0, hits: 0, last: null };
+  let cut = null, flash = 0, pulse = 0, linkCue = 0, linkAmount = 0, linkWave = null, linkLevel = null;
+  // Lifetime instance counters, matching fired/hits; stage cap is tracked in teamwork.js.
+  const stats = { fired: 0, hits: 0, last: null, teamLinks: 0, teamLinkCredit: 0 };
 
-  function reset(s) { owner = s; s.super = 0; seen = new WeakMap(); lastHp = s.hp; lastSpecial = s.hpHit || 0; cut = null; flash = 0; for (const n of s.ninjas || []) seen.set(n, { hp: n.hp, dead: !!n.dead }); }
+  function reset(s) { owner = s; s.super = 0; seen = new WeakMap(); lastHp = s.hp; lastSpecial = s.hpHit || 0; cut = null; flash = 0; linkCue = 0; linkWave = s.wave; linkLevel = s.level; for (const n of s.ninjas || []) seen.set(n, { hp: n.hp, dead: !!n.dead }); }
   const own = s => { if (owner !== s) reset(s); };
+  const syncStage = s => { if (linkWave !== s.wave || linkLevel !== s.level) { linkCue = 0; linkWave = s.wave; linkLevel = s.level; } };
   const gain = (s, v) => { s.super = Math.max(0, Math.min(100, (s.super || 0) + v)); };
+  // Called only for a qualifying two-player contact. Return the actual meter
+  // change, not the nominal award: a nearly full bar cannot claim +6 for +3.
+  function grantTeamLink(s, amount) {
+    own(s); syncStage(s);
+    const before = Math.max(0, Math.min(100, s.super || 0));
+    gain(s, Math.max(0, Math.min(6, Number(amount) || 0)));
+    const actual = s.super - before;
+    if (actual > 0) { linkAmount = actual; linkCue = 1.6; stats.teamLinks++; stats.teamLinkCredit += actual; }
+    return actual;
+  }
   const snapshot = s => { for (const n of s.ninjas) seen.set(n, { hp: n.hp, dead: !!n.dead }); lastHp = s.hp; lastSpecial = s.hpHit || 0; };
 
   function camX(s) {
@@ -57,7 +70,8 @@ export function createAssist({ audio } = {}) {
     for (const n of s.ninjas.slice()) {
       if (n.dead || n.x < x0 || n.x > x1) continue;
       const boss = isBoss(n), dir = Math.sign(n.x - px) || 1;
-      damageNinja(s, n, boss ? 3 : 4, Math.random);
+      const hit = effectiveHit(s, n, boss ? 3 : 4, Math.random, { source: 'assist' });
+      if (!hit.landed) continue;
       if (n.kind !== 'drone' && !n.grabbed) react(s, n, 'knockdown', dir, boss ? 120 : 380 * 1.5);
       n.hitFlash = 0.12; n0++;
     }
@@ -70,7 +84,7 @@ export function createAssist({ audio } = {}) {
   }
 
   function step(s, dt) {
-    own(s);
+    own(s); syncStage(s);
     pulse += dt;
     // Meter gains: enemy hp drops (landed hits) and KOs, player damage taken.
     for (const n of s.ninjas) {
@@ -83,11 +97,12 @@ export function createAssist({ audio } = {}) {
     lastHp = s.hp; lastSpecial = sp;
     // Gamepad left-stick click (L3), edge-triggered.
     let pad = false;
-    try { const gp = typeof navigator !== 'undefined' && navigator.getGamepads ? navigator.getGamepads() : []; for (const g of gp || []) { const b = g && g.buttons && g.buttons[L3]; if (b && (b.pressed || b.value > 0.5)) pad = true; } } catch (_) {}
+    try { const usable = typeof window !== 'undefined' && window.__ppGamepad?.usablePads; const gp = Array.isArray(usable) ? usable : (typeof navigator !== 'undefined' && navigator.getGamepads ? navigator.getGamepads() : []); for (const g of gp || []) { const b = g && g.buttons && g.buttons[L3]; if (b && (b.pressed || b.value > 0.5)) pad = true; } } catch (_) {}
     if (pad && !padPrev) press(s);
     padPrev = pad;
     if (cut) { cut.t += dt; if (!cut.struck && cut.t >= CUT) { cut.struck = true; strike(s); } if (cut.t >= CUT + 0.05) cut = null; }
     if (flash > 0) flash = Math.max(0, flash - dt);
+    if (linkCue > 0) linkCue = Math.max(0, linkCue - dt);
   }
   function handleKey(e, s) {
     if (e.code !== 'KeyU' || e.repeat) return false;
@@ -122,6 +137,16 @@ export function createAssist({ audio } = {}) {
       ctx.shadowBlur = 0; ctx.fillStyle = '#201400'; ctx.font = 'bold 15px monospace'; ctx.textAlign = 'center'; ctx.fillText('U', kx + 11, ky + 16);
     }
     ctx.restore();
+    // A quiet, text-first cue adjacent to the shared TEAM UP bar. No screen
+    // flash, camera shake, positional animation or color-only information.
+    if (linkCue > 0) {
+      const label = `TEAM LINK 1P + 2P +${linkAmount}`;
+      ctx.save(); ctx.font = `bold ${OPTIONS.fontFor(11)}`; ctx.textAlign = 'left';
+      const fontSize = Math.round(11 * OPTIONS.subtitleScale), cueWidth = Math.ceil(ctx.measureText(label).width) + 12;
+      const cueHeight = fontSize + 12, cueY = y - cueHeight - 5;
+      ctx.fillStyle = 'rgba(8,14,30,0.92)'; ctx.fillRect(x + w + 7, cueY, cueWidth, cueHeight);
+      ctx.fillStyle = '#eafff5'; ctx.fillText(label, x + w + 13, cueY + fontSize + 4); ctx.restore();
+    }
   }
   function banner(ctx, W, H) {
     const a = cut.a, t = cut.t;
@@ -150,7 +175,7 @@ export function createAssist({ audio } = {}) {
     ctx.restore();
   }
   function draw(ctx, s, W, H) {
-    own(s);
+    own(s); syncStage(s);
     meter(ctx, s, W, H);
     if (flash > 0) {
       const k = flash / FLASH;
@@ -167,7 +192,7 @@ export function createAssist({ audio } = {}) {
   }
   function drawWorld() { /* screen-space only */ }
 
-  const api = { step, draw, drawWorld, handleKey, press, stats, ASSISTS, get cut() { return cut ? { id: cut.a.id, name: cut.a.name, t: cut.t } : null; }, get flash() { return flash; } };
+  const api = { step, draw, drawWorld, handleKey, press, grantTeamLink, stats, ASSISTS, get linkCue() { return linkCue > 0 ? { amount: linkAmount, left: linkCue } : null; }, get cut() { return cut ? { id: cut.a.id, name: cut.a.name, t: cut.t } : null; }, get flash() { return flash; } };
   if (typeof window !== 'undefined') window.__ppAssist = api;
   return api;
 }

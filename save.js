@@ -12,6 +12,7 @@
 import { LEVEL_ORDER, spawnWave, levelForWave } from './logic.js';
 import { STAGE_NAMES } from './screens.js';
 import { HEROES } from './heroes.js';
+import { normalizeRoute } from './challenge-routes.js';
 
 export const SAVE_KEY = 'pizzaPanicCheckpoint';
 export const SAVE_VERSION = 1;
@@ -45,7 +46,7 @@ export function validSave(d) {
   if (d.shopBuys && typeof d.shopBuys === 'object') for (const [k, v] of Object.entries(d.shopBuys)) if (/^[a-z]{1,12}$/.test(k)) buys[k] = num(v, 0, 99, 0) | 0;
   return { v: SAVE_VERSION, wave, hero: d.hero, difficulty: DIFFS.includes(d.difficulty) ? d.difficulty : 'normal',
     coins: num(d.coins, 0, 99999, 0) | 0, score: num(d.score, 0, 1e9, 0) | 0, lives: num(d.lives, 1, 99, 3) | 0,
-    maxHp: num(d.maxHp, 50, 400, 100) | 0, dmgMult: num(d.dmgMult, 1, 3, 1), weaponLevel: num(d.weaponLevel, 1, 5, 1) | 0,
+    route: normalizeRoute(d.route), maxHp: num(d.maxHp, 50, 400, 100) | 0, dmgMult: num(d.dmgMult, 1, 3, 1), weaponLevel: num(d.weaponLevel, 1, 5, 1) | 0,
     superStart: num(d.superStart, 0, 100, 0) | 0, shopBuys: buys, coop: !!d.coop, at: num(d.at, 0, 9e15, 0) };
 }
 
@@ -63,13 +64,14 @@ export function createCheckpoint(opts = {}) {
     return ok;
   }
   function snapshot(s) {
-    return validSave({ v: SAVE_VERSION, wave: s.wave, hero: s.selectedHero, difficulty: s.difficulty, coins: s.coins, score: s.score, lives: s.lives,
+    return validSave({ v: SAVE_VERSION, wave: s.wave, hero: s.selectedHero, difficulty: s.difficulty, route: s.route, coins: s.coins, score: s.score, lives: s.lives,
       maxHp: s.maxHp, dmgMult: s.dmgMult, weaponLevel: s.weaponLevel, superStart: s.superStart, shopBuys: s.shopBuys, coop: !!s.coopJoined, at: Date.now() });
   }
   function save(s) { const d = snapshot(s); if (!d) return false; store.set(SAVE_KEY, JSON.stringify(d)); return true; }
   function clear() { store.remove(SAVE_KEY); ui.sel = 0; }
 
-  // Per-frame watcher (game.js loop): save on stage clear (wave goes up) and when the shop closes.
+  // Per-frame watcher (game.js loop): call after the stage-entry route latch when
+  // wave advances. Shop closure refreshes purchases but never snapshots nextRoute.
   function watch(s, env = {}) {
     if (!s || !s.hpMode) return;
     if (owner !== s) { owner = s; lastWave = s.wave; lastShop = false; }
@@ -90,6 +92,7 @@ export function createCheckpoint(opts = {}) {
     s.selectedHero = d.hero; s.difficulty = d.difficulty; s.coins = d.coins; s.score = d.score; s.lives = d.lives;
     s.shopBuys = { ...d.shopBuys }; s.maxHp = d.maxHp; s.hp = d.maxHp; s.dmgMult = d.dmgMult; s.weaponLevel = d.weaponLevel;
     s.weaponDurability = d.weaponLevel > 1 ? 24 * d.weaponLevel : 0; s.superStart = d.superStart;
+    s.route = d.route; s.nextRoute = d.route; // save wins over stale browser preference before any stage spawns
     s.events = null; s.bossSeen = false; s.runComplete = false; s.holdWave = false;
     s.wave = d.wave - 1; spawnWave(s); // -> wave d.wave, its level, hero at the left edge
     s.continuedFrom = d.wave; owner = s; lastWave = s.wave;
@@ -97,7 +100,7 @@ export function createCheckpoint(opts = {}) {
   }
 
   // Title menu (only while PRESS START is up and a save exists).
-  function items(d) { return d ? [`CONTINUE FROM STAGE ${d.wave}`, 'NEW GAME', 'CLEAR SAVE'] : null; }
+  function items(d) { return d ? [`CONTINUE FROM STAGE ${d.wave} (${d.route.toUpperCase()})`, 'NEW GAME', 'CLEAR SAVE'] : null; }
   function menuKey(e) {
     const d = load(); if (!d) return null;
     const c = e.code, n = 3;
@@ -116,7 +119,7 @@ export function createCheckpoint(opts = {}) {
     ctx.save(); ctx.textAlign = 'center';
     if (d) {
       const list = items(d), name = STAGE_NAMES[levelForWave(d.wave)] || NAMES[levelForWave(d.wave)] || '';
-      const x = W / 2, y0 = 336, bw = 330, bh = 26 * list.length + 30;
+      const x = W / 2, y0 = 336, bw = 430, bh = 26 * list.length + 30;
       ctx.fillStyle = 'rgba(6,10,16,0.82)'; ctx.fillRect(x - bw / 2, y0 - 22, bw, bh);
       ctx.strokeStyle = '#ffeb57'; ctx.lineWidth = 2; ctx.strokeRect(x - bw / 2, y0 - 22, bw, bh);
       list.forEach((t, i) => {

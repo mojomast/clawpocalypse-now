@@ -17,7 +17,7 @@ import { chromium } from 'playwright';
 import { HEROES as roster } from '../heroes.js';
 import { HERO_RIGS } from '../hero-rigs.js';
 import '../don.js';
-import { POSES, HERO_MOVES, solve, apply } from '../rig.js';
+import { POSES, HERO_MOVES, solve, apply, V2 } from '../rig.js';
 
 const root = resolve(import.meta.dirname, '..');
 const output = '/tmp/opencode/rig-pixel-seams';
@@ -32,6 +32,11 @@ const joints = [
   ['elbow', 'uarm', 'farm'], ['elbow_back', 'uarm_b', 'farm_b'],
   ['hip', 'torso', 'thigh'], ['hip_back', 'torso', 'thigh_b'],
   ['knee', 'thigh', 'shin'], ['knee_back', 'thigh_b', 'shin_b'],
+];
+// v2 rigs (separate hands and feet) also need sealed wrists and ankles.
+const v2Joints = [
+  ['wrist', 'farm', 'hand'], ['wrist_back', 'farm_b', 'hand_b'],
+  ['ankle', 'shin', 'foot'], ['ankle_back', 'shin_b', 'foot_b'],
 ];
 const extreme = {
   turtle_purple: ['vaultKick_active'], turtle_blue: ['slashSpin_active'], turtle_red: ['upper_active'],
@@ -50,11 +55,14 @@ for (const { id: hero } of roster) {
     if (!POSES[pose]) throw Error(`missing expected pose ${pose}`);
     for (const flip of [false, true]) {
       const sol = solve(hero, POSES[pose], { poseName: pose, animated: true });
-      for (const [joint, parent, child] of joints) {
+      for (const [joint, parent, child] of [...joints, ...(V2[hero] ? v2Joints : [])]) {
         // Center the measurement near the anatomical joint, but do not use its
         // coordinate to decide whether either image actually has opaque pixels.
+        // v2 rigs draw pose variants (front head/torso, open/far hands): use the drawn part.
         const center = apply(sol.M[child], 0, 0);
+        const partOf = n => (sol.parts && sol.parts[n]) || HERO_RIGS[hero][n];
         cases.push({ hero, pose, facing: flip ? 'left' : 'right', joint, parent, child,
+          ppart: partOf(parent), cpart: partOf(child),
           center, pm: sol.M[parent], ps: sol.S[parent], cm: sol.M[child], cs: sol.S[child] });
       }
     }
@@ -71,13 +79,14 @@ try {
   for (const { id: hero } of roster) {
     const table = HERO_RIGS[hero];
     const images = {};
-    for (const file of new Set(Object.values(table).map(p => p.file)))
+    for (const file of new Set(Object.values(table).flatMap(p => [p.file, ...Object.values(p.variants || {}).map(v => v.file)])))
       images[file] = `data:image/png;base64,${(await readFile(resolve(root, 'assets/heroes', hero, file))).toString('base64')}`;
     const measured = await page.evaluate(async ({ table, images, cases, radius, alphaCutoff, deepLimit }) => {
       const decoded = {};
       for (const [name, src] of Object.entries(images)) {
         const img = new Image(); img.src = src; await img.decode(); decoded[name] = img;
-        if (img.naturalWidth !== table[Object.keys(table).find(k => table[k].file === name)].w)
+        const listed = Object.values(table).flatMap(p => [p, ...Object.values(p.variants || {})]).find(p => p.file === name);
+        if (img.naturalWidth !== listed.w)
           throw Error(`${name}: image dimensions differ from production manifest`);
       }
       const scale = 2, side = radius * 2 * scale + 1, mid = radius * scale;
@@ -108,12 +117,12 @@ try {
       // against a vacuous "no gaps" result from matrix/pixel plumbing errors.
       const probe = cases[0];
       const displaced = probe.cm.slice(); displaced[4] += 4 * radius;
-      if (maskFor(table[probe.child], displaced, probe.cs, probe.center, probe.facing, 1).points.length)
+      if (maskFor(probe.cpart, displaced, probe.cs, probe.center, probe.facing, 1).points.length)
         throw Error(`${probe.hero}: displaced child remained inside the alpha joint window`);
       const out = [];
       for (const c of cases) {
-        const a = maskFor(table[c.parent], c.pm, c.ps, c.center, c.facing, 0);
-        const b = maskFor(table[c.child], c.cm, c.cs, c.center, c.facing, 1);
+        const a = maskFor(c.ppart, c.pm, c.ps, c.center, c.facing, 0);
+        const b = maskFor(c.cpart, c.cm, c.cs, c.center, c.facing, 1);
         let gap = Infinity, common = 0, maxDepth = 0;
         // Minimum distance between *solid pixels* (subtract one pixel's width).
         // This distinguishes touching boundaries from a one-pixel clear seam.

@@ -8,12 +8,13 @@ try {
   await page.route('**/support-generator', route => route.fulfill({ contentType: 'text/html', body: '<!doctype html><title>Support hull generator</title>' }));
   await page.goto((process.env.GAME_ORIGIN || 'http://127.0.0.1:48791') + '/support-generator');
   const hulls = await page.evaluate(async () => {
-    const { HERO_RIGS } = await import('/hero-rigs.js');
+    const { HERO_RIGS, HERO_V2 = {} } = await import('/hero-rigs.js');
     const result = {}, cross = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
     for (const [hero, parts] of Object.entries(HERO_RIGS)) {
       result[hero] = {};
       for (const [name, part] of Object.entries(parts)) {
-        if (name.endsWith('_b') || name === 'weapon') continue;
+        // v2 rigs also get a weapon hull (rig.js keeps their weapons above the floor)
+        if (name.endsWith('_b') || (name === 'weapon' && !HERO_V2[hero])) continue;
         const image = new Image(); image.src = `/assets/heroes/${hero}/${part.file}`; await image.decode();
         const c = document.createElement('canvas'); c.width = image.width; c.height = image.height;
         const ctx = c.getContext('2d'); ctx.drawImage(image, 0, 0);

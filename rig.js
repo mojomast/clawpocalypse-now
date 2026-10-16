@@ -6,9 +6,10 @@
 // If a part image is missing the rig simply skips that limb, and callers keep
 // their sprite/primitives fallback, so publishing without the art never breaks.
 import { ENEMY_RIGS } from './enemy-rigs.js';
-import { HERO_RIGS } from './hero-rigs.js';
+import { HERO_RIGS, HERO_V2 } from './hero-rigs.js';
 import { addRunPoses, addDownPoses } from './hero-motion.js';
-import { constrainHeroAngles, footContacts, limbVectors, plantFeet } from './rig-geometry.js';
+import { constrainHeroAngles, footContacts, limbVectors, plantFeet, solveTwoBone } from './rig-geometry.js';
+import { createSecondary, restWorld, restRope } from './secondary.js';
 import { HERO_SUPPORT } from './hero-support.js';
 
 // `ax/ay` are the attach point in the parent's pixels; `px/py` the local pivot.
@@ -420,6 +421,30 @@ export const WRIST = { turtle_blue: { c: 110, hw: 35 }, teknium: { c: 55, hw: 28
 // Shin sole points (heel, toe) in shin-image px, from the art (tools: check-rigs).
 export const SOLES = { turtle_purple: [[10, 72], [33, 72]], turtle_blue: [[13, 57], [35, 57]], turtle_red: [[11, 67], [33, 67]], turtle_orange: [[14, 65], [41, 65]], nous_girl: [[5, 60], [22, 60]], teknium: [[2, 55], [27, 55]], turbofit: [[3, 56], [31, 56]] };
 export const FOOT_Y = 90; // rig px from the root down to the ground line (game.js FEET_SCREEN 63 / RIG_SCALE 0.7)
+// --- v2 rigs (hero-rigs.js HERO_V2: Teknium, Nous Girl, TurboFit) ------------------------------
+// Separate feet and hands. The leg IK plants the ANKLE (the shin's foot attach pixel, so SOLES
+// holds that point twice) at FOOT_Y minus the foot's ankle-to-sole height; the foot is then
+// rotated flat, so heel and toe both rest on FOOT_Y. The weapon is fixed in the hand along the
+// grip rod measured from the art; the wrist (hand vs forearm) takes the pose's weapon angle,
+// soft-limited by WRIST. Spring chains and the cable rope are posed after the body.
+export const V2 = HERO_V2;
+export const isV2 = kind => !!HERO_V2[kind];
+export const ANKLE_LIFT = {};
+export const HOLD = {};
+const deg = m => Math.atan2(m[1], m[0]) * 180 / Math.PI;
+for (const kind of Object.keys(HERO_V2)) {
+  const T = HERO_RIGS[kind], foot = T.foot;
+  SOLES[kind] = [[foot.ax, foot.ay], [foot.ax, foot.ay]];
+  ANKLE_LIFT[kind] = foot.sole[1] - foot.py;
+  if (HERO_V2[kind].wrist) WRIST[kind] = HERO_V2[kind].wrist;
+  const w = T.weapon;
+  HOLD[kind] = (T.hand.axis || 0) - Math.atan2(w.tip[1] - w.py, w.tip[0] - w.px) * 180 / Math.PI;
+}
+// The height the leg IK plants the sole landmark at (the ankle for v2 rigs, FOOT_Y otherwise).
+export const soleGround = kind => FOOT_Y - (ANKLE_LIFT[kind] || 0);
+const FOOT_REST = 10;           // relaxed foot (relative to the shin) when lying or unposed
+const FOOT_RANGE = [-35, 55];   // dorsiflexion .. plantarflexion relative to the shin
+const BODY_ROLES = new Set(['body', 'torso', 'hand', 'foot']);
 // Frames that are not standing on the ground keep the idle offset instead of the plant.
 export const AIR_POSE = /(^|_)(jump|jumpKick(_\w+)?|knockdownAir|down|downB|grabbed|juggle_\w+|vaultKick_\w+|dodgeRoll(_\w+)?|roll_\w+|bassDrop_\w+|slide_(active|follow)|launcher_active|launcher_recover)$/;
 const mul = (a, b) => [a[0] * b[0] + a[2] * b[1], a[1] * b[0] + a[3] * b[1], a[0] * b[2] + a[2] * b[3], a[1] * b[2] + a[3] * b[3], a[0] * b[4] + a[2] * b[5] + a[4], a[1] * b[4] + a[3] * b[5] + a[5]];
@@ -429,6 +454,7 @@ export const apply = (m, x, y) => [m[0] * x + m[2] * y + m[4], m[1] * x + m[3] *
 const isWeapon = n => n === 'staff' || n === 'katana' || n === 'weapon';
 const wrap180 = a => ((a + 180) % 360 + 360) % 360 - 180;
 export function orderFor(kind) {
+  if (HERO_V2[kind]) return HERO_V2[kind].layers;
   const T = TABLES[kind];
   if (!T || !HERO_RIGS[kind]) return ORDER;
   const legs = ['thigh_b', 'shin_b'];
@@ -446,7 +472,7 @@ export function wristAngle(kind, raw) {
 }
 const scaleOf = (kind, name) => { const t = PART_SCALE[kind]; return (t && (t[name] || t[name.replace(/_b$/, '')])) || null; };
 function chainSolve(kind, A, names) {
-  const table = TABLES[kind], M = {}, S = {}, tw = A.tw || 0, hero = !!HERO_RIGS[kind];
+  const table = TABLES[kind], M = {}, S = {}, tw = A.tw || 0, hero = !!HERO_RIGS[kind], v2 = !!HERO_V2[kind];
   const one = name => {
     if (M[name]) return M[name];
     const p = table[name];
@@ -465,6 +491,17 @@ function chainSolve(kind, A, names) {
       m = mul(parentMatrix, tr((ax - q.px) * qs[0], (ay - q.py) * qs[1]));
     }
     let ang = A[name];
+    if (v2) {
+      const role = p.role;
+      if (role === 'hand' && table.weapon?.parent === name) ang = wristAngle(kind, (A.weapon || 0) + (table.weapon.grip || 0)) - HOLD[kind] + (A.__wristFix || 0);
+      else if (role === 'hand') ang = A[name === 'hand_b' ? 'wrist_b' : 'wrist'] || 0;
+      else if (role === 'weapon') ang = HOLD[kind];
+      else if (role === 'foot') ang = A.__feet?.[name] ?? (FOOT_REST + (A[name] || 0));
+      else if (role === 'spring' || role === 'grip_front' || role === 'rope' || role === 'rope_end') ang = role === 'spring' ? (A.__springRel?.[name] || 0) : 0;
+      m = mul(m, rot(ang));
+      M[name] = m; S[name] = [hero && name === 'torso' && tw ? 1 - 0.06 * Math.min(1, Math.abs(tw)) : 1, 1];
+      return m;
+    }
     // mr_india (rig QA): + the weapon's grip angle from MANIFEST.md ("Weapon grip:"), so every
     // weapon art sits in the fist the same way under the shared poses.
     if (isWeapon(name)) ang = hero ? wristAngle(kind, (A.weapon || 0) + (p.grip || 0)) : (A.weapon || 0) + (p.grip || 0);
@@ -491,6 +528,7 @@ export function soleY(kind, sol) {
 }
 const idleLift = {};
 export function solve(kind, angles, opts = {}) {
+  if (HERO_V2[kind]) return solveV2(kind, angles, opts);
   const table = TABLES[kind];
   const input = angles || POSES.idle, poseName = opts.poseName || '';
   const hero = !!HERO_RIGS[kind] && !!SOLES[kind];
@@ -560,6 +598,251 @@ export function solve(kind, angles, opts = {}) {
   }
   if (dx || dy) for (const n of Object.keys(M)) { M[n] = M[n].slice(); M[n][4] += dx; M[n][5] += dy; }
   return { M, S, order, contacts, ground, angles: solvedAngles };
+}
+
+// --- v2 solve ----------------------------------------------------------------------------------
+const FRONT_VARIANT = /(^|_)(turn|taunt|victory)$/;
+const OPEN_HAND = /(^|_)(taunt|victory)$/;
+const NO_TWO_HAND = /(^|_)(down|downB|wake|knockdownAir|grabbed|stagger|flinch|dodgeRoll_\w+|roll_\w+)$/;
+const childMatrix = (table, M, S, name, rel) => {
+  const p = table[name], q = table[p.parent], qs = S[p.parent] || [1, 1];
+  return mul(mul(M[p.parent], tr((p.ax - q.px) * qs[0], (p.ay - q.py) * qs[1])), rot(rel));
+};
+const partPoint = (table, M, name, u, v, part = table[name]) => apply(M[name], u - part.px, v - part.py);
+// Lowest weapon pixel, from its alpha hull when generated, else the image corners.
+function weaponLow(kind, M) {
+  const T = TABLES[kind], w = T.weapon;
+  const hull = HERO_SUPPORT[kind]?.weapon || [[0, 0], [w.w, 0], [0, w.h], [w.w, w.h]];
+  let y = -Infinity;
+  for (const [u, v] of hull) y = Math.max(y, apply(M.weapon, u - w.px, v - w.py)[1]);
+  return y;
+}
+// The far hand closes on the weapon's second grip when the far arm can reach it.
+function twoHandSolve(kind, A, M) {
+  const T = TABLES[kind], w = T.weapon, far = T.hand_b.variants.grip_far;
+  const g2 = apply(M.weapon, w.grip2[0] - w.px, w.grip2[1] - w.py);
+  const axisW = deg(M.weapon) + Math.atan2(w.tip[1] - w.py, w.tip[0] - w.px) * 180 / Math.PI;
+  const torsoDeg = deg(M.torso), root = [M.uarm_b[4], M.uarm_b[5]];
+  const vectors = { upper: [T.farm_b.ax - T.uarm_b.px, T.farm_b.ay - T.uarm_b.py], lower: [T.hand_b.ax - T.farm_b.px, T.hand_b.ay - T.farm_b.py] };
+  let best = null;
+  for (const flipGrip of [0, 180]) {
+    const phi = axisW - (far.axis || 0) + flipGrip, r = phi * Math.PI / 180;
+    const gx = far.grip[0] - far.px, gy = far.grip[1] - far.py;
+    const target = [g2[0] - (gx * Math.cos(r) - gy * Math.sin(r)), g2[1] - (gx * Math.sin(r) + gy * Math.cos(r))];
+    const ik = solveTwoBone({ root, target, vectors, parentAngle: torsoDeg, upperLimits: [-200, 200], jointLimits: [-150, 0], preferred: [A.uarm_b || 0, A.farm_b || 0], bendSign: -1 });
+    if (ik.error > 1) continue;
+    const handRel = wrap180(phi - (torsoDeg + ik.upper + ik.joint));
+    if (Math.abs(handRel) > 60) continue;
+    const score = Math.abs(handRel) + Math.abs(ik.upper - (A.uarm_b || 0)) * 0.2;
+    if (!best || score < best.score) best = { score, angles: { ...A, uarm_b: ik.upper, farm_b: ik.joint, wrist_b: handRel } };
+  }
+  return best;
+}
+function lashPoints(table, M, start, n, k, A) {
+  const f = M[table.hand.parent], hand = [M.hand[4], M.hand[5]], elbow = [f[4], f[5]];
+  let dx = hand[0] - elbow[0], dy = hand[1] - elbow[1]; const l = Math.hypot(dx, dy) || 1; dx /= l; dy /= l;
+  const nx = -dy, ny = dx, L = 118 * k, ph = (A.__pt || 0) * 26, wv = 9 * (1 - 0.5 * k), pts = [];
+  for (let i = 0; i <= n; i++) {
+    const s = i / n;
+    pts.push([start[0] + dx * L * s + nx * Math.sin(ph + s * 5) * wv * s, start[1] + dy * L * s + ny * Math.sin(ph + s * 5) * wv * s + 10 * s * s * (1 - k)]);
+  }
+  return pts;
+}
+// Secondary inputs (spring parents/attach points, rope start) for the current body.
+export function secondaryInputs(kind, sol) {
+  const T = TABLES[kind], springs = {}, ropes = {};
+  for (const [name, p] of Object.entries(T)) {
+    if (p.role === 'spring') {
+      const q = T[p.parent];
+      springs[name] = { parentDeg: deg(sol.M[p.parent]), attach: apply(sol.M[p.parent], (p.ax - q.px) * (sol.S[p.parent]?.[0] || 1), (p.ay - q.py) * (sol.S[p.parent]?.[1] || 1)),
+        spec: { k: p.spring?.[0], c: p.spring?.[1], gain: p.spring?.[2], range: p.range, bias: p.bias || 0, length: p.h } };
+      for (const key of ['k', 'c', 'gain']) if (springs[name].spec[key] == null) delete springs[name].spec[key];
+    } else if (p.role === 'rope') {
+      const q = T[p.parent];
+      ropes[name] = { start: apply(sol.M[p.parent], p.ax - q.px, p.ay - q.py), n: p.segs, len: p.len, lashLen: p.lash || 118, floorY: FOOT_Y,
+        lash: sol.lash > 0 ? sol.lashPts[name] : null, k: sol.lash };
+    }
+  }
+  return { springs, ropes };
+}
+// Install spring world angles and rope points (from secondary.js state, or the static rest).
+export function applySecondary(kind, sol, state = {}) {
+  const T = TABLES[kind], inputs = secondaryInputs(kind, sol);
+  for (const [name, inp] of Object.entries(inputs.springs)) {
+    const world = state.springs?.[name] ?? restWorld(inp.spec, inp.parentDeg);
+    sol.M[name] = [...rot(world).slice(0, 4), inp.attach[0], inp.attach[1]];
+    sol.S[name] = [1, 1];
+    sol.angles.__springRel = { ...(sol.angles.__springRel || {}), [name]: world - inp.parentDeg };
+  }
+  for (const [name, inp] of Object.entries(inputs.ropes)) {
+    let pts = state.ropes?.[name];
+    if (!pts) {
+      pts = restRope(inp.start, inp.n, inp.len, FOOT_Y);
+      if (sol.lash > 0) pts = pts.map((p, i) => [p[0] + (sol.lashPts[name][i][0] - p[0]) * sol.lash, p[1] + (sol.lashPts[name][i][1] - p[1]) * sol.lash]);
+    }
+    sol.ropes[name] = pts.map(p => [p[0], Math.min(p[1], FOOT_Y - 1)]);
+    sol.M[name] = [1, 0, 0, 1, inp.start[0], inp.start[1]]; sol.S[name] = [1, 1];
+  }
+  // the rope's free-end plug: cable exit on the last rope point, tip pointing outwards
+  for (const [name, p] of Object.entries(T)) {
+    if (p.role !== 'rope_end' || !sol.ropes[p.parent]) continue;
+    const pts = sol.ropes[p.parent], e = pts[pts.length - 1], q = pts[pts.length - 2] || pts[0];
+    const ang = Math.atan2(e[1] - q[1], e[0] - q[0]) * 180 / Math.PI + 180;
+    sol.M[name] = mul(mul(tr(e[0], e[1]), rot(ang)), tr(-(p.tip[0] - p.px), -(p.tip[1] - p.py))); sol.S[name] = [1, 1];
+  }
+  sol.draws = sol.order.flatMap(n => sol.parts[n].role === 'rope' ? sol.ropes[n].slice(1).map(() => ({ slot: n, file: sol.parts[n].file })) : [{ slot: n, file: sol.parts[n].file }]);
+  return sol;
+}
+function solveV2(kind, input, opts) {
+  const table = TABLES[kind], poseName = opts.poseName || '';
+  const contacts = opts.contacts || footContacts(poseName, input?.__gait);
+  const airborne = !contacts.length || AIR_POSE.test(poseName);
+  const A = constrainHeroAngles(input || POSES.idle, { airborne });
+  const all = Object.keys(table), ground = soleGround(kind);
+  const down = /(^|_)down(?:B|_b)?$/.test(poseName);
+  let { M, S } = chainSolve(kind, A, all);
+  let solved = A, dx = A.dx || 0, dy = A.dy || 0, plant = null;
+  if (contacts.length) {
+    const legs = {};
+    for (const [side, suffix] of [['front', ''], ['back', '_b']]) {
+      const thigh = 'thigh' + suffix, shin = 'shin' + suffix, ankle = SOLES[kind][0];
+      legs[side] = { root: [M[thigh][4], M[thigh][5]], vectors: limbVectors(table[thigh], table[shin], S[thigh], S[shin], ankle),
+        contactVectors: [[ankle[0] - table[shin].px, ankle[1] - table[shin].py]], parentAngle: deg(M.torso), upper: A[thigh] || 0, joint: A[shin] || 0 };
+    }
+    plant = plantFeet({ ...legs, groundY: ground, contacts, targets: opts.footTargets || {}, rootDy: opts.rootDy ?? null, maxHipTravel: opts.rootDy == null ? 30 : 0 });
+    // Toe-off: a stance foot that can no longer reach its locked ankle point (the leg trails far
+    // behind at the end of a stride) pivots on its toe instead: heel up, toe where the flat
+    // foot's toe was, so the contact still does not skate.
+    for (const [side, suffix] of [['front', ''], ['back', '_b']]) {
+      const r = plant[side];
+      if (!r || !contacts.includes(side) || r.error <= 0.5) continue;
+      const shin = table['shin' + suffix], foot = table['foot' + suffix], ankle = SOLES[kind][0];
+      const toe = [foot.sole[2] - foot.px, foot.sole[3] - foot.py];
+      const toeVec = [ankle[0] - shin.px + toe[0], ankle[1] - shin.py + toe[1]];
+      const lock = opts.footTargets?.[side];
+      const leg = { ...legs[side], vectors: { upper: legs[side].vectors.upper, lower: toeVec }, contactVectors: [toeVec] };
+      const alt = plantFeet({ [side]: leg, groundY: FOOT_Y, contacts: [side], targets: lock ? { [side]: [lock[0] + toe[0], FOOT_Y] } : {}, rootDy: plant.dy, maxHipTravel: 0 });
+      if (alt[side] && alt[side].error < r.error) plant[side] = { ...alt[side], toeOff: true };
+    }
+    plant.residual = Math.max(...contacts.filter(c => plant[c]).map(c => plant[c].error));
+    solved = { ...A };
+    for (const [side, suffix] of [['front', ''], ['back', '_b']]) {
+      if (!plant[side]) continue;
+      solved['thigh' + suffix] = plant[side].upper; solved['shin' + suffix] = plant[side].joint;
+    }
+    ({ M, S } = chainSolve(kind, solved, all));
+    dy = plant.dy;
+  } else if (down) {
+    let bottom = -Infinity;
+    for (const n of orderFor(kind)) {
+      if (!BODY_ROLES.has(table[n].role)) continue;
+      const hull = HERO_SUPPORT[kind]?.[n.replace(/_b$/, '')];
+      if (!hull) continue;
+      for (const [u, v] of hull) bottom = Math.max(bottom, apply(M[n], u - table[n].px, v - table[n].py)[1]);
+    }
+    if (Number.isFinite(bottom)) dy = opts.rootDy ?? (FOOT_Y - bottom);
+  } else if (opts.animated) {
+    if (idleLift[kind] == null) idleLift[kind] = ground - soleY(kind, chainSolve(kind, POSES[`${kind}_idleA`] || POSES.idle, ['shin', 'shin_b']));
+    dy += idleLift[kind];
+  }
+  if (dx || dy) for (const n of Object.keys(M)) { M[n] = M[n].slice(); M[n][4] += dx; M[n][5] += dy; }
+  // feet: flat on the floor when planted, relaxed/toe-down otherwise, never through the floor
+  const feet = {};
+  if (!down) for (const [side, suffix] of [['front', ''], ['back', '_b']]) {
+    const foot = 'foot' + suffix, shin = 'shin' + suffix, part = table[foot], shinDeg = deg(M[shin]);
+    const toeOff = !!(plant && plant[side]?.toeOff && contacts.includes(side));
+    const planted = !toeOff && !!(plant && plant[side] && contacts.includes(side));
+    let rel = toeOff ? 0 : planted ? -shinDeg : Math.max(FOOT_RANGE[0], Math.min(FOOT_RANGE[1], (airborne ? 18 : 6) - shinDeg + (solved[foot] || 0)));
+    const low = r => { const m = childMatrix(table, M, S, foot, r); return Math.max(apply(m, part.sole[0] - part.px, part.sole[1] - part.py)[1], apply(m, part.sole[2] - part.px, part.sole[3] - part.py)[1]); };
+    if (!planted && low(rel) > FOOT_Y + (toeOff ? 0.75 : 0)) {
+      // nearest foot angle that clears the floor (kneeling: the foot folds back under the shin),
+      // else the least-penetrating one
+      let clear = null, least = rel, leastY = low(rel);
+      for (let d = 1; d <= 200 && clear == null; d++) for (const r of [rel - d, rel + d]) {
+        if (r < -100 || r > 100) continue;
+        const y = low(r);
+        if (y <= FOOT_Y) { clear = r; break; }
+        if (y < leastY) { least = r; leastY = y; }
+      }
+      rel = clear ?? least;
+    }
+    feet[foot] = rel;
+    M[foot] = childMatrix(table, M, S, foot, rel); S[foot] = [1, 1];
+  }
+  solved = { ...solved, __feet: feet };
+  // the weapon never passes through the floor: bend the wrist inside its window first, and
+  // only if that cannot clear it, the elbow too (within the elbow's own limits)
+  let wristFix = 0;
+  if (table.weapon && !down && weaponLow(kind, M) > FOOT_Y - 0.5) {
+    const w = WRIST[kind], farmName = table.hand.parent, uarmName = table[farmName].parent;
+    const base = deg(M.hand) - deg(M[farmName]), farmBase = wrap180(deg(M[farmName]) - deg(M[uarmName]));
+    const pose = (e, d) => {
+      const Mf = e ? childMatrix(table, M, S, farmName, farmBase + e) : M[farmName];
+      const Mh = childMatrix(table, { ...M, [farmName]: Mf }, S, 'hand', base + d);
+      return { Mf, Mh, Mw: mul(mul(Mh, tr(table.weapon.ax - table.hand.px, table.weapon.ay - table.hand.py)), rot(HOLD[kind])) };
+    };
+    const search = (e, step) => {
+      let best = null;
+      for (let d = -2 * w.hw; d <= 2 * w.hw; d += step) {
+        if (Math.abs(wrap180(base + HOLD[kind] + d - w.c)) > w.hw) continue;
+        const lowY = weaponLow(kind, { ...M, weapon: pose(e, d).Mw });
+        const ok = lowY <= FOOT_Y - 0.5;
+        if (!best || (ok && (!best.ok || Math.abs(d) < Math.abs(best.d))) || (!ok && !best.ok && lowY < best.low)) best = { d, e, low: lowY, ok };
+      }
+      return best;
+    };
+    let best = search(0, 1);
+    for (let e = 2; !best.ok && e <= 60; e += 2) for (const ee of [-e, e]) {
+      const fr = farmBase + ee; if (fr < -150 || fr > 0) continue;
+      const r = search(ee, 2); if (r && (r.ok || r.low < best.low)) best = r;
+      if (best.ok) break;
+    }
+    wristFix = best.d;
+    if (best.d || best.e) {
+      const { Mf, Mh } = pose(best.e, best.d);
+      M[farmName] = Mf; M.hand = Mh;
+      if (best.e) solved = { ...solved, [farmName]: farmBase + best.e };
+      for (const n of ['hand_front', 'weapon']) if (table[n]) M[n] = childMatrix(table, M, S, n, n === 'weapon' ? HOLD[kind] : 0);
+    }
+  }
+  solved = { ...solved, __wristFix: wristFix };
+  // two-hand grip: the far arm reaches the weapon's second grip once the weapon is final
+  let twoHand = false;
+  if (table.weapon?.grip2 && table.hand_b?.variants?.grip_far && !NO_TWO_HAND.test(poseName)) {
+    const r = twoHandSolve(kind, solved, M);
+    if (r) {
+      solved = r.angles; twoHand = true;
+      const o = M.uarm_b;
+      M.uarm_b = [...rot(deg(M.torso) + solved.uarm_b).slice(0, 4), o[4], o[5]];
+      M.farm_b = childMatrix(table, M, S, 'farm_b', solved.farm_b);
+      M.hand_b = childMatrix(table, M, S, 'hand_b', solved.wrist_b);
+    }
+  }
+  // variants (pose-driven; draw() adds per-actor hysteresis)
+  const variants = {};
+  if (FRONT_VARIANT.test(poseName)) for (const slot of ['head', 'torso']) if (table[slot]?.variants?.front) variants[slot] = 'front';
+  if (table.hand_b?.variants) {
+    if (twoHand) variants.hand_b = 'grip_far';
+    else if (OPEN_HAND.test(poseName) && table.hand_b.variants.open) variants.hand_b = 'open';
+  }
+  if (opts.variants) { for (const k of Object.keys(variants)) delete variants[k]; Object.assign(variants, opts.variants); }
+  let order = orderFor(kind).filter(n => table[n] && !(n === 'hand_front' && variants.hand));
+  if (twoHand) {
+    // the far forearm crosses in front of the body, under the near arm; the far hand closes
+    // over the guitar neck, so it is drawn after the weapon
+    order = order.filter(n => n !== 'farm_b' && n !== 'hand_b');
+    order.splice(order.indexOf('uarm'), 0, 'farm_b');
+    order.splice(order.indexOf('weapon') + 1, 0, 'hand_b');
+  }
+  const parts = {};
+  for (const n of order) parts[n] = variants[n] ? { ...table[n], ...table[n].variants[variants[n]], variant: variants[n] } : table[n];
+  const lash = kind === 'nous_girl' ? lashAmount(poseName, input || {}) : 0;
+  const sol = { M, S, order, contacts, ground: plant, angles: solved, variants, parts, twoHand, ropes: {}, lash, lashPts: {} };
+  if (lash > 0) for (const [n, p] of Object.entries(table)) if (p.role === 'rope') {
+    const q = table[p.parent], start = apply(M[p.parent], p.ax - q.px, p.ay - q.py);
+    sol.lashPts[n] = lashPoints(table, M, start, p.segs, lash, input || {});
+  }
+  return applySecondary(kind, sol, opts.secondary);
 }
 
 // --- heroes world-class pass: per-hero stances, walks and moves ----------------
@@ -844,13 +1127,48 @@ function drawLash(ctx, kind, sol, k, A) {
   ctx.restore();
 }
 
+// A rope (Nous Girl's cable) is drawn as one cable-segment image per link, stretched along it.
+function drawRope(ctx, img, pts, part) {
+  for (let i = 1; i < pts.length; i++) {
+    const [x0, y0] = pts[i - 1], [x1, y1] = pts[i], l = Math.hypot(x1 - x0, y1 - y0);
+    if (l < 0.01) continue;
+    ctx.save(); ctx.translate(x0, y0); ctx.rotate(Math.atan2(y1 - y0, x1 - x0));
+    ctx.drawImage(img, -0.6, -part.h / 2, l + 1.2, part.h);
+    ctx.restore();
+  }
+}
+const VARIANT_HOLD = 0.05; // s: a pose-driven head/torso/hand swap is held at least this long
+// v2 rigs, per actor (pose.__actor, tagged by foot-lock): spring/rope physics and variant hysteresis.
+const secondary = createSecondary();
+export { secondary as heroSecondary };
+function v2Live(kind, sol, pose, angles, poseName, x, y, flip, scale, dt) {
+  const actor = pose && typeof pose === 'object' ? pose.__actor : null;
+  if (!actor) return sol;
+  const st = secondary.state(actor);
+  st.variants = st.variants || {};
+  const d = pose.__dt ?? dt;
+  let changed = false; const want = { ...sol.variants };
+  for (const slot of new Set([...Object.keys(want), ...Object.keys(st.variants)])) {
+    const mem = st.variants[slot] || { v: undefined, t: VARIANT_HOLD };
+    const v = want[slot], age = mem.t + Math.max(0, d);
+    if (v !== mem.v && age < VARIANT_HOLD && !(slot === 'hand_b' && (v === 'grip_far' || mem.v === 'grip_far'))) { // two-hand follows the arm IK exactly
+      if (mem.v) want[slot] = mem.v; else delete want[slot];
+      changed = true; mem.t = age;
+    } else if (v !== mem.v) { mem.v = v; mem.t = 0; } else mem.t = age;
+    st.variants[slot] = mem;
+  }
+  if (changed) sol = solve(kind, angles, { poseName, animated: !!pose.__pose, footTargets: pose.__footTargets, rootDy: pose.__rootDy, variants: Object.fromEntries(Object.entries(want).filter(([, v]) => v)) });
+  const res = secondary.step(actor, secondaryInputs(kind, sol), { x, y, flip, scale, dt: d });
+  return applySecondary(kind, sol, res);
+}
+
 export function createRig() {
   const images = {};
   const drawn = {};
   for (const [kind, table] of Object.entries(TABLES)) {
     images[kind] = {}; drawn[kind] = 0;
     const seen = new Set();
-    for (const part of Object.values(table)) {
+    for (const part of Object.values(table).flatMap(p => [p, ...Object.values(p.variants || {})])) {
       if (seen.has(part.file)) continue;
       seen.add(part.file);
       const im = new Image();
@@ -897,22 +1215,28 @@ export function createRig() {
     // __footTargets, when supplied by the caller, are rig-local [x,y] sole
     // anchors AFTER converting world origin, facing and draw scale. Without
     // anchors IK still plants both Y contacts, but cannot lock X across motion.
-    const sol = solve(kind, angles, { poseName, animated: typeof pose !== 'string' && !!(pose && pose.__pose),
+    let sol = solve(kind, angles, { poseName, animated: typeof pose !== 'string' && !!(pose && pose.__pose),
       footTargets: pose && pose.__footTargets, rootDy: pose && pose.__rootDy });
+    if (HERO_V2[kind]) sol = v2Live(kind, sol, pose, angles, poseName, x, y, flip, scale, dt);
     ctx.save();
     ctx.translate(x, y);
     if (flip) ctx.scale(-1, 1);
     if (scale !== 1) ctx.scale(scale, scale);
-    const lash = kind === 'nous_girl' ? lashAmount(poseName, angles) : 0;
+    const v2 = !!HERO_V2[kind];
+    const lash = kind === 'nous_girl' && !v2 ? lashAmount(poseName, angles) : 0;
     const smearPart = sol.order.includes('weapon') ? 'weapon' : 'farm';
     for (const name of sol.order) {
-      const part = table[name], img = images[kind][part.file];
+      const part = v2 ? sol.parts[name] : table[name], img = images[kind][part.file];
       if (!img) continue;
+      if (part.role === 'rope') {
+        ctx.save(); if (part.back) ctx.filter = baseTint + (BACK_TINT[kind] || BACK_TINT_DEFAULT); else if (baseTint) ctx.filter = baseTint.trim();
+        drawRope(ctx, img, sol.ropes[name], part); ctx.restore(); continue;
+      }
       if (name === 'weapon' && lash > 0.35) { drawLash(ctx, kind, sol, lash, angles); continue; }
       // smear: the strike leaves ghost copies of the weapon (or the striking fist) along its arc
       if (name === smearPart && angles.__trail && HERO_RIGS[kind]) {
         angles.__trail.forEach((g, i) => {
-          const gs = solve(kind, g, { poseName, animated: true }), gm = gs.M[name], gsc = gs.S[name];
+          const gs = solve(kind, g, { poseName, animated: true, variants: sol.variants }), gm = gs.M[name], gsc = gs.S[name];
           if (!gm) return;
           ctx.save(); ctx.globalAlpha = (i ? 0.16 : 0.32) * (ctx.globalAlpha || 1);
           ctx.transform(gm[0], gm[1], gm[2], gm[3], gm[4], gm[5]); ctx.scale(gsc[0], gsc[1]);

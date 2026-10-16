@@ -1,6 +1,6 @@
 // Stateful support contacts for gameplay. The pure rig solve is also used by
 // menus/sheets; only moving actors have a world origin against which to lock X.
-import { solve, apply, SOLES, FOOT_Y } from './rig.js';
+import { solve, apply, SOLES, soleGround } from './rig.js';
 import { HERO_RIGS } from './hero-rigs.js';
 
 export function createFootLocks() {
@@ -27,7 +27,7 @@ export function createFootLocks() {
         const contact = points.reduce((a, b) => a[1] > b[1] ? a : b);
         track.anchors[side] = x + sign * scale * contact[0];
       }
-      targets[side] = [(track.anchors[side] - x) * sign / scale - (pose.dx || 0), FOOT_Y];
+      targets[side] = [(track.anchors[side] - x) * sign / scale - (pose.dx || 0), soleGround(kind)];
     }
     const free = solve(kind, pose, { poseName: pose.__pose, animated: true, footTargets: targets });
     if (track.settle > 0 && track.rootDy != null) {
@@ -46,6 +46,9 @@ export function createFootLocks() {
     track.x = x; track.y = y;
     track.pose = pose.__pose; track.rootDy = locked.M.torso[5];
     pose.__footTargets = targets;
+    // v2 rigs: the actor identity and frame time drive hair/hem/cable secondary motion
+    // (dt is 0 during hit-stop, which freezes it).
+    pose.__actor = kind + ':' + key; pose.__dt = dt;
     return pose;
   }
   return { place, forget: key => tracks.delete(key), tracks };

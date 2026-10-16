@@ -2,6 +2,11 @@
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
 import { mkdir, writeFile } from 'node:fs/promises';
+import { join, resolve } from 'node:path';
+import { tmpdir } from 'node:os';
+// Integration JSON goes to --out DIR (default: a temp folder), never the tracked after/.
+const outArg = process.argv.indexOf('--out');
+const out = resolve(outArg > 0 ? process.argv[outArg + 1] : join(tmpdir(), 'cpn-level-layout-smoke'));
 const browser = await chromium.launch({ headless: true, executablePath: process.env.CHROMIUM_PATH || '/snap/bin/chromium', args: ['--no-sandbox'] });
 const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
 const errors = [], httpErrors = [];
@@ -77,7 +82,7 @@ try {
   assert.deepEqual(httpErrors, []);
   console.log('Actual depth queue: rear enemy → airborne P1 → P2 → barrel → front boss; all eight stages render without errors.');
 } finally {
-  await mkdir('after/levels', { recursive: true });
-  await writeFile('after/levels/integration.json', JSON.stringify({ results, errors, httpErrors }, null, 2) + '\n');
+  await mkdir(out, { recursive: true });
+  await writeFile(join(out, 'integration.json'), JSON.stringify({ results, errors, httpErrors }, null, 2) + '\n');
   await browser.close();
 }

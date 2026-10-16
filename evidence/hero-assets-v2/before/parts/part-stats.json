@@ -1,0 +1,1652 @@
+{
+ "turtle_purple": {
+  "head": {
+   "size": [
+    65,
+    49
+   ],
+   "mode": "RGBA",
+   "opaque_px": 1318,
+   "partial_px": 709,
+   "total": 3185,
+   "bbox": [
+    2,
+    2,
+    62,
+    47
+   ],
+   "pivot": [
+    32,
+    43
+   ],
+   "pivot_alpha": 253,
+   "components": 1,
+   "child_attach": {}
+  },
+  "torso": {
+   "size": [
+    48,
+    68
+   ],
+   "mode": "RGBA",
+   "opaque_px": 2192,
+   "partial_px": 383,
+   "total": 3264,
+   "bbox": [
+    2,
+    1,
+    45,
+    65
+   ],
+   "pivot": [
+    24,
+    34
+   ],
+   "pivot_alpha": 255,
+   "components": 1,
+   "child_attach": {
+    "head": [
+     24,
+     7,
+     255
+    ],
+    "uarm": [
+     28,
+     16,
+     255
+    ],
+    "thigh": [
+     24,
+     60,
+     255
+    ],
+    "uarm_b": [
+     22,
+     14,
+     255
+    ],
+    "thigh_b": [
+     18,
+     58,
+     255
+    ]
+   }
+  },
+  "uarm": {
+   "size": [
+    28,
+    66
+   ],
+   "mode": "RGBA",
+   "opaque_px": 784,
+   "partial_px": 492,
+   "total": 1848,
+   "bbox": [
+    1,
+    2,
+    26,
+    64
+   ],
+   "pivot": [
+    16,
+    8
+   ],
+   "pivot_alpha": 255,
+   "components": 1,
+   "child_attach": {
+    "farm": [
+     20,
+     59,
+     255
+    ]
+   }
+  },
+  "farm": {
+   "size": [
+    34,
+    68
+   ],
+   "mode": "RGBA",
+   "opaque_px": 842,
+   "partial_px": 482,
+   "total": 2312,
+   "bbox": [
+    1,
+    2,
+    31,
+    65
+   ],
+   "pivot": [
+    16,
+    8
+   ],
+   "pivot_alpha": 255,
+   "components": 1,
+   "child_attach": {}
+  },
+  "thigh": {
+   "size": [
+    33,
+    44
+   ],
+   "mode": "RGBA",
+   "opaque_px": 678,
+   "partial_px": 352,
+   "total": 1452,
+   "bbox": [
+    2,
+    2,
+    29,
+    43
+   ],
+   "pivot": [
+    12,
+    11
+   ],
+   "pivot_alpha": 255,
+   "components": 1,
+   "child_attach": {
+    "shin": [
+     20,
+     35,
+     253
+    ]
+   }
+  },
+  "shin": {
+   "size": [
+    35,
+    73
+   ],
+   "mode": "RGBA",
+   "opaque_px": 1101,
+   "partial_px": 477,
+   "total": 2555,
+   "bbox": [
+    2,
+    1,
+    33,
+    70
+   ],
+   "pivot": [
+    11,
+    9
+   ],
+   "pivot_alpha": 255,
+   "components": 1,
+   "child_attach": {}
+  },
+  "weapon": {
+   "size": [
+    80,
+    13
+   ],
+   "mode": "RGBA",
+   "opaque_px": 357,
+   "partial_px": 331,
+   "total": 1040,
+   "bbox": [
+    2,
+    3,
+    76,
+    10
+   ],
+   "pivot": [
+    40,
+    6
+   ],
+   "pivot_alpha": 255,
+   "components": 1,
+   "child_attach": {}
+  }
+ },
+ "turtle_blue": {
+  "head": {
+   "size": [
+    68,
+    50
+   ],
+   "mode": "RGBA",
+   "opaque_px": 1685,
+   "partial_px": 444,
+   "total": 3400,
+   "bbox": [
+    1,
+    1,
+    66,
+    48
+   ],
+   "pivot": [
+    35,
+    44
+   ],
+   "pivot_alpha": 252,
+   "components": 1,
+   "child_attach": {}
+  },
+  "torso": {
+   "size": [
+    48,
+    68
+   ],
+   "mode": "RGBA",
+   "opaque_px": 2203,
+   "partial_px": 0,
+   "total": 3264,
+   "bbox": [
+    1,
+    1,
+    46,
+    66
+   ],
+   "pivot": [
+    24,
+    34
+   ],
+   "pivot_alpha": 255,
+   "components": 1,
+   "child_attach": {
+    "head": [
+     24,
+     6,
+     255
+    ],
+    "uarm": [
+     28,
+     16,
+     255
+    ],
+    "thigh": [
+     24,
+     60,
+     255
+    ],
+    "uarm_b": [
+     22,
+     14,
+     255
+    ],
+    "thigh_b": [
+     18,
+     58,
+     255
+    ]
+   }
+  },
+  "uarm": {
+   "size": [
+    35,
+    51
+   ],
+   "mode": "RGBA",
+   "opaque_px": 725,
+   "partial_px": 260,
+   "total": 1785,
+   "bbox": [
+    1,
+    1,
+    33,
+    49
+   ],
+   "pivot": [
+    11,
+    6
+   ],
+   "pivot_alpha": 255,
+   "components": 1,
+   "child_attach": {
+    "farm": [
+     25,
+     44,
+     255
+    ]
+   }
+  },
+  "farm": {
+   "size": [
+    42,
+    64
+   ],
+   "mode": "RGBA",
+   "opaque_px": 1006,
+   "partial_px": 341,
+   "total": 2688,
+   "bbox": [
+    1,
+    1,
+    40,
+    62
+   ],
+   "pivot": [
+    14,
+    7
+   ],
+   "pivot_alpha": 255,
+   "components": 1,
+   "child_attach": {
+    "weapon": [
+     30,
+     56,
+     255
+    ]
+   }
+  },
+  "thigh": {
+   "size": [
+    32,
+    46
+   ],
+   "mode": "RGBA",
+   "opaque_px": 815,
+   "partial_px": 221,
+   "total": 1472,
+   "bbox": [
+    1,
+    1,
+    30,
+    44
+   ],
+   "pivot": [
+    12,
+    8
+   ],
+   "pivot_alpha": 255,
+   "components": 1,
+   "child_attach": {
+    "shin": [
+     21,
+     38,
+     255
+    ]
+   }
+  },
+  "shin": {
+   "size": [
+    38,
+    58
+   ],
+   "mode": "RGBA",
+   "opaque_px": 957,
+   "partial_px": 331,
+   "total": 2204,
+   "bbox": [
+    1,
+    1,
+    36,
+    56
+   ],
+   "pivot": [
+    15,
+    9
+   ],
+   "pivot_alpha": 255,
+   "components": 1,
+   "child_attach": {}
+  },
+  "weapon": {
+   "size": [
+    19,
+    102
+   ],
+   "mode": "RGBA",
+   "opaque_px": 543,
+   "partial_px": 453,
+   "total": 1938,
+   "bbox": [
+    1,
+    1,
+    17,
+    100
+   ],
+   "pivot": [
+    9,
+    82
+   ],
+   "pivot_alpha": 253,
+   "components": 1,
+   "child_attach": {}
+  }
+ },
+ "turtle_red": {
+  "head": {
+   "size": [
+    65,
+    49
+   ],
+   "mode": "RGBA",
+   "opaque_px": 1643,
+   "partial_px": 419,
+   "total": 3185,
+   "bbox": [
+    1,
+    1,
+    63,
+    47
+   ],
+   "pivot": [
+    33,
+    43
+   ],
+   "pivot_alpha": 254,
+   "components": 1,
+   "child_attach": {}
+  },
+  "torso": {
+   "size": [
+    51,
+    68
+   ],
+   "mode": "RGBA",
+   "opaque_px": 2396,
+   "partial_px": 357,
+   "total": 3468,
+   "bbox": [
+    1,
+    1,
+    49,
+    66
+   ],
+   "pivot": [
+    24,
+    34
+   ],
+   "pivot_alpha": 255,
+   "components": 1,
+   "child_attach": {
+    "head": [
+     24,
+     6,
+     255
+    ],
+    "uarm": [
+     31,
+     16,
+     255
+    ],
+    "thigh": [
+     24,
+     60,
+     255
+    ],
+    "uarm_b": [
+     25,
+     14,
+     255
+    ],
+    "thigh_b": [
+     18,
+     58,
+     255
+    ]
+   }
+  },
+  "uarm": {
+   "size": [
+    31,
+    60
+   ],
+   "mode": "RGBA",
+   "opaque_px": 967,
+   "partial_px": 284,
+   "total": 1860,
+   "bbox": [
+    1,
+    1,
+    29,
+    58
+   ],
+   "pivot": [
+    11,
+    7
+   ],
+   "pivot_alpha": 255,
+   "components": 1,
+   "child_attach": {
+    "farm": [
+     21,
+     53,
+     255
+    ]
+   }
+  },
+  "farm": {
+   "size": [
+    40,
+    65
+   ],
+   "mode": "RGBA",
+   "opaque_px": 1066,
+   "partial_px": 546,
+   "total": 2600,
+   "bbox": [
+    1,
+    1,
+    38,
+    63
+   ],
+   "pivot": [
+    20,
+    7
+   ],
+   "pivot_alpha": 255,
+   "components": 1,
+   "child_attach": {
+    "weapon": [
+     17,
+     60,
+     255
+    ]
+   }
+  },
+  "thigh": {
+   "size": [
+    34,
+    53
+   ],
+   "mode": "RGBA",
+   "opaque_px": 983,
+   "partial_px": 265,
+   "total": 1802,
+   "bbox": [
+    1,
+    1,
+    32,
+    51
+   ],
+   "pivot": [
+    12,
+    8
+   ],
+   "pivot_alpha": 255,
+   "components": 1,
+   "child_attach": {
+    "shin": [
+     22,
+     44,
+     255
+    ]
+   }
+  },
+  "shin": {
+   "size": [
+    38,
+    68
+   ],
+   "mode": "RGBA",
+   "opaque_px": 1215,
+   "partial_px": 387,
+   "total": 2584,
+   "bbox": [
+    1,
+    1,
+    36,
+    66
+   ],
+   "pivot": [
+    13,
+    8
+   ],
+   "pivot_alpha": 255,
+   "components": 1,
+   "child_attach": {}
+  },
+  "weapon": {
+   "size": [
+    29,
+    74
+   ],
+   "mode": "RGBA",
+   "opaque_px": 373,
+   "partial_px": 494,
+   "total": 2146,
+   "bbox": [
+    1,
+    1,
+    27,
+    72
+   ],
+   "pivot": [
+    10,
+    55
+   ],
+   "pivot_alpha": 247,
+   "components": 1,
+   "child_attach": {}
+  }
+ },
+ "turtle_orange": {
+  "head": {
+   "size": [
+    69,
+    45
+   ],
+   "mode": "RGBA",
+   "opaque_px": 1723,
+   "partial_px": 394,
+   "total": 3105,
+   "bbox": [
+    1,
+    1,
+    67,
+    43
+   ],
+   "pivot": [
+    33,
+    39
+   ],
+   "pivot_alpha": 251,
+   "components": 1,
+   "child_attach": {}
+  },
+  "torso": {
+   "size": [
+    55,
+    68
+   ],
+   "mode": "RGBA",
+   "opaque_px": 2679,
+   "partial_px": 365,
+   "total": 3740,
+   "bbox": [
+    2,
+    1,
+    53,
+    66
+   ],
+   "pivot": [
+    26,
+    34
+   ],
+   "pivot_alpha": 255,
+   "components": 1,
+   "child_attach": {
+    "head": [
+     26,
+     8,
+     255
+    ],
+    "uarm": [
+     33,
+     16,
+     255
+    ],
+    "thigh": [
+     29,
+     60,
+     255
+    ],
+    "uarm_b": [
+     27,
+     14,
+     255
+    ],
+    "thigh_b": [
+     23,
+     58,
+     255
+    ]
+   }
+  },
+  "uarm": {
+   "size": [
+    28,
+    62
+   ],
+   "mode": "RGBA",
+   "opaque_px": 1046,
+   "partial_px": 318,
+   "total": 1736,
+   "bbox": [
+    1,
+    2,
+    26,
+    60
+   ],
+   "pivot": [
+    14,
+    8
+   ],
+   "pivot_alpha": 255,
+   "components": 1,
+   "child_attach": {
+    "farm": [
+     16,
+     54,
+     255
+    ]
+   }
+  },
+  "farm": {
+   "size": [
+    54,
+    73
+   ],
+   "mode": "RGBA",
+   "opaque_px": 1499,
+   "partial_px": 465,
+   "total": 3942,
+   "bbox": [
+    2,
+    1,
+    51,
+    71
+   ],
+   "pivot": [
+    14,
+    8
+   ],
+   "pivot_alpha": 255,
+   "components": 1,
+   "child_attach": {
+    "weapon": [
+     29,
+     67,
+     255
+    ]
+   }
+  },
+  "thigh": {
+   "size": [
+    38,
+    52
+   ],
+   "mode": "RGBA",
+   "opaque_px": 1118,
+   "partial_px": 279,
+   "total": 1976,
+   "bbox": [
+    2,
+    2,
+    36,
+    50
+   ],
+   "pivot": [
+    15,
+    10
+   ],
+   "pivot_alpha": 255,
+   "components": 1,
+   "child_attach": {
+    "shin": [
+     25,
+     43,
+     255
+    ]
+   }
+  },
+  "shin": {
+   "size": [
+    44,
+    66
+   ],
+   "mode": "RGBA",
+   "opaque_px": 1430,
+   "partial_px": 394,
+   "total": 2904,
+   "bbox": [
+    1,
+    1,
+    41,
+    64
+   ],
+   "pivot": [
+    16,
+    8
+   ],
+   "pivot_alpha": 255,
+   "components": 1,
+   "child_attach": {}
+  },
+  "weapon": {
+   "size": [
+    44,
+    73
+   ],
+   "mode": "RGBA",
+   "opaque_px": 788,
+   "partial_px": 625,
+   "total": 3212,
+   "bbox": [
+    2,
+    1,
+    42,
+    70
+   ],
+   "pivot": [
+    14,
+    59
+   ],
+   "pivot_alpha": 255,
+   "components": 1,
+   "child_attach": {}
+  }
+ },
+ "teknium": {
+  "head": {
+   "size": [
+    40,
+    43
+   ],
+   "mode": "RGBA",
+   "opaque_px": 1200,
+   "partial_px": 0,
+   "total": 1720,
+   "bbox": [
+    1,
+    1,
+    38,
+    41
+   ],
+   "pivot": [
+    18,
+    38
+   ],
+   "pivot_alpha": 255,
+   "components": 2,
+   "child_attach": {}
+  },
+  "torso": {
+   "size": [
+    44,
+    68
+   ],
+   "mode": "RGBA",
+   "opaque_px": 1973,
+   "partial_px": 0,
+   "total": 2992,
+   "bbox": [
+    1,
+    1,
+    42,
+    66
+   ],
+   "pivot": [
+    22,
+    34
+   ],
+   "pivot_alpha": 255,
+   "components": 1,
+   "child_attach": {
+    "head": [
+     22,
+     6,
+     255
+    ],
+    "uarm": [
+     26,
+     16,
+     255
+    ],
+    "thigh": [
+     22,
+     48,
+     255
+    ],
+    "uarm_b": [
+     20,
+     14,
+     255
+    ],
+    "thigh_b": [
+     16,
+     46,
+     255
+    ]
+   }
+  },
+  "uarm": {
+   "size": [
+    16,
+    42
+   ],
+   "mode": "RGBA",
+   "opaque_px": 397,
+   "partial_px": 0,
+   "total": 672,
+   "bbox": [
+    1,
+    1,
+    14,
+    40
+   ],
+   "pivot": [
+    8,
+    6
+   ],
+   "pivot_alpha": 255,
+   "components": 1,
+   "child_attach": {
+    "farm": [
+     9,
+     37,
+     255
+    ]
+   }
+  },
+  "farm": {
+   "size": [
+    20,
+    52
+   ],
+   "mode": "RGBA",
+   "opaque_px": 594,
+   "partial_px": 0,
+   "total": 1040,
+   "bbox": [
+    1,
+    1,
+    18,
+    50
+   ],
+   "pivot": [
+    9,
+    6
+   ],
+   "pivot_alpha": 255,
+   "components": 1,
+   "child_attach": {
+    "weapon": [
+     12,
+     46,
+     255
+    ]
+   }
+  },
+  "thigh": {
+   "size": [
+    23,
+    58
+   ],
+   "mode": "RGBA",
+   "opaque_px": 736,
+   "partial_px": 283,
+   "total": 1334,
+   "bbox": [
+    1,
+    1,
+    21,
+    56
+   ],
+   "pivot": [
+    13,
+    8
+   ],
+   "pivot_alpha": 255,
+   "components": 1,
+   "child_attach": {
+    "shin": [
+     8,
+     52,
+     255
+    ]
+   }
+  },
+  "shin": {
+   "size": [
+    28,
+    56
+   ],
+   "mode": "RGBA",
+   "opaque_px": 703,
+   "partial_px": 311,
+   "total": 1568,
+   "bbox": [
+    1,
+    1,
+    26,
+    54
+   ],
+   "pivot": [
+    10,
+    7
+   ],
+   "pivot_alpha": 255,
+   "components": 1,
+   "child_attach": {}
+  },
+  "weapon": {
+   "size": [
+    61,
+    22
+   ],
+   "mode": "RGBA",
+   "opaque_px": 400,
+   "partial_px": 366,
+   "total": 1342,
+   "bbox": [
+    1,
+    1,
+    59,
+    20
+   ],
+   "pivot": [
+    7,
+    9
+   ],
+   "pivot_alpha": 255,
+   "components": 5,
+   "child_attach": {}
+  }
+ },
+ "turbofit": {
+  "head": {
+   "size": [
+    61,
+    64
+   ],
+   "mode": "RGBA",
+   "opaque_px": 2843,
+   "partial_px": 0,
+   "total": 3904,
+   "bbox": [
+    0,
+    0,
+    60,
+    63
+   ],
+   "pivot": [
+    37,
+    54
+   ],
+   "pivot_alpha": 255,
+   "components": 2,
+   "child_attach": {}
+  },
+  "torso": {
+   "size": [
+    46,
+    68
+   ],
+   "mode": "RGBA",
+   "opaque_px": 2009,
+   "partial_px": 0,
+   "total": 3128,
+   "bbox": [
+    1,
+    1,
+    44,
+    66
+   ],
+   "pivot": [
+    23,
+    34
+   ],
+   "pivot_alpha": 255,
+   "components": 1,
+   "child_attach": {
+    "head": [
+     23,
+     6,
+     255
+    ],
+    "uarm": [
+     34,
+     16,
+     255
+    ],
+    "thigh": [
+     23,
+     58,
+     255
+    ],
+    "uarm_b": [
+     28,
+     14,
+     255
+    ],
+    "thigh_b": [
+     17,
+     56,
+     255
+    ]
+   }
+  },
+  "uarm": {
+   "size": [
+    26,
+    54
+   ],
+   "mode": "RGBA",
+   "opaque_px": 941,
+   "partial_px": 0,
+   "total": 1404,
+   "bbox": [
+    2,
+    1,
+    24,
+    52
+   ],
+   "pivot": [
+    13,
+    7
+   ],
+   "pivot_alpha": 255,
+   "components": 1,
+   "child_attach": {
+    "farm": [
+     13,
+     46,
+     255
+    ]
+   }
+  },
+  "farm": {
+   "size": [
+    28,
+    58
+   ],
+   "mode": "RGBA",
+   "opaque_px": 890,
+   "partial_px": 0,
+   "total": 1624,
+   "bbox": [
+    3,
+    1,
+    25,
+    56
+   ],
+   "pivot": [
+    13,
+    6
+   ],
+   "pivot_alpha": 255,
+   "components": 1,
+   "child_attach": {
+    "weapon": [
+     16,
+     52,
+     255
+    ]
+   }
+  },
+  "thigh": {
+   "size": [
+    30,
+    56
+   ],
+   "mode": "RGBA",
+   "opaque_px": 1100,
+   "partial_px": 0,
+   "total": 1680,
+   "bbox": [
+    3,
+    1,
+    27,
+    54
+   ],
+   "pivot": [
+    15,
+    8
+   ],
+   "pivot_alpha": 255,
+   "components": 1,
+   "child_attach": {
+    "shin": [
+     14,
+     48,
+     255
+    ]
+   }
+  },
+  "shin": {
+   "size": [
+    34,
+    58
+   ],
+   "mode": "RGBA",
+   "opaque_px": 997,
+   "partial_px": 0,
+   "total": 1972,
+   "bbox": [
+    1,
+    2,
+    32,
+    56
+   ],
+   "pivot": [
+    13,
+    8
+   ],
+   "pivot_alpha": 255,
+   "components": 1,
+   "child_attach": {}
+  },
+  "weapon": {
+   "size": [
+    65,
+    118
+   ],
+   "mode": "RGBA",
+   "opaque_px": 1587,
+   "partial_px": 765,
+   "total": 7670,
+   "bbox": [
+    1,
+    1,
+    63,
+    116
+   ],
+   "pivot": [
+    47,
+    38
+   ],
+   "pivot_alpha": 255,
+   "components": 1,
+   "child_attach": {}
+  }
+ },
+ "nous_girl": {
+  "head": {
+   "size": [
+    47,
+    47
+   ],
+   "mode": "RGBA",
+   "opaque_px": 1403,
+   "partial_px": 0,
+   "total": 2209,
+   "bbox": [
+    1,
+    1,
+    44,
+    45
+   ],
+   "pivot": [
+    22,
+    42
+   ],
+   "pivot_alpha": 255,
+   "components": 1,
+   "child_attach": {}
+  },
+  "torso": {
+   "size": [
+    37,
+    68
+   ],
+   "mode": "RGBA",
+   "opaque_px": 1455,
+   "partial_px": 403,
+   "total": 2516,
+   "bbox": [
+    1,
+    1,
+    35,
+    66
+   ],
+   "pivot": [
+    18,
+    34
+   ],
+   "pivot_alpha": 255,
+   "components": 1,
+   "child_attach": {
+    "head": [
+     18,
+     6,
+     255
+    ],
+    "uarm": [
+     21,
+     10,
+     255
+    ],
+    "thigh": [
+     19,
+     48,
+     255
+    ],
+    "uarm_b": [
+     15,
+     8,
+     255
+    ],
+    "thigh_b": [
+     13,
+     46,
+     255
+    ]
+   }
+  },
+  "uarm": {
+   "size": [
+    15,
+    59
+   ],
+   "mode": "RGBA",
+   "opaque_px": 392,
+   "partial_px": 248,
+   "total": 885,
+   "bbox": [
+    1,
+    1,
+    13,
+    57
+   ],
+   "pivot": [
+    6,
+    6
+   ],
+   "pivot_alpha": 255,
+   "components": 1,
+   "child_attach": {
+    "farm": [
+     10,
+     54,
+     255
+    ]
+   }
+  },
+  "farm": {
+   "size": [
+    25,
+    67
+   ],
+   "mode": "RGBA",
+   "opaque_px": 408,
+   "partial_px": 330,
+   "total": 1675,
+   "bbox": [
+    1,
+    1,
+    23,
+    65
+   ],
+   "pivot": [
+    6,
+    5
+   ],
+   "pivot_alpha": 255,
+   "components": 1,
+   "child_attach": {
+    "weapon": [
+     19,
+     61,
+     248
+    ]
+   }
+  },
+  "thigh": {
+   "size": [
+    19,
+    65
+   ],
+   "mode": "RGBA",
+   "opaque_px": 658,
+   "partial_px": 282,
+   "total": 1235,
+   "bbox": [
+    1,
+    1,
+    17,
+    63
+   ],
+   "pivot": [
+    9,
+    7
+   ],
+   "pivot_alpha": 255,
+   "components": 1,
+   "child_attach": {
+    "shin": [
+     8,
+     60,
+     255
+    ]
+   }
+  },
+  "shin": {
+   "size": [
+    22,
+    60
+   ],
+   "mode": "RGBA",
+   "opaque_px": 486,
+   "partial_px": 283,
+   "total": 1320,
+   "bbox": [
+    1,
+    1,
+    20,
+    58
+   ],
+   "pivot": [
+    8,
+    5
+   ],
+   "pivot_alpha": 255,
+   "components": 1,
+   "child_attach": {}
+  },
+  "weapon": {
+   "size": [
+    30,
+    52
+   ],
+   "mode": "RGBA",
+   "opaque_px": 291,
+   "partial_px": 608,
+   "total": 1560,
+   "bbox": [
+    1,
+    1,
+    28,
+    50
+   ],
+   "pivot": [
+    8,
+    43
+   ],
+   "pivot_alpha": 249,
+   "components": 1,
+   "child_attach": {}
+  }
+ },
+ "don_piedro": {
+  "head": {
+   "size": [
+    54,
+    59
+   ],
+   "mode": "P",
+   "opaque_px": 2484,
+   "partial_px": 260,
+   "total": 3186,
+   "bbox": [
+    0,
+    0,
+    53,
+    58
+   ],
+   "pivot": [
+    26,
+    53
+   ],
+   "pivot_alpha": 255,
+   "components": 1,
+   "child_attach": {}
+  },
+  "torso": {
+   "size": [
+    79,
+    68
+   ],
+   "mode": "P",
+   "opaque_px": 3493,
+   "partial_px": 324,
+   "total": 5372,
+   "bbox": [
+    0,
+    0,
+    78,
+    67
+   ],
+   "pivot": [
+    39,
+    34
+   ],
+   "pivot_alpha": 255,
+   "components": 1,
+   "child_attach": {
+    "head": [
+     39,
+     6,
+     139
+    ],
+    "uarm": [
+     47,
+     15,
+     255
+    ],
+    "thigh": [
+     41,
+     60,
+     255
+    ],
+    "uarm_b": [
+     41,
+     13,
+     255
+    ],
+    "thigh_b": [
+     35,
+     58,
+     255
+    ]
+   }
+  },
+  "uarm": {
+   "size": [
+    23,
+    46
+   ],
+   "mode": "P",
+   "opaque_px": 907,
+   "partial_px": 105,
+   "total": 1058,
+   "bbox": [
+    0,
+    0,
+    22,
+    45
+   ],
+   "pivot": [
+    11,
+    5
+   ],
+   "pivot_alpha": 255,
+   "components": 1,
+   "child_attach": {
+    "farm": [
+     12,
+     40,
+     255
+    ]
+   }
+  },
+  "farm": {
+   "size": [
+    26,
+    75
+   ],
+   "mode": "P",
+   "opaque_px": 1563,
+   "partial_px": 229,
+   "total": 1950,
+   "bbox": [
+    0,
+    0,
+    25,
+    74
+   ],
+   "pivot": [
+    13,
+    6
+   ],
+   "pivot_alpha": 255,
+   "components": 1,
+   "child_attach": {
+    "weapon": [
+     13,
+     63,
+     255
+    ]
+   }
+  },
+  "thigh": {
+   "size": [
+    30,
+    55
+   ],
+   "mode": "P",
+   "opaque_px": 1373,
+   "partial_px": 171,
+   "total": 1650,
+   "bbox": [
+    0,
+    0,
+    29,
+    54
+   ],
+   "pivot": [
+    14,
+    8
+   ],
+   "pivot_alpha": 255,
+   "components": 1,
+   "child_attach": {
+    "shin": [
+     16,
+     47,
+     255
+    ]
+   }
+  },
+  "shin": {
+   "size": [
+    43,
+    49
+   ],
+   "mode": "P",
+   "opaque_px": 1395,
+   "partial_px": 188,
+   "total": 2107,
+   "bbox": [
+    0,
+    0,
+    42,
+    48
+   ],
+   "pivot": [
+    14,
+    5
+   ],
+   "pivot_alpha": 255,
+   "components": 1,
+   "child_attach": {}
+  },
+  "weapon": {
+   "size": [
+    27,
+    112
+   ],
+   "mode": "P",
+   "opaque_px": 1465,
+   "partial_px": 355,
+   "total": 3024,
+   "bbox": [
+    0,
+    0,
+    26,
+    111
+   ],
+   "pivot": [
+    13,
+    98
+   ],
+   "pivot_alpha": 255,
+   "components": 1,
+   "child_attach": {}
+  }
+ }
+}

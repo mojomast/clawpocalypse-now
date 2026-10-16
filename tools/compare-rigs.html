@@ -2,10 +2,11 @@
 <html lang="en"><meta charset="utf-8"><base href="/"><title>Before and after rig comparison</title>
 <body style="margin:0;background:#171b2b"><canvas id="comparison"></canvas>
 <script type="module">
-const hero = new URLSearchParams(location.search).get('hero');
+const query = new URLSearchParams(location.search), hero = query.get('hero');
+const beforeDir = query.get('before') || '/before', afterDir = query.get('after') || '/after';
 const load = async path => { const img = new Image(); img.src = path; await img.decode(); return img; };
 try {
-  const [before, after] = await Promise.all([load(`/before/${hero}.png`), load(`/after/${hero}.png`)]);
+  const [before, after] = await Promise.all([load(`${beforeDir}/${hero}.png`), load(`${afterDir}/${hero}.png`)]);
   const canvas = document.querySelector('#comparison');
   canvas.width = before.width + after.width; canvas.height = Math.max(before.height, after.height) + 44;
   const ctx = canvas.getContext('2d');

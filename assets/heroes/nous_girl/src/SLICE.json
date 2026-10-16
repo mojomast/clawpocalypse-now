@@ -1,0 +1,768 @@
+{
+ "hero": "nous_girl",
+ "note": "Approved design src/design.jpg; Kyle's own reference src/kyle-reference.png (black-ink manga, glossy black hair, heavy bangs, outward-flipped ends).",
+ "sheets": {
+  "A": {
+   "file": "sheetA.jpg",
+   "grid": [
+    4,
+    3
+   ]
+  },
+  "B": {
+   "file": "sheetB.jpg",
+   "scaleFrom": {
+    "part": "grip_front",
+    "wristWidth": 8.8
+   }
+  }
+ },
+ "parts": {
+  "head": {
+   "sheet": "A",
+   "cell": [
+    0,
+    0
+   ],
+   "kind": "head",
+   "height": 48.6,
+   "anchors": {
+    "hair_long": [
+     0.2,
+     0.8
+    ],
+    "hair_short": [
+     0.42,
+     0.86
+    ]
+   }
+  },
+  "head_front": {
+   "sheet": "A",
+   "cell": [
+    1,
+    0
+   ],
+   "kind": "head",
+   "height": 48.6,
+   "anchors": {
+    "hair_long": [
+     0.2,
+     0.8
+    ],
+    "hair_short": [
+     0.42,
+     0.86
+    ]
+   }
+  },
+  "torso": {
+   "sheet": "A",
+   "cell": [
+    2,
+    0
+   ],
+   "kind": "torso",
+   "height": 66.2,
+   "anchors": {
+    "neck": [
+     0.5,
+     0.12
+    ],
+    "shoulder": [
+     0.17,
+     0.24
+    ],
+    "shoulder_b": [
+     0.83,
+     0.22
+    ],
+    "hip": [
+     0.37,
+     0.86
+    ],
+    "hip_b": [
+     0.63,
+     0.86
+    ],
+    "coil": [
+     0.27,
+     0.67
+    ]
+   }
+  },
+  "torso_front": {
+   "sheet": "A",
+   "cell": [
+    3,
+    0
+   ],
+   "kind": "torso",
+   "height": 66.2
+  },
+  "uarm": {
+   "sheet": "A",
+   "cell": [
+    0,
+    1
+   ],
+   "kind": "limb",
+   "length": 38.3
+  },
+  "farm": {
+   "sheet": "A",
+   "cell": [
+    1,
+    1
+   ],
+   "kind": "limb",
+   "length": 36.2
+  },
+  "thigh": {
+   "sheet": "A",
+   "cell": [
+    2,
+    1
+   ],
+   "kind": "limb",
+   "length": 41.4
+  },
+  "shin": {
+   "sheet": "A",
+   "cell": [
+    3,
+    1
+   ],
+   "kind": "limb",
+   "length": 38.3
+  },
+  "foot": {
+   "sheet": "A",
+   "cell": [
+    0,
+    2
+   ],
+   "kind": "foot",
+   "length": 29.0
+  },
+  "hair_long": {
+   "sheet": "A",
+   "cell": [
+    1,
+    2
+   ],
+   "kind": "secondary",
+   "height": 31.0
+  },
+  "hair_short": {
+   "sheet": "A",
+   "rect": [
+    640,
+    500,
+    960,
+    720
+   ],
+   "kind": "secondary",
+   "height": 24.8
+  },
+  "hand_open": {
+   "sheet": "B",
+   "rect": [
+    0,
+    0,
+    320,
+    360
+   ],
+   "kind": "hand",
+   "flip": true,
+   "pivotFrac": [
+    0.5,
+    0.25
+   ]
+  },
+  "grip_back": {
+   "sheet": "B",
+   "rect": [
+    320,
+    0,
+    640,
+    360
+   ],
+   "kind": "grip",
+   "flip": true,
+   "file": "hand_grip_back",
+   "pivotFrac": [
+    0.5,
+    0.25
+   ]
+  },
+  "grip_front": {
+   "sheet": "B",
+   "rect": [
+    640,
+    0,
+    960,
+    360
+   ],
+   "kind": "grip",
+   "flip": true,
+   "file": "hand_grip_front"
+  },
+  "hand_fist": {
+   "sheet": "B",
+   "rect": [
+    960,
+    0,
+    1280,
+    360
+   ],
+   "kind": "hand",
+   "flip": true,
+   "pivotFrac": [
+    0.5,
+    0.25
+   ]
+  },
+  "weapon": {
+   "sheet": "B",
+   "rect": [
+    100,
+    350,
+    330,
+    720
+   ],
+   "kind": "weapon",
+   "rotate": -90,
+   "grip": [
+    0.5,
+    0.62
+   ],
+   "tip": [
+    0.5,
+    0.99
+   ],
+   "file": "plug",
+   "scaleMul": 0.8
+  },
+  "cable_seg": {
+   "sheet": "B",
+   "rect": [
+    380,
+    350,
+    580,
+    720
+   ],
+   "kind": "secondary",
+   "rotate": -90,
+   "height": 4,
+   "pivotFrac": [
+    0,
+    0.5
+   ]
+  },
+  "coil": {
+   "sheet": "B",
+   "rect": [
+    600,
+    350,
+    1000,
+    720
+   ],
+   "kind": "secondary",
+   "height": 13.4
+  }
+ },
+ "gripPairs": [
+  [
+   "grip_back",
+   "grip_front"
+  ]
+ ],
+ "rig": {
+  "uarm_b": {
+   "part": "uarm",
+   "parent": "torso",
+   "attach": "torso:shoulder_b"
+  },
+  "farm_b": {
+   "part": "farm",
+   "parent": "uarm_b",
+   "attach": "uarm:joint"
+  },
+  "hand_b": {
+   "part": "hand_fist",
+   "parent": "farm_b",
+   "attach": "farm:joint",
+   "role": "hand"
+  },
+  "hand_b@open": {
+   "part": "hand_open",
+   "role": "variant"
+  },
+  "thigh_b": {
+   "part": "thigh",
+   "parent": "torso",
+   "attach": "torso:hip_b"
+  },
+  "shin_b": {
+   "part": "shin",
+   "parent": "thigh_b",
+   "attach": "thigh:joint"
+  },
+  "foot_b": {
+   "part": "foot",
+   "parent": "shin_b",
+   "attach": "shin:joint",
+   "role": "foot"
+  },
+  "head": {
+   "parent": "torso",
+   "attach": "torso:neck"
+  },
+  "head@front": {
+   "part": "head_front",
+   "role": "variant"
+  },
+  "thigh": {
+   "parent": "torso",
+   "attach": "torso:hip"
+  },
+  "shin": {
+   "parent": "thigh",
+   "attach": "thigh:joint"
+  },
+  "foot": {
+   "parent": "shin",
+   "attach": "shin:joint",
+   "role": "foot"
+  },
+  "torso": {
+   "role": "torso"
+  },
+  "torso@front": {
+   "part": "torso_front",
+   "role": "variant"
+  },
+  "coil": {
+   "parent": "torso",
+   "attach": "torso:coil",
+   "role": "spring",
+   "data": {
+    "spring": [
+     220,
+     16,
+     0.06
+    ],
+    "range": [
+     -20,
+     20
+    ]
+   }
+  },
+  "hair_long": {
+   "parent": "head",
+   "attach": "head:hair_long",
+   "role": "spring",
+   "data": {
+    "spring": [
+     110,
+     10,
+     0.14
+    ],
+    "range": [
+     -25,
+     60
+    ]
+   }
+  },
+  "hair_short": {
+   "parent": "head",
+   "attach": "head:hair_short",
+   "role": "spring",
+   "data": {
+    "spring": [
+     110,
+     10,
+     0.14
+    ],
+    "range": [
+     -20,
+     45
+    ]
+   }
+  },
+  "uarm": {
+   "parent": "torso",
+   "attach": "torso:shoulder"
+  },
+  "farm": {
+   "parent": "uarm",
+   "attach": "uarm:joint"
+  },
+  "hand": {
+   "part": "grip_back",
+   "parent": "farm",
+   "attach": "farm:joint",
+   "role": "hand"
+  },
+  "weapon": {
+   "parent": "hand",
+   "attach": "grip_back:grip",
+   "role": "weapon"
+  },
+  "hand_front": {
+   "part": "grip_front",
+   "parent": "hand",
+   "attach": "grip_back:pivot",
+   "role": "grip_front"
+  },
+  "cable": {
+   "part": "cable_seg",
+   "parent": "weapon",
+   "attach": "weapon:tip",
+   "role": "rope",
+   "data": {
+    "segs": 10,
+    "len": 6,
+    "lash": 118
+   }
+  },
+  "cable_end": {
+   "part": "weapon",
+   "parent": "cable",
+   "role": "rope_end"
+  }
+ },
+ "outputs": {
+  "sha256": {
+   "nous_girl_head.png": "c2bf13beffe60cb3b2f400730eebe0c7247190d33165c467b00b6dccf9656770",
+   "nous_girl_head_front.png": "4f0334c6879d1de340e8f544a0d8ea508fbeab7061d27d964f17556400b023d2",
+   "nous_girl_torso.png": "3a702dcdb260442393bec2e9eb9718e0d128b45ad541f8a10ec344615de6c0ed",
+   "nous_girl_torso_front.png": "695398a71f9b6f8e19353e632c166c4083eab082be1c59e1ed089e81a38b1a4b",
+   "nous_girl_uarm.png": "1b2a4097bd5a7af7b7e084e344dead2f3fa780cabb36ae4e126980662552bcac",
+   "nous_girl_farm.png": "dd03c41beaed05e7f00a01b5e7fa62cab73fb7ce876a52598b9360c4ecd1486b",
+   "nous_girl_thigh.png": "d07a67e31862eec195a92be793051ae0ceb867b29810819270a2c6ea5ee15ff1",
+   "nous_girl_shin.png": "65355e2876f91c3e99f73485966bfccf256b55ad8126d00e20a72d625c5d251a",
+   "nous_girl_foot.png": "39a0f315f7415d5baf6aa83366362e806c7005a154acbee34543f61be2e50f7f",
+   "nous_girl_hair_long.png": "36285b6b8e7115de2552d0f75299c3b074cae5f26c0adb4765f23d60e2f1dbd4",
+   "nous_girl_hair_short.png": "d6e308137bb0d4aa947d7fe7b4574df462c7b9885a4dde5107b6973ffd017c81",
+   "nous_girl_hand_open.png": "9b907fa4e33418cad6765f5d0b4e647307920a38276d00de4153d7657d7e88b9",
+   "nous_girl_hand_grip_back.png": "6d5fbac2889139181a2dc614dd2b72165efe59e9aee5c5df1ce562a8f5110786",
+   "nous_girl_hand_grip_front.png": "ebe9cf8541202aee35bf534e3e66ab5ed7968181699734cb9487253d8a32cab8",
+   "nous_girl_hand_fist.png": "8e907704885c640cebcdf87145f6086a3a1df0f5498ae7af4fb68e81a728bb8d",
+   "nous_girl_plug.png": "d21dd3b0f6af20bbf2624ab303d67ed373afb4e7072c1361ee1f9b2ef1309e12",
+   "nous_girl_cable_seg.png": "fe964141fb1065d35bdf51902d63bc3ea1edf01aafbe8b335cd66df123e1e683",
+   "nous_girl_coil.png": "835b72cf3896cfead1459b0052c9843388b502a905bfece75b7ee34133aff2eb"
+  },
+  "inputs": {
+   "A": "17700c9c4030c3a96621121e1bbc2e7885386001fc75cc61067f2987e2750778",
+   "B": "22ad0cb7bc63ed9ed84d26595efa6533ac8aec1d62199ddc1a84c6dee3cac6b0"
+  }
+ },
+ "measured": {
+  "head": {
+   "w": 42,
+   "h": 49,
+   "kind": "head",
+   "scale": 0.2406,
+   "pivot": [
+    22,
+    45
+   ],
+   "anchors": {
+    "hair_long": [
+     8,
+     39
+    ],
+    "hair_short": [
+     18,
+     42
+    ]
+   },
+   "partialAlpha": 0.208,
+   "magentaPixels": 0
+  },
+  "head_front": {
+   "w": 41,
+   "h": 49,
+   "kind": "head",
+   "scale": 0.2394,
+   "pivot": [
+    20,
+    45
+   ],
+   "anchors": {
+    "hair_long": [
+     8,
+     39
+    ],
+    "hair_short": [
+     17,
+     42
+    ]
+   },
+   "partialAlpha": 0.216,
+   "magentaPixels": 0
+  },
+  "torso": {
+   "w": 45,
+   "h": 66,
+   "kind": "torso",
+   "scale": 0.2929,
+   "pivot": [
+    22,
+    33
+   ],
+   "anchors": {
+    "neck": [
+     22,
+     8
+    ],
+    "shoulder": [
+     8,
+     16
+    ],
+    "shoulder_b": [
+     37,
+     15
+    ],
+    "hip": [
+     17,
+     57
+    ],
+    "hip_b": [
+     28,
+     57
+    ],
+    "coil": [
+     12,
+     44
+    ]
+   },
+   "partialAlpha": 0.195,
+   "magentaPixels": 0
+  },
+  "torso_front": {
+   "w": 46,
+   "h": 66,
+   "kind": "torso",
+   "scale": 0.2929,
+   "pivot": [
+    23,
+    33
+   ],
+   "anchors": {},
+   "partialAlpha": 0.196,
+   "magentaPixels": 0
+  },
+  "uarm": {
+   "w": 12,
+   "h": 45,
+   "kind": "limb",
+   "scale": 0.1901,
+   "pivot": [
+    6,
+    4
+   ],
+   "joint": [
+    6,
+    41
+   ],
+   "partialAlpha": 0.444,
+   "magentaPixels": 0
+  },
+  "farm": {
+   "w": 11,
+   "h": 42,
+   "kind": "limb",
+   "scale": 0.1797,
+   "pivot": [
+    5,
+    3
+   ],
+   "joint": [
+    4,
+    38
+   ],
+   "partialAlpha": 0.474,
+   "magentaPixels": 0
+  },
+  "thigh": {
+   "w": 15,
+   "h": 48,
+   "kind": "limb",
+   "scale": 0.2078,
+   "pivot": [
+    7,
+    4
+   ],
+   "joint": [
+    7,
+    44
+   ],
+   "partialAlpha": 0.336,
+   "magentaPixels": 0
+  },
+  "shin": {
+   "w": 14,
+   "h": 45,
+   "kind": "limb",
+   "scale": 0.1924,
+   "pivot": [
+    7,
+    3
+   ],
+   "joint": [
+    6,
+    42
+   ],
+   "partialAlpha": 0.363,
+   "magentaPixels": 0
+  },
+  "foot": {
+   "w": 29,
+   "h": 17,
+   "kind": "foot",
+   "scale": 0.1457,
+   "pivot": [
+    9,
+    2
+   ],
+   "sole": [
+    3,
+    16,
+    27,
+    16
+   ],
+   "partialAlpha": 0.422,
+   "magentaPixels": 0
+  },
+  "hair_long": {
+   "w": 18,
+   "h": 31,
+   "kind": "secondary",
+   "scale": 0.1761,
+   "pivot": [
+    7,
+    1
+   ],
+   "partialAlpha": 0.664,
+   "magentaPixels": 0
+  },
+  "hair_short": {
+   "w": 10,
+   "h": 25,
+   "kind": "secondary",
+   "scale": 0.1494,
+   "pivot": [
+    3,
+    1
+   ],
+   "partialAlpha": 0.77,
+   "magentaPixels": 0
+  },
+  "hand_open": {
+   "w": 10,
+   "h": 24,
+   "kind": "hand",
+   "scale": 0.0854,
+   "pivot": [
+    5,
+    6
+   ],
+   "partialAlpha": 0.606,
+   "magentaPixels": 0
+  },
+  "grip_back": {
+   "w": 9,
+   "h": 20,
+   "kind": "grip",
+   "scale": 0.0854,
+   "pivot": [
+    4,
+    5
+   ],
+   "grip": [
+    4,
+    16
+   ],
+   "axis": 0.0,
+   "sourceIoU": 0.978,
+   "source": "grip_front",
+   "partialAlpha": 0.632,
+   "magentaPixels": 0
+  },
+  "grip_front": {
+   "w": 9,
+   "h": 20,
+   "kind": "grip",
+   "scale": 0.0854,
+   "pivot": [
+    4,
+    5
+   ],
+   "registeredWith": "grip_back",
+   "grip": [
+    4,
+    16
+   ],
+   "axis": 0.0,
+   "sourceIoU": 0.978,
+   "source": "grip_front",
+   "partialAlpha": 0.707,
+   "magentaPixels": 0
+  },
+  "hand_fist": {
+   "w": 9,
+   "h": 20,
+   "kind": "hand",
+   "scale": 0.0854,
+   "pivot": [
+    4,
+    5
+   ],
+   "partialAlpha": 0.64,
+   "magentaPixels": 0
+  },
+  "weapon": {
+   "w": 18,
+   "h": 3,
+   "kind": "weapon",
+   "scale": 0.0683,
+   "pivot": [
+    11,
+    1
+   ],
+   "tip": [
+    17,
+    1
+   ],
+   "partialAlpha": 0.722,
+   "magentaPixels": 0
+  },
+  "cable_seg": {
+   "w": 38,
+   "h": 4,
+   "kind": "secondary",
+   "scale": 0.1481,
+   "pivot": [
+    0,
+    2
+   ],
+   "partialAlpha": 0.526,
+   "magentaPixels": 0
+  },
+  "coil": {
+   "w": 16,
+   "h": 13,
+   "kind": "secondary",
+   "scale": 0.0736,
+   "pivot": [
+    8,
+    1
+   ],
+   "partialAlpha": 0.688,
+   "magentaPixels": 0
+  }
+ }
+}

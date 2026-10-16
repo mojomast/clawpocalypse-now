@@ -1,7 +1,9 @@
 // Real index.html + keyboard smoke test; no renderer or asset mocks.
-// Start python3 -m http.server 48791, then node browser-smoke.mjs.
+// Start python3 -m http.server 48791, then node browser-smoke.mjs [--out DIR].
 import assert from 'node:assert/strict';
 import { mkdir, writeFile } from 'node:fs/promises';
+import { join, resolve } from 'node:path';
+import { tmpdir } from 'node:os';
 import { chromium } from 'playwright';
 
 const url = process.env.GAME_URL || 'http://127.0.0.1:48791/index.html?coach=0';
@@ -10,7 +12,10 @@ const browser = await chromium.launch({ headless: true,
   args: ['--no-sandbox'] });
 const heroes = ['turtle_purple', 'turtle_blue', 'turtle_red', 'turtle_orange', 'nous_girl', 'teknium', 'turbofit', 'don_piedro'];
 const results = [];
-await mkdir('after/gameplay', { recursive: true });
+// Screenshots and results go to --out DIR (default: a temp folder), never the tracked after/.
+const outArg = process.argv.indexOf('--out');
+const out = resolve(outArg > 0 ? process.argv[outArg + 1] : join(tmpdir(), 'cpn-browser-smoke'));
+await mkdir(out, { recursive: true });
 try {
   for (const [index, hero] of heroes.entries()) {
     const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
@@ -49,7 +54,7 @@ try {
     await page.keyboard.down('KeyJ'); await page.keyboard.press('KeyL'); await page.keyboard.up('KeyJ');
     await page.waitForTimeout(900);
     await page.keyboard.press('KeyT'); await page.waitForTimeout(300);
-    await page.screenshot({ path: `after/gameplay/${hero}.png` });
+    await page.screenshot({ path: join(out, `${hero}.png`) });
     const stats = await page.evaluate(() => ({ renderErrors: window.__ppRenderErrors,
       hero: window.__ppState.selectedHero, facing: window.__ppState.combat.facing,
       drawn: window.__ppRig.drawn, log: window.__ppState.combat.log }));
@@ -61,6 +66,6 @@ try {
     console.log(`${hero}: keyboard gameplay, 0 console/render errors`);
   }
 } finally {
-  await writeFile('after/gameplay/results.json', JSON.stringify(results, null, 2) + '\n');
+  await writeFile(join(out, 'results.json'), JSON.stringify(results, null, 2) + '\n');
   await browser.close();
 }

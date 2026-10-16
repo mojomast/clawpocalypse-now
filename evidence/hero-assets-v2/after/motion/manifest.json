@@ -1,0 +1,198 @@
+{
+  "sourceRevision": "2120bd6",
+  "harness": "scratch /tmp/cpn-hv2-clone/__hv2 (copied to evidence/hero-assets-v2/before/harness/)",
+  "errors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ],
+  "strips": [
+    {
+      "hero": "nous_girl",
+      "seq": "walk",
+      "file": "motion/nous_girl/walk.png",
+      "sampledFrames": [
+        18,
+        18
+      ]
+    },
+    {
+      "hero": "nous_girl",
+      "seq": "run",
+      "file": "motion/nous_girl/run.png",
+      "sampledFrames": [
+        19,
+        19
+      ]
+    },
+    {
+      "hero": "nous_girl",
+      "seq": "idle-to-attack",
+      "file": "motion/nous_girl/idle-to-attack.png",
+      "sampledFrames": [
+        23,
+        23
+      ]
+    },
+    {
+      "hero": "nous_girl",
+      "seq": "combo",
+      "file": "motion/nous_girl/combo.png",
+      "sampledFrames": [
+        35,
+        35
+      ]
+    },
+    {
+      "hero": "nous_girl",
+      "seq": "turn",
+      "file": "motion/nous_girl/turn.png",
+      "sampledFrames": [
+        27,
+        27
+      ]
+    },
+    {
+      "hero": "nous_girl",
+      "seq": "landing",
+      "file": "motion/nous_girl/landing.png",
+      "sampledFrames": [
+        22,
+        22
+      ]
+    },
+    {
+      "hero": "nous_girl",
+      "seq": "hurt-down-getup",
+      "file": "motion/nous_girl/hurt-down-getup.png",
+      "sampledFrames": [
+        35,
+        35
+      ]
+    },
+    {
+      "hero": "teknium",
+      "seq": "walk",
+      "file": "motion/teknium/walk.png",
+      "sampledFrames": [
+        18,
+        18
+      ]
+    },
+    {
+      "hero": "teknium",
+      "seq": "run",
+      "file": "motion/teknium/run.png",
+      "sampledFrames": [
+        19,
+        19
+      ]
+    },
+    {
+      "hero": "teknium",
+      "seq": "idle-to-attack",
+      "file": "motion/teknium/idle-to-attack.png",
+      "sampledFrames": [
+        23,
+        23
+      ]
+    },
+    {
+      "hero": "teknium",
+      "seq": "combo",
+      "file": "motion/teknium/combo.png",
+      "sampledFrames": [
+        34,
+        34
+      ]
+    },
+    {
+      "hero": "teknium",
+      "seq": "turn",
+      "file": "motion/teknium/turn.png",
+      "sampledFrames": [
+        27,
+        27
+      ]
+    },
+    {
+      "hero": "teknium",
+      "seq": "landing",
+      "file": "motion/teknium/landing.png",
+      "sampledFrames": [
+        22,
+        22
+      ]
+    },
+    {
+      "hero": "teknium",
+      "seq": "hurt-down-getup",
+      "file": "motion/teknium/hurt-down-getup.png",
+      "sampledFrames": [
+        35,
+        35
+      ]
+    },
+    {
+      "hero": "turbofit",
+      "seq": "walk",
+      "file": "motion/turbofit/walk.png",
+      "sampledFrames": [
+        18,
+        18
+      ]
+    },
+    {
+      "hero": "turbofit",
+      "seq": "run",
+      "file": "motion/turbofit/run.png",
+      "sampledFrames": [
+        19,
+        19
+      ]
+    },
+    {
+      "hero": "turbofit",
+      "seq": "idle-to-attack",
+      "file": "motion/turbofit/idle-to-attack.png",
+      "sampledFrames": [
+        23,
+        23
+      ]
+    },
+    {
+      "hero": "turbofit",
+      "seq": "combo",
+      "file": "motion/turbofit/combo.png",
+      "sampledFrames": [
+        38,
+        38
+      ]
+    },
+    {
+      "hero": "turbofit",
+      "seq": "turn",
+      "file": "motion/turbofit/turn.png",
+      "sampledFrames": [
+        27,
+        27
+      ]
+    },
+    {
+      "hero": "turbofit",
+      "seq": "landing",
+      "file": "motion/turbofit/landing.png",
+      "sampledFrames": [
+        22,
+        22
+      ]
+    },
+    {
+      "hero": "turbofit",
+      "seq": "hurt-down-getup",
+      "file": "motion/turbofit/hurt-down-getup.png",
+      "sampledFrames": [
+        35,
+        35
+      ]
+    }
+  ]
+}

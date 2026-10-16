@@ -1,0 +1,6 @@
+Actual depth queue: rear enemy → airborne P1 → P2 → barrel → front boss; all eight stages render without errors.
+
+real	0m5.245s
+user	0m1.845s
+sys	0m0.631s
+exit=0

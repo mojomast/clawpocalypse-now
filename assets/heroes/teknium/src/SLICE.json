@@ -1,0 +1,634 @@
+{
+ "hero": "teknium",
+ "note": "Approved design src/design.jpg. sheetA-rejected-blue-visor.jpg is intentionally unused.",
+ "sheets": {
+  "A": {
+   "file": "sheetA.jpg",
+   "grid": [
+    4,
+    3
+   ]
+  },
+  "B": {
+   "file": "sheetB.jpg",
+   "scaleFrom": {
+    "part": "grip_front",
+    "wristWidth": 10.3
+   }
+  }
+ },
+ "parts": {
+  "head": {
+   "sheet": "A",
+   "cell": [
+    0,
+    0
+   ],
+   "kind": "head",
+   "height": 45.3
+  },
+  "head_front": {
+   "sheet": "A",
+   "cell": [
+    1,
+    0
+   ],
+   "kind": "head",
+   "height": 45.3
+  },
+  "torso": {
+   "sheet": "A",
+   "cell": [
+    2,
+    0
+   ],
+   "kind": "torso",
+   "height": 61.8,
+   "anchors": {
+    "neck": [
+     0.55,
+     0.12
+    ],
+    "shoulder": [
+     0.2,
+     0.22
+    ],
+    "shoulder_b": [
+     0.78,
+     0.18
+    ],
+    "hip": [
+     0.38,
+     0.85
+    ],
+    "hip_b": [
+     0.62,
+     0.85
+    ],
+    "hem": [
+     0.18,
+     0.9
+    ],
+    "hem_b": [
+     0.3,
+     0.9
+    ]
+   }
+  },
+  "torso_front": {
+   "sheet": "A",
+   "cell": [
+    3,
+    0
+   ],
+   "kind": "torso",
+   "height": 61.8
+  },
+  "uarm": {
+   "sheet": "A",
+   "cell": [
+    0,
+    1
+   ],
+   "kind": "limb",
+   "length": 34
+  },
+  "farm": {
+   "sheet": "A",
+   "cell": [
+    1,
+    1
+   ],
+   "kind": "limb",
+   "length": 32
+  },
+  "thigh": {
+   "sheet": "A",
+   "cell": [
+    2,
+    1
+   ],
+   "kind": "limb",
+   "length": 39.1
+  },
+  "shin": {
+   "sheet": "A",
+   "cell": [
+    3,
+    1
+   ],
+   "kind": "limb",
+   "length": 35.0
+  },
+  "foot": {
+   "sheet": "A",
+   "cell": [
+    0,
+    2
+   ],
+   "kind": "foot",
+   "length": 29.9
+  },
+  "hem": {
+   "sheet": "A",
+   "cell": [
+    1,
+    2
+   ],
+   "kind": "secondary",
+   "height": 24.7,
+   "file": "hem_tail"
+  },
+  "hem_far": {
+   "sheet": "A",
+   "cell": [
+    2,
+    2
+   ],
+   "kind": "secondary",
+   "height": 24.7,
+   "file": "hem_tail_far"
+  },
+  "hand_open": {
+   "sheet": "B",
+   "rect": [
+    0,
+    0,
+    320,
+    440
+   ],
+   "kind": "hand",
+   "flip": true
+  },
+  "grip_back": {
+   "sheet": "B",
+   "rect": [
+    320,
+    0,
+    640,
+    440
+   ],
+   "kind": "grip",
+   "flip": true,
+   "file": "hand_grip_back"
+  },
+  "grip_front": {
+   "sheet": "B",
+   "rect": [
+    640,
+    0,
+    960,
+    440
+   ],
+   "kind": "grip",
+   "flip": true,
+   "file": "hand_grip_front"
+  },
+  "hand_fist": {
+   "sheet": "B",
+   "rect": [
+    960,
+    0,
+    1280,
+    440
+   ],
+   "kind": "hand",
+   "flip": true
+  },
+  "weapon": {
+   "sheet": "B",
+   "rect": [
+    0,
+    440,
+    1280,
+    720
+   ],
+   "kind": "weapon",
+   "grip": [
+    0.101,
+    0.53
+   ]
+  }
+ },
+ "gripPairs": [
+  [
+   "grip_back",
+   "grip_front"
+  ]
+ ],
+ "rig": {
+  "hem_b": {
+   "part": "hem_far",
+   "parent": "torso",
+   "attach": "torso:hem_b",
+   "role": "spring",
+   "data": {
+    "spring": [
+     150,
+     13,
+     0.12
+    ],
+    "range": [
+     -15,
+     55
+    ]
+   }
+  },
+  "uarm_b": {
+   "part": "uarm",
+   "parent": "torso",
+   "attach": "torso:shoulder_b"
+  },
+  "farm_b": {
+   "part": "farm",
+   "parent": "uarm_b",
+   "attach": "uarm:joint"
+  },
+  "hand_b": {
+   "part": "hand_fist",
+   "parent": "farm_b",
+   "attach": "farm:joint",
+   "role": "hand"
+  },
+  "hand_b@open": {
+   "part": "hand_open",
+   "role": "variant"
+  },
+  "thigh_b": {
+   "part": "thigh",
+   "parent": "torso",
+   "attach": "torso:hip_b"
+  },
+  "shin_b": {
+   "part": "shin",
+   "parent": "thigh_b",
+   "attach": "thigh:joint"
+  },
+  "foot_b": {
+   "part": "foot",
+   "parent": "shin_b",
+   "attach": "shin:joint",
+   "role": "foot"
+  },
+  "head": {
+   "parent": "torso",
+   "attach": "torso:neck"
+  },
+  "head@front": {
+   "part": "head_front",
+   "role": "variant"
+  },
+  "thigh": {
+   "parent": "torso",
+   "attach": "torso:hip"
+  },
+  "shin": {
+   "parent": "thigh",
+   "attach": "thigh:joint"
+  },
+  "foot": {
+   "parent": "shin",
+   "attach": "shin:joint",
+   "role": "foot"
+  },
+  "hem": {
+   "parent": "torso",
+   "attach": "torso:hem",
+   "role": "spring",
+   "data": {
+    "spring": [
+     150,
+     13,
+     0.12
+    ],
+    "range": [
+     -15,
+     55
+    ]
+   }
+  },
+  "torso": {
+   "role": "torso"
+  },
+  "torso@front": {
+   "part": "torso_front",
+   "role": "variant"
+  },
+  "uarm": {
+   "parent": "torso",
+   "attach": "torso:shoulder"
+  },
+  "farm": {
+   "parent": "uarm",
+   "attach": "uarm:joint"
+  },
+  "hand": {
+   "part": "grip_back",
+   "parent": "farm",
+   "attach": "farm:joint",
+   "role": "hand"
+  },
+  "weapon": {
+   "parent": "hand",
+   "attach": "grip_back:grip",
+   "role": "weapon"
+  },
+  "hand_front": {
+   "part": "grip_front",
+   "parent": "hand",
+   "attach": "grip_back:pivot",
+   "role": "grip_front"
+  }
+ },
+ "outputs": {
+  "sha256": {
+   "teknium_head.png": "30d823f0a1f9cfa3e08f19b6be0855dfb70f841701051d144f9b7623003ffcce",
+   "teknium_head_front.png": "d3b161bdc50c68098eaab925a5cef697e6129c4523576f7e979520fc6e760961",
+   "teknium_torso.png": "b1f5cf7e72a9fd445f704a7292940f0320c98b933aa914c15c0f37faae1fdc95",
+   "teknium_torso_front.png": "2bd981e01779b281ecb60c2295ddcb8565486b0c5f536f42f7ad9355237ae9b4",
+   "teknium_uarm.png": "280a3cc8a96e1f25fe151e40877b74d40db9015e9d196f0eed1aa8066344c901",
+   "teknium_farm.png": "55aa05c6623aa965c30b2692d46c764de52517a096355600e1f0a0a9440cf621",
+   "teknium_thigh.png": "22adcf7a7a8e0d510423cf66fdb00d2578a3da1b1aa0e84d15283ec3b07e722f",
+   "teknium_shin.png": "28f1e1a9ea747b0faefa42929f8ab8211152d00a51bfe5b96867da85ca496690",
+   "teknium_foot.png": "9dc69882822429921e76cd372d37b440fa9d5e6a923052fc13e010a8016e0e05",
+   "teknium_hem_tail.png": "f7aa245c0643aa3919cb1179fac70ad9d981b0174d856492b50be8b179d0c4b1",
+   "teknium_hem_tail_far.png": "c7f7d577c2164fa8abeba1796afa9d52da6f71e10952bb61efabe47a4e06cf35",
+   "teknium_hand_open.png": "ba4bd85bb8b1b8d28ff3ff3f69a9801a34df28bbfbb97f10111bf60e90f71e7e",
+   "teknium_hand_grip_back.png": "1c9c496973acabcecd9a5c51ddad54e2ed1bb40035116ecd1378bd8c7a486e6b",
+   "teknium_hand_grip_front.png": "4be76545e149112c75e770b3824f1a4c245c181d1410ccc4505625d1fff18e12",
+   "teknium_hand_fist.png": "6cdfe34ddd13d51f5753d5688ae7b5be39b75b7f108ac05c49d882e04b580e40",
+   "teknium_weapon.png": "c66674dcac7d86ee1bb72ab73f2d8d3cc6994ba4c2c95fe728d674405a1e9ff3"
+  },
+  "inputs": {
+   "A": "b0b2124793f4b1520eecda3a7c4ccb42611a9c3a2c8d5a092bfbc97f96c6b2cc",
+   "B": "524b89690eceae2a6bed765c911eb532fe27e8f104035752f650584b2a90c11f"
+  }
+ },
+ "measured": {
+  "head": {
+   "w": 45,
+   "h": 45,
+   "kind": "head",
+   "scale": 0.2335,
+   "pivot": [
+    21,
+    41
+   ],
+   "partialAlpha": 0.257,
+   "magentaPixels": 0
+  },
+  "head_front": {
+   "w": 42,
+   "h": 45,
+   "kind": "head",
+   "scale": 0.2323,
+   "pivot": [
+    21,
+    41
+   ],
+   "partialAlpha": 0.268,
+   "magentaPixels": 0
+  },
+  "torso": {
+   "w": 41,
+   "h": 62,
+   "kind": "torso",
+   "scale": 0.3029,
+   "pivot": [
+    20,
+    31
+   ],
+   "anchors": {
+    "neck": [
+     23,
+     7
+    ],
+    "shoulder": [
+     8,
+     14
+    ],
+    "shoulder_b": [
+     32,
+     11
+    ],
+    "hip": [
+     16,
+     53
+    ],
+    "hip_b": [
+     25,
+     53
+    ],
+    "hem": [
+     7,
+     56
+    ],
+    "hem_b": [
+     12,
+     56
+    ]
+   },
+   "partialAlpha": 0.196,
+   "magentaPixels": 0
+  },
+  "torso_front": {
+   "w": 43,
+   "h": 62,
+   "kind": "torso",
+   "scale": 0.3029,
+   "pivot": [
+    22,
+    31
+   ],
+   "anchors": {},
+   "partialAlpha": 0.2,
+   "magentaPixels": 0
+  },
+  "uarm": {
+   "w": 10,
+   "h": 40,
+   "kind": "limb",
+   "scale": 0.1753,
+   "pivot": [
+    5,
+    3
+   ],
+   "joint": [
+    5,
+    36
+   ],
+   "partialAlpha": 0.533,
+   "magentaPixels": 0
+  },
+  "farm": {
+   "w": 10,
+   "h": 38,
+   "kind": "limb",
+   "scale": 0.1652,
+   "pivot": [
+    5,
+    3
+   ],
+   "joint": [
+    4,
+    34
+   ],
+   "partialAlpha": 0.462,
+   "magentaPixels": 0
+  },
+  "thigh": {
+   "w": 13,
+   "h": 46,
+   "kind": "limb",
+   "scale": 0.1941,
+   "pivot": [
+    6,
+    4
+   ],
+   "joint": [
+    5,
+    42
+   ],
+   "partialAlpha": 0.422,
+   "magentaPixels": 0
+  },
+  "shin": {
+   "w": 12,
+   "h": 41,
+   "kind": "limb",
+   "scale": 0.1809,
+   "pivot": [
+    6,
+    3
+   ],
+   "joint": [
+    5,
+    37
+   ],
+   "partialAlpha": 0.459,
+   "magentaPixels": 0
+  },
+  "foot": {
+   "w": 30,
+   "h": 17,
+   "kind": "foot",
+   "scale": 0.178,
+   "pivot": [
+    10,
+    2
+   ],
+   "sole": [
+    1,
+    16,
+    28,
+    16
+   ],
+   "partialAlpha": 0.442,
+   "magentaPixels": 0
+  },
+  "hem": {
+   "w": 10,
+   "h": 25,
+   "kind": "secondary",
+   "scale": 0.1273,
+   "pivot": [
+    4,
+    1
+   ],
+   "partialAlpha": 0.565,
+   "magentaPixels": 0
+  },
+  "hem_far": {
+   "w": 10,
+   "h": 25,
+   "kind": "secondary",
+   "scale": 0.128,
+   "pivot": [
+    4,
+    1
+   ],
+   "partialAlpha": 0.562,
+   "magentaPixels": 0
+  },
+  "hand_open": {
+   "w": 14,
+   "h": 22,
+   "kind": "hand",
+   "scale": 0.078,
+   "pivot": [
+    5,
+    1
+   ],
+   "partialAlpha": 0.554,
+   "magentaPixels": 0
+  },
+  "grip_back": {
+   "w": 12,
+   "h": 16,
+   "kind": "grip",
+   "scale": 0.078,
+   "pivot": [
+    5,
+    1
+   ],
+   "grip": [
+    5,
+    11
+   ],
+   "axis": -0.1,
+   "sourceIoU": 0.939,
+   "source": "grip_front",
+   "partialAlpha": 0.517,
+   "magentaPixels": 0
+  },
+  "grip_front": {
+   "w": 12,
+   "h": 16,
+   "kind": "grip",
+   "scale": 0.078,
+   "pivot": [
+    5,
+    1
+   ],
+   "registeredWith": "grip_back",
+   "grip": [
+    5,
+    11
+   ],
+   "axis": -0.1,
+   "sourceIoU": 0.939,
+   "source": "grip_front",
+   "partialAlpha": 0.721,
+   "magentaPixels": 0
+  },
+  "hand_fist": {
+   "w": 12,
+   "h": 18,
+   "kind": "hand",
+   "scale": 0.078,
+   "pivot": [
+    5,
+    1
+   ],
+   "partialAlpha": 0.526,
+   "magentaPixels": 0
+  },
+  "weapon": {
+   "w": 94,
+   "h": 8,
+   "kind": "weapon",
+   "scale": 0.078,
+   "pivot": [
+    9,
+    4
+   ],
+   "tip": [
+    92,
+    3
+   ],
+   "fringeFixed": 11,
+   "partialAlpha": 0.639,
+   "magentaPixels": 0
+  }
+ }
+}

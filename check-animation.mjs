@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createAnim } from './anim.js';
-import { POSES, createRig, solve, apply, SOLES } from './rig.js';
+import { POSES, createRig, solve, apply, SOLES, V2 } from './rig.js';
 import { HEROES } from './heroes.js';
 import { HERO_RIGS } from './hero-rigs.js';
 import { createFootLocks } from './foot-lock.js';
@@ -56,7 +56,7 @@ assert.notEqual(POSES.don_piedro_idleA, POSES.turtle_blue_idleA, 'Don must not a
 assert.notDeepEqual(POSES.don_piedro_idleA, POSES.turtle_blue_idleA, 'Don needs his own stance');
 console.log(`Animation checks passed: ${HEROES.length} heroes, ${samples} recovery samples, state selection, exact impact holds, hit-stop freeze.`);
 
-let contacts = 0, maxDrift = 0;
+let contacts = 0, maxDrift = 0, toeOffs = 0;
 for (const { id: hero } of HEROES) for (const flip of [false, true]) for (const running of [false, true]) {
   const locks = createFootLocks(), anim = createAnim();
   let x = 200;
@@ -72,15 +72,23 @@ for (const { id: hero } of HEROES) for (const flip of [false, true]) for (const 
       assert.ok(pose.__footTargets[side], `${name}: ordinary gait should not release its support anchor`);
       const n = side === 'front' ? 'shin' : 'shin_b', part = HERO_RIGS[hero][n], scale = sol.S[n];
       const point = SOLES[hero][sol.ground[side].contactIndex];
-      const q = apply(sol.M[n], (point[0] - part.px) * scale[0], (point[1] - part.py) * scale[1]);
+      let q = apply(sol.M[n], (point[0] - part.px) * scale[0], (point[1] - part.py) * scale[1]);
+      let expected = locks.tracks.get(hero).anchors[side];
+      if (V2[hero] && sol.ground[side].toeOff) {
+        // v2 toe-off: the toe stays where the flat foot's toe was (anchor + ankle-to-toe offset)
+        const fn = side === 'front' ? 'foot' : 'foot_b', f = HERO_RIGS[hero][fn];
+        q = apply(sol.M[fn], f.sole[2] - f.px, f.sole[3] - f.py);
+        expected += (flip ? -1 : 1) * 0.7 * (f.sole[2] - f.px);
+        toeOffs++;
+      }
       const worldX = x + (flip ? -1 : 1) * 0.7 * q[0];
-      const drift = Math.abs(worldX - locks.tracks.get(hero).anchors[side]);
+      const drift = Math.abs(worldX - expected);
       assert.ok(drift <= 1, `${name}: support foot skated ${drift}px`);
       maxDrift = Math.max(maxDrift, drift); contacts++;
     }
   }
 }
-console.log(`World contacts passed: ${contacts} walking/running supports, both facings; maximum X drift ${maxDrift.toFixed(4)}px.`);
+console.log(`World contacts passed: ${contacts} walking/running supports (${toeOffs} v2 toe-offs), both facings; maximum X drift ${maxDrift.toFixed(4)}px.`);
 
 for (const { id: hero } of HEROES) {
   const locks = createFootLocks(), anim = createAnim();

@@ -5,6 +5,7 @@
 // more, then fades to black (or crossfades into the next queued panel) over FADE.
 // One key press finishes the line being typed, a second press advances.
 import { OPTIONS } from './options-live.js';   // accessibility: text speed, reduced motion, hold-to-advance
+import { preloadPortraits, stepPortraits, drawPortraits, drawDiscord, NAME_COLOR } from './cine-v3.js'; // story v3: speaker portraits + live Discord CRT
 export const PACING = { HOLD_BASE: 1.2, HOLD_PER_CHAR: 0.04, TAIL: 1.5, TAIL_READ: 0.075, FADE: 0.5, LEAD_IN: 0.35, TITLE_BEAT: 0.25 };
 export const holdFor = line => PACING.HOLD_BASE + PACING.HOLD_PER_CHAR * String(line).length;
 // The pause after a panel's LAST line, before it fades to the next scene. Sized to the
@@ -21,8 +22,14 @@ export const lingerFor = lines => {
 // then pans inside the crop, clamped so it can never slide past an image edge.
 export const coverScale = (W, H, iw, ih) => Math.max(W / Math.max(1, iw), H / Math.max(1, ih));
 export function createCinematics(audio) {
+  // story v3: character-free backdrops; the speakers are drawn over them as portraits (cine-v3.js).
+  // A panel switches to its v3 backdrop once that JPG is in assets/cine/v3/ and its key is in
+  // V3_READY (no build step, and no request for a file that is not shipped, so nothing 404s).
+  const V3 = { intro0: 'bg_donnie_lair.jpg', intro1: 'bg_meeting.jpg', intro2: 'bg_briefing.jpg', intro3: 'bg_teamup.jpg', bossEnter: 'bg_boss_enter.jpg', bossDefeat: 'bg_boss_defeat.jpg', ending: 'bg_ending.jpg' };
+  const V3_READY = new Set(['intro0']);
   const src = {
     intro: 'assets/cine/intro.jpg', // legacy single panel, kept as a fallback
+    intro0: 'assets/cine/intro_1_meeting.jpg', // Donatello's lair (v3): the CRT shows the live Discord feed
     intro1: 'assets/cine/intro_1_meeting.jpg',
     intro2: 'assets/cine/intro_2_briefing.jpg',
     intro3: 'assets/cine/intro_3_teamup.jpg',
@@ -31,6 +38,7 @@ export function createCinematics(audio) {
     bossDefeat: 'assets/cine/boss_defeat.jpg',
     ending: 'assets/cine/ending.jpg'
   };
+  for (const k of V3_READY) src[k] = 'assets/cine/v3/' + V3[k];
   const img = {};
   for (const [name, url] of Object.entries(src)) {
     if (typeof Image === 'undefined') break;
@@ -40,6 +48,7 @@ export function createCinematics(audio) {
     i.src = url;
     img[name] = i;
   }
+  preloadPortraits();
 
   const scenes = {
     // The old 'title' card is gone: title.js runs the arcade attract sequence.
@@ -55,10 +64,10 @@ export function createCinematics(audio) {
     // Mikey and Raph do not follow any of it, Leo half does. AI tropes are used as the
     // turtles would actually meet them - tool calls, context windows, evals, prompt
     // injection, open weights - so the beat reads as believable rather than decorative.
-    // Art note: this panel reuses the meeting art with its own camera move; a dedicated
-    // Donnie-at-the-terminal painting would be better and is worth a follow-up.
+    // story v3: the panel has its own lair backdrop, and the Discord on the CRT is drawn live
+    // (cine-v3.js drawDiscord), its messages arriving in step with the lines below.
     intro_0: {
-      typeRate: 46, img: 'intro1', fallback: 'intro', sound: 'blip', accent: 'riser', music: 'intro', duration: 7.4,
+      typeRate: 46, img: 'intro0', discord: true, portraitSide: 'right', fallback: 'intro', sound: 'blip', accent: 'riser', music: 'intro', duration: 7.4,
       title: 'ORIGIN: THE CONTEXT WINDOW',
       // Width rule: the canvas is 740 px wide and lines draw at 18 px monospace
       // (~10.8 px per character), so a line must stay around 60 characters or it runs
@@ -72,29 +81,24 @@ export function createCinematics(audio) {
         'RAPHAEL: I do not know what an agent is. Not pretending.',
         'DONATELLO: Stay behind me, hit things. Mikey, hold context.'
       ],
-      focus: [0.30, 0.62, 0.50],
-      lineFocus: [[0.30, 0.62, 0.55], [0.55, 0.45, 0.50], [0.18, 0.55, 0.52], [0.62, 0.58, 0.50], [0.40, 0.72, 0.60], [0.78, 0.70, 0.58], [0.30, 0.62, 0.55]],
-      from: [0.62, 0.22], to: [0.30, 0.58], zoom: [1.35, 1.05], shake: 0
+      // story v3: the backdrops carry no characters, so no per-speaker pans; a slow Ken Burns
+      // drift instead (kept small here so the CRT stays on screen, left of the portraits).
+      from: [0.40, 0.44], to: [0.36, 0.50], zoom: [1.02, 1.10], shake: 0
     },
     intro_1: {
       typeRate: 46, img: 'intro1', fallback: 'intro', sound: 'start', accent: 'thunder', music: 'intro', duration: 6.6,
       title: 'AGENT ARMEGEDDON', lines: ['TEKNIUM: So you four are the ones who run the sewers.', 'NOUS GIRL: Claws in your pipes. Those callbacks are not his.', 'DONATELLO: Prompt injection. That is how it got past them.'],
-      focus: [0.12, 0.85, 0.55],
-      // One camera target per line: the pan follows whoever is speaking.
-      lineFocus: [[0.12, 0.82, 0.62], [0.88, 0.62, 0.56], [0.50, 0.78, 0.50]],
-      from: [0.30, 0.35], to: [0.55, 0.50], zoom: [1.0, 1.25], shake: 0.02
+      from: [0.42, 0.45], to: [0.56, 0.52], zoom: [1.04, 1.14], shake: 0.02
     },
     intro_2: {
       typeRate: 46, img: 'intro2', fallback: 'intro', sound: 'blip', accent: 'riser', music: 'intro', duration: 6.6,
       title: 'THE BRIEFING', lines: ['NOUS GIRL: His root gateway sits on top of Claw Tower.', 'TURBOFIT: We run hermes claw migrate there. Locally!', 'LEONARDO: Open weights, closed claws. I follow half of this.'],
-      focus: [0.87, 0.65, 0.45],
-      lineFocus: [[0.88, 0.60, 0.52], [0.16, 0.70, 0.60], [0.50, 0.66, 0.48]],
-      from: [0.55, 0.30], to: [0.45, 0.45], zoom: [1.2, 1.0], shake: 0
+      from: [0.54, 0.42], to: [0.46, 0.48], zoom: [1.14, 1.04], shake: 0
     },
     // baba_booey (t_9ec48322f6de4bf7): the 8th hero crashes the briefing. Lines stack, so each stays up well past
     // 2.5 s + 50 ms per character; the tail linger gives the pause after the last one.
     intro_don: {
-      typeRate: 46, img: 'introDon', fallback: 'intro3', sound: 'jump', accent: 'impact', music: 'intro', duration: 6.6,
+      typeRate: 46, img: 'introDon', fallback: 'intro3', portraitSkip: ['DON PIEDRO'], portraitSide: 'left', // don.js draws Don himself sound: 'jump', accent: 'impact', music: 'intro', duration: 6.6,
       title: 'THE FANBOY', lines: ['DON PIEDRO: Hello I Hermes biggest fanboi.', 'DON PIEDRO: Claw boss want migrate Hermes? I bring spoon.', 'TEKNIUM: ...Fine. The bear with the spoon is in.'],
       focus: [0.70, 0.60, 0.50],
       lineFocus: [[0.72, 0.62, 0.55], [0.72, 0.60, 0.55], [0.40, 0.55, 0.50]],
@@ -103,24 +107,22 @@ export function createCinematics(audio) {
     intro_3: {
       typeRate: 46, img: 'intro3', fallback: 'intro', sound: 'start', accent: 'chime', music: 'intro', duration: 6.6,
       title: 'TEAM UP', lines: ["TEKNIUM: Eight of us. One rogue claw. Let's ship it.", 'TURTLES: Cowabunga! The claw is NOT the law!', '{HERO} leads the charge.  J punch  K kick  L jump  SPACE pizza'],
-      focus: [0.12, 0.55, 0.50],
-      lineFocus: [[0.18, 0.58, 0.56], [0.42, 0.70, 0.62], [0.50, 0.62, 0.52]],
-      from: [0.50, 0.55], to: [0.50, 0.30], zoom: [1.3, 1.05], shake: 0.03
+      from: [0.50, 0.52], to: [0.50, 0.40], zoom: [1.12, 1.03], shake: 0.03
     },
     bossEnter: {
       img: 'bossEnter', sound: 'boss', accent: 'riser', music: 'entrance', duration: 3.6,
       title: 'SHREDCLAW', lines: ['SHREDCLAW: New shell. Same lobster. MORE CLAWS.', 'SHREDCLAW: Task received. Running --yolo. The claw is the law.', 'He installed every skill, rewrote his own SOUL.md and skipped every eval.'],
-      from: [0.48, 0.10], to: [0.48, 0.28], zoom: [1.05, 1.45], shake: 0.08
+      from: [0.50, 0.40], to: [0.50, 0.48], zoom: [1.02, 1.16], shake: 0.08
     },
     bossDefeat: {
       img: 'bossDefeat', sound: 'over', accent: 'impact', music: 'defeat', duration: 3.8,
       title: 'SHREDCLAW DOWN', lines: ['{HERO} stands over the fallen Shredclaw.', 'Root gateway open. Running: hermes claw migrate...', 'Memories, skills, SOUL.md: every claw comes home.'],
-      from: [0.45, 0.50], to: [0.22, 0.45], zoom: [1.0, 1.25], shake: 0
+      from: [0.52, 0.50], to: [0.44, 0.46], zoom: [1.02, 1.12], shake: 0
     },
     ending: {
       img: 'ending', sound: 'wave', accent: 'chime', music: 'ending', duration: 5.8,
       title: 'THE LAST SLICE', lines: ['Sunrise. The claws molt back into friendly helpers.', 'Even Shredclaw: new shell, much nicer lobster.', 'Press SPACE to start a new run.'],
-      from: [0.81, 0.45], to: [0.30, 0.33], zoom: [1.0, 1.25], shake: 0
+      from: [0.58, 0.48], to: [0.44, 0.42], zoom: [1.02, 1.12], shake: 0
     }
   };
 
@@ -162,7 +164,7 @@ export function createCinematics(audio) {
     state.typed = 0;
     state.blipAt = 0;
     state.li = 0; state.ch = 0; state.phase = 'in'; state.phaseT = 0; state.holdT = 0;
-    { const sc = scenes[next.id]; state.fx = null; state.scene = { id: next.id, ...sc, title: fill(sc.title), lines: sc.lines.map(fill), onDone: next.onDone }; }
+    { const sc = scenes[next.id]; state.fx = null; state.scene = { id: next.id, ...sc, title: fill(sc.title), lines: sc.lines.map(fill), raw: sc.lines.slice(), onDone: next.onDone }; }
     state.scene.duration = runTime(state.scene);
     setLinger(state.scene);                       // readable pause before the next scene
     state.countdown = state.scene.duration;
@@ -214,6 +216,8 @@ export function createCinematics(audio) {
     for (let i = 0; i < state.li && i < all.length; i++) n += all[i].length;
     state.typed = n + Math.min(state.ch, (all[state.li] || '').length);
   }
+  // Index into s.lines of the line currently on screen (-1 while the title types).
+  function curLine() { const s = state.scene; if (!s) return -1; return (state.phase === 'tail' || state.phase === 'out') ? s.lines.length - 1 : state.li - 1; }
   function toTail() { state.phase = 'tail'; state.phaseT = 0; }
   function toOut() { state.phase = 'out'; state.phaseT = 0; state.outCross = state.queue.length > 0; if (state.outCross) finish(true); }
   function nextLine(byKey) {
@@ -225,7 +229,7 @@ export function createCinematics(audio) {
     if (!state.active || !state.scene) return;
     const done = completed ? state.scene.onDone : null;
     // Crossfade: keep the outgoing panel to dissolve over the next one.
-    state.prev = state.outCross && state.queue.length ? { scene: state.scene, fx: state.fx, t: state.t, typed: state.typed } : null;
+    state.prev = state.outCross && state.queue.length ? { scene: state.scene, fx: state.fx, t: state.t, typed: state.typed, li: state.scene.lines.length } : null;
     state.prevT = 0; state.outCross = false;
     if (audio && state.scene.id !== 'ending' && !state.queue.length && !state.scene.onDone) { try { audio.music('sewer', 0.8); } catch { } }
     if (state.scene.id === 'ending' && typeof window !== 'undefined') {
@@ -262,6 +266,8 @@ export function createCinematics(audio) {
     }
     if (!state.active) return;
     syncTyped();
+    // story v3: who is speaking right now (the last line on screen) drives the portraits.
+    { const n = curLine(); stepPortraits(s, n >= 0 ? s.raw[n] : null, state.hero, state.t, { side: s.portraitSide, skip: s.portraitSkip }); }
     state.countdown = Math.max(0, s.duration - state.t);
     // Typewriter ticks: one blip every couple of revealed characters.
     const typedNow = Math.floor(state.typed);
@@ -303,11 +309,12 @@ export function createCinematics(audio) {
       const kb = 1 + KEN_BURNS * e * OPTIONS.motionScale;
       return { x, y, z: z * kb, shake: s.shake * (1 - p), clamp: true };
     }
+    const m = e * (OPTIONS.motionScale == null ? 1 : OPTIONS.motionScale); // reduced motion: hold the opening frame
     return {
-      x: s.from[0] + (s.to[0] - s.from[0]) * e,
-      y: s.from[1] + (s.to[1] - s.from[1]) * e,
-      z: s.zoom[0] + (s.zoom[1] - s.zoom[0]) * e,
-      shake: s.shake * (1 - p)
+      x: s.from[0] + (s.to[0] - s.from[0]) * m,
+      y: s.from[1] + (s.to[1] - s.from[1]) * m,
+      z: s.zoom[0] + (s.zoom[1] - s.zoom[0]) * m,
+      shake: s.shake * (1 - p) * (OPTIONS.motionScale == null ? 1 : OPTIONS.motionScale)
     };
   }
 
@@ -337,6 +344,9 @@ const KEN_BURNS = 0.06;
       ctx.save(); ctx.translate(ox, oy);
       ctx.drawImage(im, 0, 0, dw, dh);
       ctx.restore();
+      // story v3: the Discord feed is locked to the CRT through the same cover-fit + Ken Burns map
+      // (CRT coordinates are in 1280x720 image px).
+      if (s.discord && im === img[s.img] && V3_READY.has(s.img)) drawDiscord(ctx, { ox, oy, k: dw / 1280 }, s, view.li == null ? 0 : view.li, view.t);
     } else {
       ctx.fillStyle = '#050814';
       ctx.fillRect(0, 0, W, H);
@@ -355,6 +365,8 @@ const KEN_BURNS = 0.06;
       used += line.length;
       return chars;
     });
+    // story v3: speaker portraits stand on the top edge of the caption block (above the title line).
+    drawPortraits(ctx, W, H, s, view.t, H - 182, OPTIONS.motionScale == null ? 1 : OPTIONS.motionScale);
     // story-v2: a soft gradient scrim under the caption instead of a solid band (no bars).
     { const g = ctx.createLinearGradient(0, H - 215, 0, H); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(0.35, 'rgba(0,0,0,0.5)'); g.addColorStop(1, 'rgba(0,0,0,0.72)'); ctx.fillStyle = g; ctx.fillRect(0, H - 215, W, 215); }
     ctx.shadowColor = 'rgba(0,0,0,0.9)'; ctx.shadowBlur = 4; ctx.shadowOffsetY = 2;
@@ -367,9 +379,28 @@ const KEN_BURNS = 0.06;
     // title banner and the skip hint stay their fixed sizes on purpose.
     ctx.font = OPTIONS.fontFor(18);
     ctx.fillStyle = '#f3f7fa';
-    s.lines.forEach((line, i) => {
-      ctx.fillText(line.slice(0, lineLimits[i]), W / 2, H - 114 + i * 23);
-    });
+    // story v3: at most 4 lines fit between the title and the hint pills on the 510 px canvas, so a
+    // longer panel (ORIGIN has 7) scrolls: older lines drop off the top instead of off the bottom.
+    const MAXL = Math.max(1, Math.floor((H - 30 - (H - 114)) / 23) + 1);
+    let lastShown = -1; lineLimits.forEach((c, i) => { if (c > 0) lastShown = i; });
+    const first = Math.max(0, lastShown - MAXL + 1);
+    for (let i = first; i < Math.min(s.lines.length, first + MAXL); i++) {
+      const txt = s.lines[i].slice(0, lineLimits[i]); if (!txt) continue;
+      const y = H - 114 + (i - first) * 23, old = i < lastShown;
+      const m = /^([A-Z][A-Z .']{1,20}):/.exec(s.lines[i]), col = m && NAME_COLOR[m[1]];
+      ctx.globalAlpha = old ? 0.62 : 1;
+      // a line wider than the canvas (e.g. a long hero name filled into {HERO}) shrinks to fit
+      const fw = ctx.measureText(s.lines[i]).width, fit = fw > W - 24;
+      if (fit) ctx.font = OPTIONS.fontFor(Math.max(11, Math.floor(18 * (W - 24) / fw)));
+      if (col) {   // name plate in the speaker's colour, the rest in white (still centred as one line)
+        const full = ctx.measureText(s.lines[i]).width, x0 = W / 2 - full / 2, name = txt.slice(0, m[0].length);
+        ctx.textAlign = 'left'; ctx.fillStyle = col; ctx.fillText(name, x0, y);
+        ctx.fillStyle = '#f3f7fa'; ctx.fillText(txt.slice(name.length), x0 + ctx.measureText(m[0]).width, y);
+        ctx.textAlign = 'center';
+      } else { ctx.fillStyle = '#f3f7fa'; ctx.fillText(txt, W / 2, y); }
+      if (fit) ctx.font = OPTIONS.fontFor(18);
+      ctx.globalAlpha = 1;
+    }
     ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
     ctx.textAlign = 'left';
   }
@@ -378,11 +409,11 @@ const KEN_BURNS = 0.06;
     if (!state.active || !state.scene) return;
     const s = state.scene;
     ctx.save();
-    drawScene(ctx, W, H, s, { t: state.t, fx: state.fx, typed: state.typed });
+    drawScene(ctx, W, H, s, { t: state.t, fx: state.fx, typed: state.typed, li: state.phase === 'tail' || state.phase === 'out' ? s.lines.length : state.li });
     // Crossfade: the previous panel dissolves away over this one.
     if (state.prev) {
       ctx.globalAlpha = Math.max(0, 1 - state.prevT / PACING.FADE);
-      drawScene(ctx, W, H, state.prev.scene, { t: state.prev.t + state.prevT, fx: state.prev.fx, typed: state.prev.typed });
+      drawScene(ctx, W, H, state.prev.scene, { t: state.prev.t + state.prevT, fx: state.prev.fx, typed: state.prev.typed, li: state.prev.li });
       ctx.globalAlpha = 1;
     }
     // story-v2: no letterbox bars; the art fills the whole screen. The controls hints sit
@@ -425,5 +456,7 @@ const KEN_BURNS = 0.06;
   return { setHero: name => { state.hero = String(name || ''); }, play, skip, advance, update, draw, debug: () => ({ phase: state.phase, li: state.li, ch: state.ch, t: state.t, phaseT: state.phaseT, holdT: state.holdT, prev: !!state.prev, queue: state.queue.map(q => q.id) }), isActive: () => state.active, scene: () => (state.scene ? state.scene.id : null),
     // Read-only camera view and panel table, for tests and for anything that wants to
     // react to a pan or assert the pacing data.
-    cam: () => (state.cam ? { ...state.cam } : null), panels: () => scenes };
+    cam: () => (state.cam ? { ...state.cam } : null), panels: () => scenes,
+    // story v3: current speaker / portrait slots, for tests.
+    speaker: () => (state.scene && state.scene._pt ? { cur: state.scene._pt.cur || null, active: state.scene._pt.active, left: state.scene._pt.slots.left && state.scene._pt.slots.left.key, right: state.scene._pt.slots.right && state.scene._pt.slots.right.key } : null) };
 }

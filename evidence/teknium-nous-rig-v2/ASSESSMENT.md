@@ -14,8 +14,10 @@ manga hair, white headphones, white turtleneck, blue jeans, white/blue sneakers 
 |---|---|---|---|
 | Teknium | `src/sheetD-arms.jpg` (new) | Used | `torso` / `torso_front`: yoke jacket without painted shoulder balls. The vest armhole is closed with the new generic `fillDark` slicer option, which takes colour only from saturated fabric pixels well inside the silhouette. Also `uarm` (flat top, `roundTop` + `deoutlineTop` tenon), `farm` (sleeve ending in a cuff opening) and `farm_cam` (foreshortened forearm: same width, bone 25 px vs 31 px). `torso_cap` / `torso_cap_front` are derived. |
 | Teknium | `src/sheetC-hands.jpg` (new) | Used | `grip` + `grip_front` (blade side-grip pair), `grip_cam` + `grip_cam_front` (knuckles-on grip), `hand_fist`, `hand_fist_cam`, `hand_open`. Scaled from the wrist width (6.4 px), so each wrist stub fits the cuff. |
+| Nous | `src/sheetD2-arms.jpg` (new, regenerated to the spec in section 5) | Used | `uarm` 13x48 (straight, flat top, rounded bottom; pivot [6,4], elbow [6,41]), `farm` 11x42 (straight, ribbed cuff; pivot [5,3], wrist [5,39]) and `farm_cam` 14x28 (foreshortened, face-on cuff oval; pivot [6,2], wrist [7,25], bone 23 px = 64 % of `farm`'s 36). All three use one uniform scale each (`farm_cam` uses `scaleAs: farm`). `farm_cam`'s top is cropped, not squashed, because that part sits under the upper sleeve. The tenons are shaped like TurboFit's (`roundTop` + `deoutlineTop`). A light `toneMatch` to the torso is applied: per-channel mean/std of the light fabric matched to the turtleneck, plus a 1 px rim at 0.62 to match its line weight. |
+| Nous | `src/sheetA.jpg` arms | Superseded | Replaced by sheet D2. |
 | Nous | `src/sheetC-hands.jpg` (new) | Used | `grip` / `grip_cam` pairs (the cable leaves on the pinky side), `hand_fist`, `hand_fist_cam`, `hand_open`. Scaled from the wrist width (5.6 px). |
-| Nous | `src/sheetD-arms-cable.jpg` (new) | Partly used | Used: obj4 jack plug (`weapon`, `cable_end`), cable segment, and obj6 as `fx_lash` (drawn along the cable chord only at lash contact). **Rejected: the sleeves (objs 1-3)**, see section 5. |
+| Nous | `src/sheetD-arms-cable.jpg` (new) | Partly used | Used: obj4 jack plug (`weapon`, `cable_end`), cable segment, and obj6 as `fx_lash` (drawn along the cable chord only at lash contact). **Rejected: the sleeves (objs 1-3)**: obj1 is pre-bent, and objs 2 and 3 are about 1.6x too wide. Superseded by sheet D2. |
 | Both | `sheetE-legs` | Not used | The knee bend is drawn mid-thigh, the same fault PR #8 documented. The legs are unchanged. |
 
 ## 2. How the joints fit
@@ -30,8 +32,9 @@ manga hair, white headphones, white turtleneck, blue jeans, white/blue sneakers 
   - `grip_cam` on attack/special wind-ups, launcher, ground pound and taunt.
   - `fist_cam` on backAttack active/follow, stagger and health-special.
   - `open` on grabs, grabbed, jump, flinch, hit reacts, wake, taunt and victory.
-  - `Links:` swap Teknium's `farm@cam` together with `hand@grip_cam` and `hand_front@grip_cam`.
-- **Variant joints (new in `rig.js`):** a variant whose bone is a different length (Teknium's foreshortened forearm)
+  - On both heroes, `Links:` swap `farm@cam` together with `hand@grip_cam` and `hand_front@grip_cam`, and swap `farm_b@cam` with
+    `hand_b@fist_cam`.
+- **Variant joints (new in `rig.js`):** a variant whose bone is a different length (both heroes' foreshortened forearms)
   moves its children rigidly onto its own wrist. Nothing is stretched. TurboFit's variants all share one bone vector, so it is
   unaffected. `tests/check-rigs.mjs` now checks attachment against the selected variant's joint.
 - **Teknium blade grip:** palm (`hand`) < `weapon` < fingers (`hand_front`), both cut from one drawing (`gripPairs`).
@@ -53,11 +56,19 @@ manga hair, white headphones, white turtleneck, blue jeans, white/blue sneakers 
 
 ## 4. What still looks off (honest list)
 
-1. **Nous has no foreshortened forearm.** `grip_cam` sits on the straight side-view sleeve. In whipB/launcher/bassDrop
-   wind-ups the knuckles-on hand reads as slightly rotated, not pointing at the camera. Needs art, see section 5.
+1. **Nous's new sleeves are plainer than the torso.** After the tone match the colour and contrast agree with the
+   turtleneck, but the sleeves are smooth tubes with faint hatching. The torso has bold cel-shaded fold shadows, so at 1x
+   the arms read slightly flatter and more "plastic" than the body. Other details:
+   - The upper sleeve (13 px) is wider than the forearm (11 px), which gives a small step at the elbow on straight arms.
+   - `farm_cam`'s cuff flares to 14 px, as drawn in perspective. Its knuckles-on hand is narrower than that oval.
 2. **Nous torso shoulder nubs.** The approved torso has painted round shoulders, the far one especially. With the arm
    swung forward, the far nub still reads a little like a second shoulder next to the cap.
-3. **Raised arms in victory / burst** now go up and slightly back, beside the head, instead of across the face.
+3. **Raised arms** now go up and slightly back, beside the head, instead of across the face. This covers victory (both
+   heroes), Teknium's burst, and Nous's overhead wind-ups (whipB, bassDrop/healthSpecial and groundPound wind).
+   - Nous's launcher has to strike forward (the contact test needs the attack side), so it raises the fist in front of
+     the face with the elbow at chin height instead of going up and back. Her arm clears the face, but in
+     launcher_follow the draped cable falls back across it for a few frames.
+   - In whipB_wind, Nous's upper sleeve still overlaps the back of her hair and headphone.
    - In burst_active and burst_follow, Teknium's upper sleeve still brushes the back edge of his hair.
    - The wrist limit (`Wrist: c=20 hw=35`) cannot stand the blade upright on an arm raised that far back, so it is held
      aloft angled back about 45°.
@@ -74,38 +85,20 @@ manga hair, white headphones, white turtleneck, blue jeans, white/blue sneakers 
    clear of the raised leg. It doesn't counter-swing.
 10. **Legs unchanged.** There is no `thigh@raised`, so high kicks use the side-view thigh.
 11. **Back-limb shade:**
-    - Side view: Nous's far arm uses a neutral `brightness(0.84)` (no sepia), so it reads as a shaded white sleeve
-      rather than beige.
+    - Side view: Nous's far arm uses a neutral `brightness(0.9)` (no sepia), so it reads as a shaded white sleeve
+      rather than beige or grey.
     - Front view (turn, taunt, victory): Nous's far arm takes only `brightness(0.96)` and Teknium's `brightness(0.86)`.
-    - Her sheet-A sleeves still carry less painted shading than the turtleneck torso.
 12. **Evidence background:** the evidence renders use `#3b4459`, because the black cable disappears on the game's darkest
     stage colour. On very dark stages the cable is still hard to see.
 
-## 5. Missing art (needed to finish Nous; I did not fake these)
+## 5. Missing art
 
-Nous `sheetD-arms-cable.jpg` objs 1-3 are unusable:
-- obj1 (upper arm) is drawn already bent at the elbow.
-- obj2 and obj3 (forearms) are about 1.6x too wide at the true bone length: about 18 px vs the 11 px sleeve.
-  Making them fit would need non-uniform squashing.
+The Nous sleeves requested in the previous pass have arrived (`src/sheetD2-arms.jpg`) and are in use. Their aspect ratios
+fit the spec at uniform scale: 121x459 source -> 13x48, 114x458 -> 11x42. Only the foreshortened forearm's top was cropped.
 
-Please regenerate, same style references as the N-D sheet:
-
-| Object | View | Size at game scale (source about 12x) | Joints |
-|---|---|---|---|
-| Upper arm, white knit turtleneck sleeve | 3/4 side, perfectly straight and vertical, no elbow bend drawn | 13 x 48 px (width about 0.27 of length) | Flat, capless shoulder cut. Shoulder pivot centred about 8 % down. Elbow about 90 % down. Ends a little past the elbow. |
-| Forearm, same sleeve | Side, straight and vertical | 11 x 42 px (width about 0.25 of length, no wider than the upper arm) | Flat, capless top stub, pivot about 8 % down. Ribbed cuff whose dark opening is exactly the C-hand wrist width (5.6 px). Wrist joint at the cuff centre about 95 % down. |
-| Foreshortened forearm, same sleeve | Pointing toward the viewer | Same 11 px width, about 60 % of the length (bone about 22-25 px) | Same top stub. Cuff opening is a near face-on oval, with the wrist joint at its centre. |
-
-Prompt (from `evidence/hero-art-fit/RESULTS.md`):
-> 1) Upper arm in the white knit sleeve, perfectly STRAIGHT and vertical (no elbow bend drawn), width about 0.27 of its
-> length, flat capless shoulder cut, ends a little past the elbow. 2) Forearm in the same sleeve, straight and vertical,
-> width about 0.25 of its length (no wider than the upper arm), flat capless top stub, ribbed cuff with a dark opening
-> exactly as wide as the wrist of the C-sheet hands. 3) The same forearm foreshortened toward the viewer, ~60% of the
-> length and the SAME width as 2, the cuff opening a near-face-on oval.
-
-Optional, both heroes: E legs, with the knee bend in the bottom 12 % of the thigh piece. The thigh is slender (width about 0.30
-of length) with a flat hip cut. The shin starts with a capless stub that tucks under the knee. Thigh and shin are the same length.
-Add a raised (foreshortened) thigh for kicks.
+Still optional, both heroes: E legs, with the knee bend in the bottom 12 % of the thigh piece. The thigh is slender (width about
+0.30 of length) with a flat hip cut. The shin starts with a capless stub that tucks under the knee. Thigh and shin are the same
+length. Add a raised (foreshortened) thigh for kicks.
 
 ## 6. Files
 
@@ -115,5 +108,7 @@ Add a raised (foreshortened) thigh for kicks.
   secondary motion is live.
 - `contact-sheets/{before,after,comparison}-{teknium,nous_girl}.png`: every named pose, both facings
   (`tools/rig-sheet.html?mode=baseline`).
+- The capture tool now waits for every drawing, including perspective variants and the lash stroke, to decode before the
+  first cell. Before this, a cold start could drop a variant hand from the first cells.
 - Regenerate with `node tools/capture-hero-evidence.mjs --root <checkout> --out <dir>`, then
   `python3 tools/compose-hero-evidence.py <before> <after> evidence/teknium-nous-rig-v2 teknium nous_girl`.

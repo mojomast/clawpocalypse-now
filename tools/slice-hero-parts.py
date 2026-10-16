@@ -582,6 +582,34 @@ def main():
             arr[..., 2] = np.where(strong, np.minimum(arr[..., 2], g + 60), arr[..., 2])
             info['fringeFixed'] = int(spillmask.sum())
             out = Image.fromarray(arr, 'RGBA'); rgbo, ao = rgba_arrays(out)
+        if 'toneMatch' in p:
+            # Light tone match to another (already sliced) part, e.g. new sleeves to the approved
+            # torso: per-channel mean/std of the light fabric pixels are matched to the reference's,
+            # blended by `strength`; dark ink is left alone. `rim` darkens the 1 px silhouette edge
+            # to the reference's line weight (never across a de-outlined tenon end).
+            tm = p['toneMatch']; ref = outputs[tm['part']]
+            rr, ra = rgba_arrays(ref)
+            arr = np.asarray(out).astype(np.float32).copy()
+            lumf = lambda x: x[..., :3] @ np.array([0.299, 0.587, 0.114], np.float32)
+            rsel = ndi.binary_erosion(ra > 0.99, iterations=2) & (lumf(rr.astype(np.float32)) > 150)
+            tsel = (ao > 0.99) & (lumf(arr) > 150)
+            if rsel.sum() > 20 and tsel.sum() > 20:
+                rv = rr.astype(np.float32)[rsel]; tv = arr[..., :3][tsel]
+                mu_r, sd_r, mu_t, sd_t = rv.mean(0), rv.std(0), tv.mean(0), np.maximum(tv.std(0), 1)
+                k = tm.get('strength', 1.0)
+                mapped = (arr[..., :3] - mu_t) / sd_t * sd_r + mu_r
+                w = (np.clip((lumf(arr) - 90) / 60, 0, 1) * k)[..., None]
+                arr[..., :3] = arr[..., :3] * (1 - w) + mapped * w
+            if tm.get('rim'):
+                solid = ao > 0.5
+                edge = solid & ~ndi.binary_erosion(solid, iterations=1)
+                if kind == 'limb' and p.get('deoutlineTop'):
+                    edge[:int(info['pivot'][1] + (p.get('roundTop') or 4)) + 1] = False
+                if kind == 'limb' and p.get('deoutlineBottom'):
+                    edge[int(info['joint'][1] - (p.get('roundBottom') or 4)):] = False
+                arr[edge, :3] *= tm['rim']
+            out = Image.fromarray(arr.round().clip(0, 255).astype(np.uint8), 'RGBA'); rgbo, ao = rgba_arrays(out)
+            info['toneMatched'] = tm['part']
         partial = float(((ao > 0) & (ao < 1)).sum() / max(1, (ao > 0).sum()))
         info['partialAlpha'] = round(partial, 3)
         spill = int(((ao > 0) & (rgbo[..., 0] > 150) & (rgbo[..., 2] > 150) & (rgbo[..., 1] < 80)).sum())

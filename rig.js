@@ -410,7 +410,7 @@ export const REACTIONS = REACTION_STATES;
 //    fixed rendered bone lengths, then adjust the shared hip height.
 const BACK_TINT_DEFAULT = 'brightness(0.6)';
 // pale skin goes grey at 0.6; these keep the far limbs readable as skin
-const BACK_TINT = { nous_girl: 'brightness(0.84)', teknium: 'brightness(0.66)', turbofit: 'brightness(0.66)' };
+const BACK_TINT = { nous_girl: 'brightness(0.9)', teknium: 'brightness(0.66)', turbofit: 'brightness(0.66)' };
 // Front-facing presentation (torso@front: turn, taunt, victory) shows the far arm beside the
 // body rather than behind it, so it only takes a light shade. A neutral shade keeps Nous's
 // white knit sleeves white instead of the beige-grey the side-view shade gives them.

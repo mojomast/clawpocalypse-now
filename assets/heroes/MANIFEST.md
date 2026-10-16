@@ -163,17 +163,18 @@ Weapon grip: 53 (degrees the weapon art turns in the fist; rig QA t_030997313808
 
 Palette/look (v2, `src/design.jpg`, Kyle's own reference `src/kyle-reference.png`): black-ink manga style; glossy black hair with heavy bangs and outward-flipped ends, white headphones; white turtleneck, blue jeans (no skirt), white sneakers with blue trim; an instrument cable with a jack plug at each end, a spare coil clipped at the hip.  Move set: agile; sound-wave blasts (ranged special, projectile/FX `nous_girl_fx_burst.png`), cable-whip combos at mid range, bass-drop ground pound, quick dodge roll.
 
-Rig: v2 (sliced by `tools/slice-hero-parts.py nous_girl` from `src/sheetC-hands.jpg`, `src/sheetD-arms-cable.jpg` (plug, cable, lash stroke), `src/sheetA.jpg` + `src/sheetB.jpg` (coil), spec `src/SLICE.json`). Bare-wrist hands from `sheetC-hands.jpg` tuck under the ribbed sweater cuff and the elbow under the upper sleeve (`hand < farm < uarm`); the sheetA sleeves are re-pivoted with rounded, de-outlined tenons and the shoulder insertion sits under a derived turtleneck shoulder (`torso_cap` / `torso_cap@front`). A grip pair closes around the held jack plug (palm behind, fingers in front) with a camera-facing grip (`hand@grip_cam` = `hand_front@grip_cam`) and side, camera-facing and open free hands. The cable is a 10-link rope from the plug with the second plug at its free end; on whip contacts it is thrown out from the fist as a taut lash with the `fx_lash` stroke along it. Two hair locks and the hip coil on springs, 3/4 head and torso with front variants. There is no foreshortened forearm drawing for Nous yet (the sheetD sleeves do not fit), so `grip_cam` sits on the side-view sleeve. The v1 parts are in git history (a53e191); the unused v1 `nous_girl_weapon.png` is kept for the old baseline sheets.
+Rig: v2 (sliced by `tools/slice-hero-parts.py nous_girl` from `src/sheetD2-arms.jpg` (sleeves), `src/sheetC-hands.jpg`, `src/sheetD-arms-cable.jpg` (plug, cable, lash stroke), `src/sheetA.jpg` + `src/sheetB.jpg` (coil), spec `src/SLICE.json`). Straight white knit sleeves from `sheetD2-arms.jpg`: a flat-top upper arm with a rounded, de-outlined tenon under a derived turtleneck shoulder (`torso_cap` / `torso_cap@front`), a forearm ending in a ribbed cuff, and a foreshortened forearm with a face-on cuff (`farm@cam`, top cropped under the elbow, drawn shorter and carrying the hand on its own wrist joint). Bare-wrist hands from `sheetC-hands.jpg` tuck under the cuff and the elbow under the upper sleeve (`hand < farm < uarm`). A grip pair closes around the held jack plug (palm behind, fingers in front); perspective drawings switch together through `Links:` (`hand@grip_cam` = `farm@cam` + camera-facing finger overlay; `hand_b@fist_cam` = `farm_b@cam`), plus an open free hand. The cable is a 10-link rope from the plug with the second plug at its free end; on whip contacts it is thrown out from the fist as a taut lash with the `fx_lash` stroke along it. Two hair locks and the hip coil on springs, 3/4 head and torso with front variants. The v1 parts are in git history (a53e191); the unused v1 `nous_girl_weapon.png` is kept for the old baseline sheets.
 Layers: hand_b, farm_b, uarm_b, thigh_b, shin_b, foot_b, head, thigh, shin, foot, torso, coil, hair_long, hair_short, hand, farm, uarm, torso_cap, weapon, hand_front, cable, cable_end
-Links: torso@front = torso_cap@front, hand@grip_cam = hand_front@grip_cam
+Links: torso@front = torso_cap@front, hand@grip_cam = farm@cam + hand_front@grip_cam, hand_b@fist_cam = farm_b@cam
 Wrist: c=0 hw=40
 
 <!-- slice:nous_girl:begin -->
 | part | image | size | pivot | parent | attach | role | data |
 |---|---|---|---|---|---|---|---|
-| uarm_b | nous_girl_uarm.png | 13x48 | 6,5 | torso | 37,15 | body | joint=6,42 |
-| farm_b | nous_girl_farm.png | 11x42 | 5,3 | uarm_b | 6,42 | body | joint=4,39 |
-| hand_b | nous_girl_hand_fist.png | 10x18 | 3,4 | farm_b | 4,39 | hand |  |
+| uarm_b | nous_girl_uarm.png | 13x48 | 6,4 | torso | 37,15 | body | joint=6,41 |
+| farm_b | nous_girl_farm.png | 11x42 | 5,3 | uarm_b | 6,41 | body | joint=5,39 |
+| farm_b@cam | nous_girl_farm_cam.png | 14x28 | 6,2 | - | - | variant | joint=7,25 |
+| hand_b | nous_girl_hand_fist.png | 10x18 | 3,4 | farm_b | 5,39 | hand |  |
 | hand_b@open | nous_girl_hand_open.png | 19x20 | 9,3 | - | - | variant |  |
 | hand_b@fist_cam | nous_girl_hand_fist_cam.png | 12x17 | 5,4 | - | - | variant |  |
 | thigh_b | nous_girl_thigh.png | 15x48 | 7,4 | torso | 28,57 | body | joint=7,44 |
@@ -189,11 +190,12 @@ Wrist: c=0 hw=40
 | coil | nous_girl_coil.png | 16x13 | 8,1 | torso | 12,44 | spring | spring=220,16,0.06 range=-20,20 |
 | hair_long | nous_girl_hair_long.png | 18x31 | 7,1 | head | 8,39 | spring | spring=110,10,0.14 range=-25,60 |
 | hair_short | nous_girl_hair_short.png | 10x25 | 3,1 | head | 18,42 | spring | spring=110,10,0.14 range=-20,45 |
-| uarm | nous_girl_uarm.png | 13x48 | 6,5 | torso | 8,16 | body | joint=6,42 |
+| uarm | nous_girl_uarm.png | 13x48 | 6,4 | torso | 8,16 | body | joint=6,41 |
 | torso_cap | nous_girl_torso_cap.png | 18x23 | 8,10 | torso | 8,16 | cap |  |
 | torso_cap@front | nous_girl_torso_cap_front.png | 18x22 | 8,9 | - | - | variant |  |
-| farm | nous_girl_farm.png | 11x42 | 5,3 | uarm | 6,42 | body | joint=4,39 |
-| hand | nous_girl_hand_grip_back.png | 11x16 | 6,4 | farm | 4,39 | hand | grip=5,11 axis=-0.0 |
+| farm | nous_girl_farm.png | 11x42 | 5,3 | uarm | 6,41 | body | joint=5,39 |
+| farm@cam | nous_girl_farm_cam.png | 14x28 | 6,2 | - | - | variant | joint=7,25 |
+| hand | nous_girl_hand_grip_back.png | 11x16 | 6,4 | farm | 5,39 | hand | grip=5,11 axis=-0.0 |
 | hand@grip_cam | nous_girl_hand_grip_cam_back.png | 12x16 | 6,4 | - | - | variant | grip=6,11 axis=0.0 |
 | weapon | nous_girl_plug.png | 19x4 | 6,2 | hand | 5,11 | weapon | tip=18,2 |
 | hand_front | nous_girl_hand_grip_front.png | 11x16 | 6,4 | hand | 6,4 | grip_front | grip=5,11 axis=-0.0 |

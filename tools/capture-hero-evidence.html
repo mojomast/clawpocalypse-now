@@ -1,0 +1,31 @@
+<!doctype html><meta charset="utf-8"><body style="margin:0;background:#171b2b"><canvas id="c"></canvas>
+<script type="module">
+try {
+  const { createRig, POSES, FOOT_Y } = await import('/rig.js');
+  await import('/don.js');
+  const q = new URLSearchParams(location.search), hero = q.get('hero'), poses = q.get('poses').split(',');
+  const rig = createRig();
+  const c = document.getElementById('c'), ctx = c.getContext('2d'), scale = +(q.get('scale') || 0.8), cw = Math.round(180 * scale / 0.8), ch = Math.round(220 * scale / 0.8);
+  c.width = cw * poses.length; c.height = ch * 2;
+  ctx.fillStyle = q.get('bg') || '#3b4459'; ctx.fillRect(0, 0, c.width, c.height);
+  // warm up image loading
+  for (let i = 0; i < 60; i++) { if (rig.draw(ctx, hero, { ...POSES[`${hero}_idleA`] }, -500, -500, false, scale)) break; await new Promise(r => setTimeout(r, 100)); }
+  ctx.fillStyle = q.get('bg') || '#3b4459'; ctx.fillRect(0, 0, c.width, c.height);
+  poses.forEach((p, i) => [false, true].forEach((flip, row) => {
+    const name = `${hero}_${p}`, x = i * cw + cw / 2, y = row * ch + ch * 200 / 220 - FOOT_Y * scale;
+    ctx.strokeStyle = '#3a4058'; ctx.beginPath(); ctx.moveTo(i * cw + 6, row * ch + ch * 200 / 220); ctx.lineTo(i * cw + cw - 6, row * ch + ch * 200 / 220); ctx.stroke();
+    if (!POSES[name]) return;
+    // settle springs/rope like the live game: a per-cell actor held in the pose for 0.5 s at 60 Hz
+    const actor = `ev-${hero}-${p}-${flip}`, phase = p.endsWith('_active') ? 'active' : null;
+    for (let f = 0; f < 30; f++) {
+      ctx.save(); ctx.beginPath(); ctx.rect(i * cw, row * ch, cw, ch); ctx.clip();
+      ctx.fillStyle = q.get('bg') || '#3b4459'; ctx.fillRect(i * cw, row * ch, cw, ch);
+      ctx.strokeStyle = '#3a4058'; ctx.beginPath(); ctx.moveTo(i * cw + 6, row * ch + ch * 200 / 220); ctx.lineTo(i * cw + cw - 6, row * ch + ch * 200 / 220); ctx.stroke();
+      rig.draw(ctx, hero, { ...POSES[name], __pose: name, __phase: phase, __pt: (f + 1) / 60, __actor: actor, __dt: 1 / 60 }, x, y, flip, scale, null, 1 / 60);
+      ctx.restore();
+    }
+    ctx.fillStyle = '#fff'; ctx.font = '12px monospace'; ctx.fillText(`${p}${flip ? ' (L)' : ''}`, i * cw + 6, row * ch + 16);
+  }));
+  window.__keyposes = { png: c.toDataURL('image/png') };
+} catch (e) { window.__keyposes = { error: String(e && e.stack || e) }; }
+</script>

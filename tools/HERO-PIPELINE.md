@@ -1,6 +1,6 @@
 # Hero Cutout Rigging Pipeline (`v2`)
 
-This document explains how to take source art sheets (`1280x720` JPG/PNG on flat `#FF00FF` magenta backgrounds) and deterministically produce sliced cutout PNGs, anatomical pivots and grip axes, `assets/heroes/MANIFEST.md` tables, `hero-rigs.js`, `hero-support.js`, and verified motion renders for any v2 hero (`turbofit`, `teknium`, `nous_girl`).
+This document explains how to take source art sheets (`1280x720` JPG/PNG on flat `#FF00FF` magenta backgrounds) and deterministically produce sliced cutout PNGs, anatomical pivots and grip axes, `assets/heroes/MANIFEST.md` tables, `hero-rigs.js`, `hero-support.js`, and verified motion renders for any v2 hero (`turbofit`, `teknium`, `nous_girl`). Before/after key poses and contact sheets: `node tools/capture-hero-evidence.mjs --root <checkout> --out <dir>` then `python3 tools/compose-hero-evidence.py <before> <after> <out> teknium nous_girl`.
 
 Nothing in `hero-rigs.js` or `hero-support.js` is ever hand-edited.
 
@@ -88,11 +88,17 @@ Each hero's `SLICE.json` has four top-level configuration sections:
    - `pivotAt` / `jointAt`: vertical fraction (`0.0` .. `1.0`) of the cropped opaque height where the proximal `pivot` and distal `joint` sit (horizontally centered on the opaque row at that depth).
    - `roundTop` / `roundBottom`: optional semicircular cap radius (in output rig px) centered at `pivot` / `joint`. Rounds flat cut tenons so rotating a joint never pokes sharp corners out of a socket or cuff.
    - `deoutlineTop` / `deoutlineBottom`: `true` to blend dark cut-line outlines at the interior tenon end into the adjacent skin/fabric colour so overlapping bare-skin joints don't draw dark stripes across each other.
+   - `fillDark`: `{ "rects": [[x0, y0, x1, y1], ...], "lum": 100, "edge": 0, "minChroma": 60 }` closes a painted opening (e.g. a vest armhole that the sleeve root now covers): dark interior pixels inside the fractional boxes take the colour of the nearest opaque, saturated (`chroma >= minChroma`) fabric pixel well inside the silhouette, never the despilled edge band. Teknium's yoke jacket uses it.
+   - `scale`: explicit uniform scale for one part (rare; prefer `length`/`height`/`scaleAs`).
    - `derive`: derive a child cutout (such as `"torso_cap"`) directly from an already-sliced part (`"derive": "torso"`, `"anchor": "shoulder"`, `"maskBox": [x0, y0, x1, y1]`, `"vestOnly": true`, `"feather": 2.0`).
 
 3. **`gripPairs`**: Lists `[backPart, frontPart]` pairs (e.g. `["grip_back", "grip_front"]`, `["grip_cam_back", "grip_cam_front"]`, `["grip_far", "grip_far_front"]`).
 
 4. **`rig`**: Maps rig slot names (including `slot@variant` rows) to `part`, `parent`, `attach` (e.g. `"torso:shoulder"`, `"uarm:joint"`, `"hand:grip"`), and `role` (`"torso"`, `"body"`, `"cap"`, `"hand"`, `"grip_front"`, `"weapon"`, `"foot"`, `"spring"`, `"rope"`, `"rope_end"`, `"variant"`).
+
+### Perspective variants with their own joint
+
+A `slot@variant` limb row carries its own `joint`. When the variant's bone vector (`joint - pivot`) equals the default drawing's (all of TurboFit's forearms), nothing changes. When it differs, e.g. a foreshortened forearm that is drawn shorter (`farm_cam` with `scaleAs: "farm"`), `rig.js` translates every descendant (hand, finger overlay, weapon) rigidly onto the variant's wrist, so the hand stays seated in the cuff opening without stretching the drawing. `tests/check-rigs.mjs` checks the attachment against the selected variant's joint.
 
 ### 3. Header Directives in `assets/heroes/MANIFEST.md`
 

@@ -25,7 +25,7 @@ const states = {
   jump: [-8, 5, -84, -66, -48, -82, -54, 88, 8, 48, -.24],
   turn: [0, 6, -26, -66, 14, -78, -10, 20, 12, 14, -.5],
   taunt: [-7, 11, -34, -108, 26, -64, -4, 10, 16, 12, .42, -1],
-  victory: [-9, 8, -154, -24, -112, -48, -24, 56, 8, 6, .32],
+  victory: [-9, 8, -196, 12, -112, -48, -24, 56, 8, 6, .32],
   flinch: [-17, 15, -28, -88, -24, -102, -12, 24, 18, 12, -.38, -2],
   stagger: [-24, 20, 8, -96, -38, -84, -20, 32, 24, 18, -.54, -3],
   knockdownAir: [-36, 22, -62, -64, -104, -42, -44, 72, 16, 52, -.4],
@@ -39,14 +39,17 @@ const states = {
 // Each row is wind / contact / follow. Recover is a separate settling guard.
 // The free hand counterbalances rather than duplicating the cable hand.
 const moves = {
+  // Lash contact: the elbow stays bent and the fist low and inboard, so the thrown cable
+  // (not the arm) spans the reach as a taut stroke out of the fist instead of bunching
+  // into a loop beside an already fully extended hand.
   whipA: [
     [-10, 7, 32, -112, -42, -66, -12, 28, 24, 14, -.8, -2],
-    [12, -7, -82, -12, 34, -86, -30, 32, 26, 6, .9, 2],
-    [16, -9, -58, -24, 38, -74, -32, 36, 24, 8, .65, 2]],
+    [12, -7, -32, -54, 34, -86, -30, 32, 26, 6, .9, 2],
+    [16, -9, -26, -58, 38, -74, -32, 36, 24, 8, .65, 2]],
   whipB: [
     [8, -4, -128, -48, 26, -88, -18, 22, 16, 8, .65, 1],
-    [4, -5, -66, -18, -34, -72, -24, 28, 22, 8, -.75, 2],
-    [-2, -2, -38, -40, -44, -60, -20, 24, 18, 10, -.55, 1]],
+    [4, -5, -34, -52, -34, -72, -24, 28, 22, 8, -.75, 2],
+    [-2, -2, -28, -54, -44, -60, -20, 24, 18, 10, -.55, 1]],
   wave: [
     [-12, 8, 10, -116, -20, -114, -12, 28, 22, 16, -.55, -2],
     [10, -6, -82, -12, -72, -22, -30, 32, 26, 8, .38, 2],
@@ -129,8 +132,25 @@ export function nousReachFor(name, cablePoints, scale = .7) {
   return Object.freeze({ kind: 'cable', forward: scale * Math.max(...xs), back: scale * Math.min(...xs), scale });
 }
 
+// sheetC hands per named pose (stepped, never interpolated; MANIFEST Links switch the
+// finger overlay with the grip). Nous has no foreshortened forearm drawing, so the
+// camera-facing grip is limited to raised wind-ups where the sleeve reads end-on.
+const NOUS_GRIP_CAM = /^(?:whipB|launcher|bassDrop|healthSpecial|groundPound)_wind$/;
+const NOUS_FIST_CAM = /^(?:backAttack_(?:active|follow)|juggle_active)$/;
+const NOUS_OPEN = /^(?:grab_(?:wind|active|follow)|grabHold|grabbed|grabThrow_follow|laneThrow_follow|screenThrow_follow|jump|flinch|stagger|knockdownAir|wake|taunt|victory|hitReact_(?:wind|active))$/;
+export function nousPresentation(short = '') {
+  const v = {};
+  if (NOUS_GRIP_CAM.test(short)) v.hand = 'grip_cam';
+  if (NOUS_FIST_CAM.test(short)) v.hand_b = 'fist_cam';
+  else if (NOUS_OPEN.test(short)) v.hand_b = 'open';
+  return v;
+}
+
 export function installNousPolish(poses) {
-  const set = (name, values) => { poses[PREFIX + name] = pose(values); };
+  const set = (name, values) => {
+    const v = nousPresentation(name);
+    poses[PREFIX + name] = Object.keys(v).length ? { ...pose(values), __variants: v } : pose(values);
+  };
   for (const [name, values] of Object.entries(states)) set(name, values);
   set('idle', states.idleA);
   // The existing contact classifier recognizes a `kick_` token as back-foot

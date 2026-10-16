@@ -11,8 +11,8 @@ const root = resolve(import.meta.dirname, '..'), mode = process.argv[2] || 'afte
 const combat = process.argv.includes('--combat');
 const extend = process.argv.includes('--extend');
 const only = process.argv.includes('--only') ? process.argv[process.argv.indexOf('--only') + 1] : null;
-assert.ok(['before', 'after', 'protected'].includes(mode));
-const source = mode === 'before' ? resolve(process.env.BASELINE_ROOT || '/tmp/opencode/hero-polish-baseline') : root;
+assert.ok(['before', 'after', 'protected', 'record-turbofit'].includes(mode));
+const source = mode === 'before' || mode === 'record-turbofit' ? resolve(process.env.BASELINE_ROOT || '/tmp/opencode/hero-polish-baseline') : root;
 const out = resolve(root, 'evidence/hero-animation-polish', mode, combat ? 'combat' : '.');
 const pathFor = url => {
   const p = decodeURIComponent(new URL(url, 'http://localhost').pathname);
@@ -31,15 +31,21 @@ try {
   await page.goto(`http://127.0.0.1:${server.address().port}/tools/polish-${combat ? 'combat' : 'review'}.html`);
   await page.waitForFunction(() => window.polish, { timeout: 30000 });
   const hashes = combat ? null : await page.evaluate(() => polish.protectedHashes());
-  if (mode === 'before') {
+  if (mode === 'record-turbofit') {
+    // TurboFit (PR #8) RGBA hashes, rendered from BASELINE_ROOT with this checkout's review tool
+    await writeFile(resolve(root, 'evidence/turbofit-rig-v2/protected-renders.json'), JSON.stringify({ turbofit: hashes.turbofit }, null, 2), { flag: 'wx' });
+    console.log('Saved TurboFit protected renders from', source);
+  } else if (mode === 'before') {
     await mkdir(out, { recursive: true });
     if (!extend) await assert.rejects(access(resolve(out, 'manifest.json')), 'baseline already exists');
     if (hashes && !extend) await writeFile(resolve(out, 'protected-renders.json'), JSON.stringify(hashes, null, 2));
   } else if (!combat) {
-    assert.deepEqual(hashes, JSON.parse(await readFile(resolve(root, 'evidence/hero-animation-polish/before/protected-renders.json'))), 'Protected hero pixel output changed');
-    console.log('Protected heroes: all named poses × both facings byte-identical RGBA');
+    const { turbofit, ...legacy } = hashes;
+    assert.deepEqual(legacy, JSON.parse(await readFile(resolve(root, 'evidence/hero-animation-polish/before/protected-renders.json'))), 'Protected hero pixel output changed');
+    assert.deepEqual({ turbofit }, JSON.parse(await readFile(resolve(root, 'evidence/turbofit-rig-v2/protected-renders.json'))), 'TurboFit (PR #8) pixel output changed');
+    console.log('Protected heroes (4 turtles, don_piedro, turbofit): all named poses × both facings byte-identical RGBA');
   }
-  if (mode !== 'protected') {
+  if (mode !== 'protected' && mode !== 'record-turbofit') {
     const manifest = extend ? JSON.parse(await readFile(resolve(out, 'manifest.json'))) : { revision: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: source, encoding: 'utf8' }).trim(), browser: browser.version(), scale: .7, fps: 30, clips: [] };
     for (const hero of ['teknium', 'nous_girl', 'turbofit']) {
       await mkdir(resolve(out, hero), { recursive: true });

@@ -16,8 +16,8 @@ export function installTekniumPolish(POSES) {
   set('idle', POSES.teknium_idleA);
   arms('turn', -12, -42, -24, -54, { torso: 4, head: -4, weapon: -30.4 });
   arms('jump', -54, -58, -28, -46);
-  arms('taunt', -82, -46, -50, -64);
-  arms('victory', -130, -24, -42, -48);
+  arms('taunt', -60, -70, -50, -64); // blade hand low and forward: forearm passes under the chin
+  arms('victory', -190, 6, -42, -48, { weapon: 50 }); // V: blade arm up and back, beside the head, not across the face
 
   // Compact contact/passing legs; world-space stance travel belongs to foot lock.
   const walk = [[-18, 18, 16, 14], [-4, 26, 4, 12], [16, 14, -18, 18], [4, 12, -4, 26]];
@@ -47,8 +47,8 @@ export function installTekniumPolish(POSES) {
   arms('dash_active', -64, -18, -16, -40, { torso: 18 });
   arms('dash_follow', -48, -26, -18, -44, { torso: 16 });
   arms('burst_wind', -8, -100, -38, -80);
-  arms('burst_active', -112, -28, -70, -28);
-  arms('burst_follow', -98, -34, -58, -38);
+  arms('burst_active', -190, 4, -70, -28, { weapon: 50 }); // blade raised overhead, behind the face line
+  arms('burst_follow', -184, 2, -58, -38, { weapon: 40 });
 
   // Mechanics get an actual free-arm action rather than the shared -92° elbow.
   const mechanics = {
@@ -97,9 +97,20 @@ export function installTekniumPolish(POSES) {
     POSES[name] = { ...POSES[name], __variants: tekniumPresentation(name) };
 }
 
-// Existing sheetB open palm: reaching, catching balance and expressive gestures.
-// Armed hand retains its registered closed grip and front-finger overlay.
+// Perspective hands (sheetC) choose the drawing per named pose; MANIFEST Links switch
+// the matching forearm and finger overlay with them, and nothing is interpolated.
+//  - hand@grip_cam: knuckles-on grip on the foreshortened forearm, for cocked wind-ups
+//    where the blade forearm points at the camera, and the taunt flourish.
+//  - hand_b@fist_cam: rear elbow/fist driven toward the camera-side target line.
+//  - hand_b@open: reaching, catching balance and expressive gestures.
+//  - hand_b default: the closed side fist.
+const TEK_GRIP_CAM = /^teknium_(?:(?:bladeA|bladeB|bladeC|launcher|burst|healthSpecial|groundPound)_wind|taunt|turn)$/;
+const TEK_FIST_CAM = /^teknium_(?:backAttack_(?:active|follow)|stagger|healthSpecial_(?:active|follow))$/;
+const TEK_OPEN = /^teknium_(?:grab(?:_|Hold)|grabThrow_wind|grabbed$|jump$|knockdownAir$|flinch$|hitReact_|wake$|taunt$|victory$|burst_(?:active|follow))/;
 export function tekniumPresentation(poseName = '') {
-  return /^teknium_(?:grab(?:_|Hold)|grabThrow_|grabbed$|jump$|knockdownAir$|flinch$|stagger$|hitReact_|wake$|taunt$|victory$|burst_(?:active|follow))/.test(poseName)
-    ? { hand_b: 'open' } : {};
+  const v = {};
+  if (TEK_GRIP_CAM.test(poseName)) v.hand = 'grip_cam';
+  if (TEK_FIST_CAM.test(poseName)) v.hand_b = 'fist_cam';
+  else if (TEK_OPEN.test(poseName)) v.hand_b = 'open';
+  return v;
 }

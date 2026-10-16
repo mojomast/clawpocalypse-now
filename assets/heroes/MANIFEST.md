@@ -69,18 +69,21 @@ Weapon grip: 130 (degrees the weapon art turns in the fist; rig QA t_03099731380
 
 Palette/look (v2, `src/design.jpg`, after Teknium's own avatar): white wedge visor with red stripes, spiky sage-teal hair with a green leaf cluster at the back, green high-collar zip jacket (short body; sleeves are the arm parts), charcoal trousers, black fingerless gloves, white/green sneakers, cyan energy blade.  Move set: Technical, combo-heavy: energy-blade slash chains (4-5 hits, cancelable), dash-through (passes through enemies, hits all in path), data burst projectile special.
 
-Rig: v2 (sliced by `tools/slice-hero-parts.py teknium` from `src/sheetA.jpg` + `src/sheetB.jpg`, spec `src/SLICE.json`; `src/sheetA-rejected-blue-visor.jpg` is unused). Separate feet (ankle on the shin, sole flat on the floor), gloved hands with a grip pair around the blade (grip_back behind it, grip_front over it), 3/4 head and torso with front variants for turn/taunt/victory, two short jacket-hem tails on springs.
-Layers: hem_b, uarm_b, farm_b, hand_b, thigh_b, shin_b, foot_b, head, thigh, shin, foot, hem, torso, uarm, farm, hand, weapon, hand_front
+Rig: v2 (sliced by `tools/slice-hero-parts.py teknium` from `src/sheetC-hands.jpg`, `src/sheetD-arms.jpg`, `src/sheetA.jpg` + `src/sheetB.jpg`, spec `src/SLICE.json`; `src/sheetA-rejected-blue-visor.jpg` is unused). Yoke jacket torsos from `sheetD-arms.jpg` (armhole openings closed by `fillDark`) with derived shoulder yokes (`torso_cap` / `torso_cap@front`) drawn over the capless, round-tenoned upper arm; the rear arm is its own darker-rimmed sleeve (`uarm_far`). Gloved hands tuck under the ribbed jacket cuffs and elbows under the upper sleeve (`hand < farm < uarm`). Perspective drawings switch together through `Links:` (`hand@grip_cam` = foreshortened `farm@cam` + camera-facing finger overlay; `hand_b@fist_cam` = `farm_b@cam`); the foreshortened forearm is drawn shorter and carries the hand on its own wrist joint. Separate feet, two jacket-hem tails on springs.
+Layers: hem_b, hand_b, farm_b, uarm_b, thigh_b, shin_b, foot_b, head, thigh, shin, foot, hem, torso, hand, farm, uarm, torso_cap, weapon, hand_front
+Links: torso@front = torso_cap@front, hand@grip_cam = farm@cam + hand_front@grip_cam, hand_b@fist_cam = farm_b@cam
 Wrist: c=20 hw=35
 
 <!-- slice:teknium:begin -->
 | part | image | size | pivot | parent | attach | role | data |
 |---|---|---|---|---|---|---|---|
 | hem_b | teknium_hem_tail_far.png | 10x25 | 4,1 | torso | 12,56 | spring | spring=150,13,0.12 range=-15,55 |
-| uarm_b | teknium_uarm.png | 10x40 | 5,3 | torso | 32,11 | body | joint=5,36 |
-| farm_b | teknium_farm.png | 10x38 | 5,3 | uarm_b | 5,36 | body | joint=4,34 |
-| hand_b | teknium_hand_fist.png | 12x18 | 5,1 | farm_b | 4,34 | hand |  |
-| hand_b@open | teknium_hand_open.png | 14x22 | 5,1 | - | - | variant |  |
+| uarm_b | teknium_uarm_far.png | 13x45 | 7,4 | torso | 32,12 | body | joint=6,38 |
+| farm_b | teknium_farm.png | 12x38 | 4,4 | uarm_b | 6,38 | body | joint=5,35 |
+| farm_b@cam | teknium_farm_cam.png | 16x32 | 7,3 | - | - | variant | joint=8,28 |
+| hand_b | teknium_hand_fist.png | 11x21 | 5,5 | farm_b | 5,35 | hand |  |
+| hand_b@fist_cam | teknium_hand_fist_cam.png | 12x21 | 5,5 | - | - | variant |  |
+| hand_b@open | teknium_hand_open.png | 15x25 | 6,6 | - | - | variant |  |
 | thigh_b | teknium_thigh.png | 13x46 | 6,4 | torso | 25,53 | body | joint=5,42 |
 | shin_b | teknium_shin.png | 12x41 | 6,3 | thigh_b | 5,42 | body | joint=5,37 |
 | foot_b | teknium_foot.png | 30x17 | 10,2 | shin_b | 5,37 | foot | sole=1,16,28,16 |
@@ -90,13 +93,18 @@ Wrist: c=20 hw=35
 | shin | teknium_shin.png | 12x41 | 6,3 | thigh | 5,42 | body | joint=5,37 |
 | foot | teknium_foot.png | 30x17 | 10,2 | shin | 5,37 | foot | sole=1,16,28,16 |
 | hem | teknium_hem_tail.png | 10x25 | 4,1 | torso | 7,56 | spring | spring=150,13,0.12 range=-15,55 |
-| torso | teknium_torso.png | 41x62 | 20,31 | - | - | torso |  |
-| torso@front | teknium_torso_front.png | 43x62 | 22,31 | - | - | variant |  |
-| uarm | teknium_uarm.png | 10x40 | 5,3 | torso | 8,14 | body | joint=5,36 |
-| farm | teknium_farm.png | 10x38 | 5,3 | uarm | 5,36 | body | joint=4,34 |
-| hand | teknium_hand_grip_back.png | 12x16 | 5,1 | farm | 4,34 | hand | grip=5,11 axis=-0.1 |
-| weapon | teknium_weapon.png | 94x8 | 9,4 | hand | 5,11 | weapon | tip=92,3 |
-| hand_front | teknium_hand_grip_front.png | 12x16 | 5,1 | hand | 5,1 | grip_front | grip=5,11 axis=-0.1 |
+| torso | teknium_torso.png | 40x62 | 20,31 | - | - | torso |  |
+| torso@front | teknium_torso_front.png | 40x62 | 20,31 | - | - | variant |  |
+| uarm | teknium_uarm.png | 15x46 | 8,4 | torso | 6,12 | body | joint=7,39 |
+| torso_cap | teknium_torso_cap.png | 14x23 | 6,7 | torso | 6,12 | cap |  |
+| torso_cap@front | teknium_torso_cap_front.png | 14x23 | 6,7 | - | - | variant |  |
+| farm | teknium_farm.png | 12x38 | 4,4 | uarm | 7,39 | body | joint=5,35 |
+| farm@cam | teknium_farm_cam.png | 16x32 | 7,3 | - | - | variant | joint=8,28 |
+| hand | teknium_hand_grip_back.png | 12x21 | 6,5 | farm | 5,35 | hand | grip=5,15 axis=-0.0 |
+| hand@grip_cam | teknium_hand_grip_cam_back.png | 11x20 | 5,5 | - | - | variant | grip=5,15 axis=-0.1 |
+| weapon | teknium_weapon.png | 94x8 | 9,4 | hand | 5,15 | weapon | tip=92,3 |
+| hand_front | teknium_hand_grip_front.png | 12x21 | 6,5 | hand | 6,5 | grip_front | grip=5,15 axis=-0.0 |
+| hand_front@grip_cam | teknium_hand_grip_cam_front.png | 11x20 | 5,5 | - | - | variant | grip=5,15 axis=-0.1 |
 <!-- slice:teknium:end -->
 
 Weapon grip: 35 (degrees the weapon art turns in the fist; rig QA t_0309973138084dd1)
@@ -155,17 +163,19 @@ Weapon grip: 53 (degrees the weapon art turns in the fist; rig QA t_030997313808
 
 Palette/look (v2, `src/design.jpg`, Kyle's own reference `src/kyle-reference.png`): black-ink manga style; glossy black hair with heavy bangs and outward-flipped ends, white headphones; white turtleneck, blue jeans (no skirt), white sneakers with blue trim; an instrument cable with a jack plug at each end, a spare coil clipped at the hip.  Move set: agile; sound-wave blasts (ranged special, projectile/FX `nous_girl_fx_burst.png`), cable-whip combos at mid range, bass-drop ground pound, quick dodge roll.
 
-Rig: v2 (sliced by `tools/slice-hero-parts.py nous_girl` from `src/sheetA.jpg` + `src/sheetB.jpg`, spec `src/SLICE.json`). Separate feet and hands (the sleeve cuff drawn on each hand overlaps the forearm cuff), a grip pair around the held jack plug, the cable as a 10-link rope from the plug with the second plug at its free end (it lashes out on whip hits), two hair locks and the hip coil on springs, 3/4 head and torso with front variants. The v1 parts are in git history (a53e191); the unused v1 `nous_girl_weapon.png` is kept for the old baseline sheets.
-Layers: uarm_b, farm_b, hand_b, thigh_b, shin_b, foot_b, head, thigh, shin, foot, torso, coil, hair_long, hair_short, uarm, farm, hand, weapon, hand_front, cable, cable_end
+Rig: v2 (sliced by `tools/slice-hero-parts.py nous_girl` from `src/sheetC-hands.jpg`, `src/sheetD-arms-cable.jpg` (plug, cable, lash stroke), `src/sheetA.jpg` + `src/sheetB.jpg` (coil), spec `src/SLICE.json`). Bare-wrist hands from `sheetC-hands.jpg` tuck under the ribbed sweater cuff and the elbow under the upper sleeve (`hand < farm < uarm`); the sheetA sleeves are re-pivoted with rounded, de-outlined tenons and the shoulder insertion sits under a derived turtleneck shoulder (`torso_cap` / `torso_cap@front`). A grip pair closes around the held jack plug (palm behind, fingers in front) with a camera-facing grip (`hand@grip_cam` = `hand_front@grip_cam`) and side, camera-facing and open free hands. The cable is a 10-link rope from the plug with the second plug at its free end; on whip contacts it is thrown out from the fist as a taut lash with the `fx_lash` stroke along it. Two hair locks and the hip coil on springs, 3/4 head and torso with front variants. There is no foreshortened forearm drawing for Nous yet (the sheetD sleeves do not fit), so `grip_cam` sits on the side-view sleeve. The v1 parts are in git history (a53e191); the unused v1 `nous_girl_weapon.png` is kept for the old baseline sheets.
+Layers: hand_b, farm_b, uarm_b, thigh_b, shin_b, foot_b, head, thigh, shin, foot, torso, coil, hair_long, hair_short, hand, farm, uarm, torso_cap, weapon, hand_front, cable, cable_end
+Links: torso@front = torso_cap@front, hand@grip_cam = hand_front@grip_cam
 Wrist: c=0 hw=40
 
 <!-- slice:nous_girl:begin -->
 | part | image | size | pivot | parent | attach | role | data |
 |---|---|---|---|---|---|---|---|
-| uarm_b | nous_girl_uarm.png | 12x45 | 6,4 | torso | 37,15 | body | joint=6,41 |
-| farm_b | nous_girl_farm.png | 11x42 | 5,3 | uarm_b | 6,41 | body | joint=4,38 |
-| hand_b | nous_girl_hand_fist.png | 9x20 | 4,5 | farm_b | 4,38 | hand |  |
-| hand_b@open | nous_girl_hand_open.png | 10x24 | 5,6 | - | - | variant |  |
+| uarm_b | nous_girl_uarm.png | 13x48 | 6,5 | torso | 37,15 | body | joint=6,42 |
+| farm_b | nous_girl_farm.png | 11x42 | 5,3 | uarm_b | 6,42 | body | joint=4,39 |
+| hand_b | nous_girl_hand_fist.png | 10x18 | 3,4 | farm_b | 4,39 | hand |  |
+| hand_b@open | nous_girl_hand_open.png | 19x20 | 9,3 | - | - | variant |  |
+| hand_b@fist_cam | nous_girl_hand_fist_cam.png | 12x17 | 5,4 | - | - | variant |  |
 | thigh_b | nous_girl_thigh.png | 15x48 | 7,4 | torso | 28,57 | body | joint=7,44 |
 | shin_b | nous_girl_shin.png | 14x45 | 7,3 | thigh_b | 7,44 | body | joint=6,42 |
 | foot_b | nous_girl_foot.png | 29x17 | 9,2 | shin_b | 6,42 | foot | sole=3,16,27,16 |
@@ -179,13 +189,18 @@ Wrist: c=0 hw=40
 | coil | nous_girl_coil.png | 16x13 | 8,1 | torso | 12,44 | spring | spring=220,16,0.06 range=-20,20 |
 | hair_long | nous_girl_hair_long.png | 18x31 | 7,1 | head | 8,39 | spring | spring=110,10,0.14 range=-25,60 |
 | hair_short | nous_girl_hair_short.png | 10x25 | 3,1 | head | 18,42 | spring | spring=110,10,0.14 range=-20,45 |
-| uarm | nous_girl_uarm.png | 12x45 | 6,4 | torso | 8,16 | body | joint=6,41 |
-| farm | nous_girl_farm.png | 11x42 | 5,3 | uarm | 6,41 | body | joint=4,38 |
-| hand | nous_girl_hand_grip_back.png | 9x20 | 4,5 | farm | 4,38 | hand | grip=4,16 axis=0.0 |
-| weapon | nous_girl_plug.png | 18x3 | 11,1 | hand | 4,16 | weapon | tip=17,1 |
-| hand_front | nous_girl_hand_grip_front.png | 9x20 | 4,5 | hand | 4,5 | grip_front | grip=4,16 axis=0.0 |
-| cable | nous_girl_cable_seg.png | 38x4 | 0,2 | weapon | 17,1 | rope | segs=10 len=6 lash=118 |
-| cable_end | nous_girl_plug.png | 18x3 | 11,1 | cable | - | rope_end | tip=17,1 |
+| uarm | nous_girl_uarm.png | 13x48 | 6,5 | torso | 8,16 | body | joint=6,42 |
+| torso_cap | nous_girl_torso_cap.png | 18x23 | 8,10 | torso | 8,16 | cap |  |
+| torso_cap@front | nous_girl_torso_cap_front.png | 18x22 | 8,9 | - | - | variant |  |
+| farm | nous_girl_farm.png | 11x42 | 5,3 | uarm | 6,42 | body | joint=4,39 |
+| hand | nous_girl_hand_grip_back.png | 11x16 | 6,4 | farm | 4,39 | hand | grip=5,11 axis=-0.0 |
+| hand@grip_cam | nous_girl_hand_grip_cam_back.png | 12x16 | 6,4 | - | - | variant | grip=6,11 axis=0.0 |
+| weapon | nous_girl_plug.png | 19x4 | 6,2 | hand | 5,11 | weapon | tip=18,2 |
+| hand_front | nous_girl_hand_grip_front.png | 11x16 | 6,4 | hand | 6,4 | grip_front | grip=5,11 axis=-0.0 |
+| hand_front@grip_cam | nous_girl_hand_grip_cam_front.png | 12x16 | 6,4 | - | - | variant | grip=6,11 axis=0.0 |
+| cable | nous_girl_cable_seg.png | 45x4 | 0,2 | weapon | 18,2 | rope | segs=10 len=6 lash=118 |
+| cable_end | nous_girl_plug.png | 19x4 | 6,2 | cable | - | rope_end | tip=18,2 |
+| fx_lash | nous_girl_fx_lash.png | 57x30 | 31,3 | hand | 5,11 | fx |  |
 <!-- slice:nous_girl:end -->
 
 Weapon grip: 25 (degrees the weapon art turns in the fist; rig QA t_0309973138084dd1)

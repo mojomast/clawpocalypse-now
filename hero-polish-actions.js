@@ -1,5 +1,6 @@
 // Presentation-only distinctions for shared combat actions. Damage, startup,
 // recovery and input bindings still come from combat.js / grab.js.
+const TEK_KICK_ARM = [-120, -30]; // Teknium kicks: blade raised in a high guard, clear of the leg
 export function installPolishedActions(poses, chains) {
   for (const hero of ['teknium', 'nous_girl', 'turbofit']) {
     const idle = poses[hero + '_idleA'], put = (n, p) => { poses[`${hero}_${n}`] = { ...idle, ...p }; };
@@ -21,6 +22,9 @@ export function installPolishedActions(poses, chains) {
         put(action + '_follow', { ...idle, thigh: -62, shin: 110, thigh_b: -2, shin_b: 16 });
         put(action + '_recover', idle);
       }
+      // Teknium: carry the blade arm clear of the raised leg instead of crossing it.
+      if (hero === 'teknium') for (const move of ['kick', 'jumpKick', 'kick_knee', 'kick_kneeFinal'])
+        for (const phase of ['wind', 'active', 'follow']) put(`${move}_${phase}`, { ...poses[`${hero}_${move}_${phase}`], uarm: TEK_KICK_ARM[0], farm: TEK_KICK_ARM[1] });
     }
     // Third punch is a compact hook; the heavy finisher keeps its own named
     // wind/contact/follow poses and its fourth-hit combat timing.
@@ -44,7 +48,7 @@ export function installPolishedActions(poses, chains) {
     for (const [phase, uarm_b, farm_b] of [['wind', 20, -100], ['active', hero === 'turbofit' ? 92 : 72, -105], ['follow', hero === 'turbofit' ? 94 : 82, -110]]) {
       put('backAttack_' + phase, { ...poses[`${hero}_backAttack_${phase}`], uarm_b, farm_b,
         __twoHand: phase === 'wind' ? 'off' : 'free',
-        __variants: hero === 'turbofit' && phase !== 'wind' ? { hand_b: 'fist_cam' } : {} });
+        __variants: phase !== 'wind' ? { hand_b: 'fist_cam' } : {} });
     }
     // Non-damaging travel carries the weapon in guard, not in its attack pose.
     put('dashTravel_wind', { ...idle, torso: 8, thigh: -24, shin: 44 });

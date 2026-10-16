@@ -48,7 +48,7 @@ function draw() {
 async function protectedHashes() {
   const c = document.createElement('canvas'); c.width = 400; c.height = 320; const x = c.getContext('2d');
   const result = {};
-  for (const h of heroes.filter(h => !['teknium', 'nous_girl', 'turbofit'].includes(h))) {
+  for (const h of heroes.filter(h => !['teknium', 'nous_girl'].includes(h))) {
     result[h] = {};
     for (const name of Object.keys(POSES).filter(n => n.startsWith(h + '_'))) for (const flip of [false, true]) {
       x.clearRect(0, 0, 400, 320);

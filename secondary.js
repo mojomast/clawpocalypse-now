@@ -20,12 +20,14 @@ export function restWorld(spec, parentDeg) {
   return parentDeg + clamp((spec.bias || 0) - parentDeg, lo, hi);
 }
 
-// Authored slack equilibrium: a soft elbow into an open loop, rather than a taut plumb line.
+// Authored slack equilibrium: the cable drops from the fist and trails back in an open
+// whip hook (free jack behind the hand), never closing into a ring beside the fist and
+// never a taut plumb line to the floor.
 export function restRope(start, n, len, floorY) {
   const pts = [start.slice()];
   let [x, y] = start;
   for (let i = 0; i < n; i++) {
-    const a = (-30 + 260 * Math.pow(i / Math.max(1, n - 1), 1.35)) * RAD;
+    const a = (8 - 118 * Math.pow(i / Math.max(1, n - 1), 1.25)) * RAD;
     x += Math.sin(a) * len;
     y = Math.min(Math.max(start[1], floorY - 1), y + Math.cos(a) * len);
     pts.push([x, y]);

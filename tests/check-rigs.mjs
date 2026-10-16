@@ -108,7 +108,11 @@ for (const kind of ids) {
       // attachment from manifest coordinates rather than child matrix.
       const parent = table[p.parent], ps = p.role === 'spring' || p.role === 'rope' ? [1, 1] : sol.S[p.parent];
       const shoulderShift = p.parent === 'torso' ? (child === 'uarm' ? 3.5 : child === 'uarm_b' ? -3 : child === 'thigh' ? 1.5 : child === 'thigh_b' ? -1.5 : child === 'head' ? 1.5 : 0) * (angles.tw || 0) : 0;
-      const expected = apply(sol.M[p.parent], (p.ax + shoulderShift - parent.px) * ps[0], (p.ay - parent.py) * ps[1]);
+      // a selected perspective variant with its own distal joint (shorter foreshortened forearm)
+      // carries the child on that joint: ax/ay shift by the variant's joint offset
+      const alt = sol.parts?.[p.parent]?.variant && parent.variants?.[sol.parts[p.parent].variant];
+      const vj = alt?.joint && parent.joint ? [(alt.joint[0] - alt.px) - (parent.joint[0] - parent.px), (alt.joint[1] - alt.py) - (parent.joint[1] - parent.py)] : [0, 0];
+      const expected = apply(sol.M[p.parent], (p.ax + vj[0] + shoulderShift - parent.px) * ps[0], (p.ay + vj[1] - parent.py) * ps[1]);
       const actual = apply(sol.M[child], 0, 0);
       const facing = q => [flip ? -q[0] : q[0], q[1]];
       const e = facing(expected), a = facing(actual);

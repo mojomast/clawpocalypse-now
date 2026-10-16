@@ -6,14 +6,17 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 const recording = process.argv.includes('--record');
+// --record-turbofit: record ONLY the TurboFit fixture (PR #8 rig) from BASELINE_ROOT.
+const recordingTurbo = process.argv.includes('--record-turbofit');
 const root = resolve(import.meta.dirname, '..');
-const source = recording ? resolve(process.env.BASELINE_ROOT || '/tmp/opencode/hero-polish-baseline') : root;
+const source = recording || recordingTurbo ? resolve(process.env.BASELINE_ROOT || '/tmp/opencode/hero-polish-baseline') : root;
 const load = p => import(pathToFileURL(resolve(source, p)));
 await load('don.js');
 const { POSES, solve } = await load('rig.js');
 const { HERO_RIGS } = await load('hero-rigs.js');
 const { createAnim } = await load('anim.js');
-const ids = ['turtle_purple', 'turtle_blue', 'turtle_red', 'turtle_orange', 'don_piedro'];
+// TurboFit (PR #8, feat/turbofit-rig-v2) is protected too; its fixture lives with its evidence.
+const ids = recordingTurbo ? ['turbofit'] : ['turtle_purple', 'turtle_blue', 'turtle_red', 'turtle_orange', 'don_piedro', ...(recording ? [] : ['turbofit'])];
 const digest = x => createHash('sha256').update(typeof x === 'string' || Buffer.isBuffer(x) ? x : JSON.stringify(x)).digest('hex');
 const result = {};
 for (const hero of ids) {
@@ -36,11 +39,17 @@ for (const hero of ids) {
   result[hero] = { rig: digest(HERO_RIGS[hero]), assets, samples };
 }
 const file = resolve(root, 'evidence/hero-animation-polish/before/protected-source.json');
-if (recording) {
+const turboFile = resolve(root, 'evidence/turbofit-rig-v2/protected-source.json');
+if (recordingTurbo) {
+  await writeFile(turboFile, JSON.stringify(result, null, 2), { flag: 'wx' });
+  console.log('Saved TurboFit protected source/animation fixture from', source);
+} else if (recording) {
   await mkdir(resolve(file, '..'), { recursive: true });
   await writeFile(file, JSON.stringify(result, null, 2), { flag: 'wx' });
   console.log('Saved protected source/animation fixture from', source);
 } else {
-  assert.deepEqual(result, JSON.parse(await readFile(file)), 'A protected hero asset, rig, pose, animation or solve changed');
-  console.log('Protected heroes unchanged: assets, rig metadata, every pose and 12 transition frames per pose.');
+  const { turbofit, ...legacy } = result;
+  assert.deepEqual(legacy, JSON.parse(await readFile(file)), 'A protected hero asset, rig, pose, animation or solve changed');
+  assert.deepEqual({ turbofit }, JSON.parse(await readFile(turboFile)), 'TurboFit (PR #8) asset, rig, pose, animation or solve changed');
+  console.log('Protected heroes unchanged (4 turtles, don_piedro, turbofit): assets, rig metadata, every pose and 12 transition frames per pose.');
 }

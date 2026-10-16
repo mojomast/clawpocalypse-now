@@ -471,9 +471,32 @@ def main():
             W, H = im.size
             im = im.transpose(Image.FLIP_LEFT_RIGHT)
             anchors = {k: ((W - 1 - v[0], v[1]) if isinstance(v, tuple) else -v) for k, v in anchors.items()}
+        if 'fillDark' in p:
+            # Close a painted opening (e.g. a vest armhole that the sleeve root now covers):
+            # dark interior pixels inside the given fractional boxes take the colour of the
+            # nearest non-dark fabric pixel. The silhouette outline (alpha edge band) is kept.
+            arr = np.asarray(im).astype(np.float32).copy(); W0, H0 = im.size
+            lum = arr[..., :3] @ np.array([0.299, 0.587, 0.114], np.float32)
+            fd = p['fillDark']
+            edge = fd.get('edge', 6)
+            inner = ndi.binary_erosion(arr[..., 3] > 128, iterations=edge) if edge > 0 else arr[..., 3] > 128
+            sel = np.zeros(lum.shape, bool)
+            for x0, y0, x1, y1 in fd['rects']:
+                sel[int(y0 * H0):int(y1 * H0), int(x0 * W0):int(x1 * W0)] = True
+            dark = sel & inner & (lum < fd.get('lum', 70))
+            if dark.any():
+                # colour sources: opaque, non-dark pixels well inside the silhouette (never the
+                # despilled edge band, which can carry a faint background tint)
+                chroma = arr[..., :3].max(-1) - arr[..., :3].min(-1)
+                src_ok = ndi.binary_erosion(arr[..., 3] > 250, iterations=3) & ~dark & (lum >= fd.get('lum', 70)) & (chroma >= fd.get('minChroma', 0))
+                _, (iy, ix) = ndi.distance_transform_edt(~src_ok, return_indices=True)
+                arr[dark, :3] = arr[iy, ix][dark, :3]
+                im = Image.fromarray(arr.round().clip(0, 255).astype(np.uint8), 'RGBA')
         # target scale
         rgb_, a_ = rgba_arrays(im)
-        if 'scaleAs' in p:
+        if 'scale' in p:
+            s = p['scale']  # explicit uniform scale (e.g. matched to a part on another sheet)
+        elif 'scaleAs' in p:
             s = measured[p['scaleAs']]['scale'] * p.get('scaleMul', 1)
         elif kind in ('limb',):
             top = point_at(a_, p['pivotAt']) if 'pivotAt' in p else cap_centre(a_, 'top')
@@ -559,6 +582,34 @@ def main():
             arr[..., 2] = np.where(strong, np.minimum(arr[..., 2], g + 60), arr[..., 2])
             info['fringeFixed'] = int(spillmask.sum())
             out = Image.fromarray(arr, 'RGBA'); rgbo, ao = rgba_arrays(out)
+        if 'toneMatch' in p:
+            # Light tone match to another (already sliced) part, e.g. new sleeves to the approved
+            # torso: per-channel mean/std of the light fabric pixels are matched to the reference's,
+            # blended by `strength`; dark ink is left alone. `rim` darkens the 1 px silhouette edge
+            # to the reference's line weight (never across a de-outlined tenon end).
+            tm = p['toneMatch']; ref = outputs[tm['part']]
+            rr, ra = rgba_arrays(ref)
+            arr = np.asarray(out).astype(np.float32).copy()
+            lumf = lambda x: x[..., :3] @ np.array([0.299, 0.587, 0.114], np.float32)
+            rsel = ndi.binary_erosion(ra > 0.99, iterations=2) & (lumf(rr.astype(np.float32)) > 150)
+            tsel = (ao > 0.99) & (lumf(arr) > 150)
+            if rsel.sum() > 20 and tsel.sum() > 20:
+                rv = rr.astype(np.float32)[rsel]; tv = arr[..., :3][tsel]
+                mu_r, sd_r, mu_t, sd_t = rv.mean(0), rv.std(0), tv.mean(0), np.maximum(tv.std(0), 1)
+                k = tm.get('strength', 1.0)
+                mapped = (arr[..., :3] - mu_t) / sd_t * sd_r + mu_r
+                w = (np.clip((lumf(arr) - 90) / 60, 0, 1) * k)[..., None]
+                arr[..., :3] = arr[..., :3] * (1 - w) + mapped * w
+            if tm.get('rim'):
+                solid = ao > 0.5
+                edge = solid & ~ndi.binary_erosion(solid, iterations=1)
+                if kind == 'limb' and p.get('deoutlineTop'):
+                    edge[:int(info['pivot'][1] + (p.get('roundTop') or 4)) + 1] = False
+                if kind == 'limb' and p.get('deoutlineBottom'):
+                    edge[int(info['joint'][1] - (p.get('roundBottom') or 4)):] = False
+                arr[edge, :3] *= tm['rim']
+            out = Image.fromarray(arr.round().clip(0, 255).astype(np.uint8), 'RGBA'); rgbo, ao = rgba_arrays(out)
+            info['toneMatched'] = tm['part']
         partial = float(((ao > 0) & (ao < 1)).sum() / max(1, (ao > 0).sum()))
         info['partialAlpha'] = round(partial, 3)
         spill = int(((ao > 0) & (rgbo[..., 0] > 150) & (rgbo[..., 2] > 150) & (rgbo[..., 1] < 80)).sum())

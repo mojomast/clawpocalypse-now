@@ -410,7 +410,11 @@ export const REACTIONS = REACTION_STATES;
 //    fixed rendered bone lengths, then adjust the shared hip height.
 const BACK_TINT_DEFAULT = 'brightness(0.6)';
 // pale skin goes grey at 0.6; these keep the far limbs readable as skin
-const BACK_TINT = { nous_girl: 'brightness(0.8) sepia(0.12)', teknium: 'brightness(0.66)', turbofit: 'brightness(0.66)' };
+const BACK_TINT = { nous_girl: 'brightness(0.9)', teknium: 'brightness(0.66)', turbofit: 'brightness(0.66)' };
+// Front-facing presentation (torso@front: turn, taunt, victory) shows the far arm beside the
+// body rather than behind it, so it only takes a light shade. A neutral shade keeps Nous's
+// white knit sleeves white instead of the beige-grey the side-view shade gives them.
+const FRONT_BACK_TINT = { nous_girl: 'brightness(0.96)', teknium: 'brightness(0.86)' };
 export const SKIRTED = new Set(['teknium', 'nous_girl']);
 // [scaleX, scaleY] per part (back limbs use their front part's scale).
 export const PART_SCALE = {
@@ -650,18 +654,34 @@ function lashPoints(table, M, start, n, k, A) {
   const plugPad = Math.hypot(Math.max(end.tip[0], end.w - end.tip[0]), Math.max(end.tip[1], end.h - end.tip[1])) + 0.3;
   const cordPad = Math.hypot(0.6, rope.h / 2) + 0.3;
   const advance = Math.min(62, reach - plugPad - start[0]);
-  // Put slack in a returning loop, then lead the free jack toward contact. Only
-  // the endpoint needs the full plug margin: applying that margin to every link
-  // collapses short-range lashes behind the gripping hand.
-  const sample = size => Array.from({ length: 81 }, (_, i) => {
-    const t = i / 80, a = t * Math.PI * 2;
-    return [Math.min(reach - cordPad, start[0] + advance * t + 22 * size * Math.sin(a)),
-      start[1] + 16 * size * (1 - Math.cos(a))];
-  });
   const length = pts => pts.slice(1).reduce((sum, p, i) => sum + Math.hypot(p[0] - pts[i][0], p[1] - pts[i][1]), 0);
   const budget = (rope.lash || rope.segs * rope.len) * 0.985;
-  let size = 1, curve = sample(size);
-  for (let i = 0; i < 16 && length(curve) > budget; i++) curve = sample(size *= 0.95);
+  let curve;
+  if (advance >= 16) {
+    // A lash, not a loop: the cord is thrown OUT along the hand -> jack chord as one taut,
+    // shallow arc (it leaves the fist rising and the free jack leads on the way down), no
+    // returning loop and no zig-zag. The arc stays shallow (<= 18% of the chord, <= 8 px);
+    // slack beyond that is not drawn (links stay <= their manifest length).
+    const wave = amp => Array.from({ length: 81 }, (_, i) => {
+      const t = i / 80;
+      return [start[0] + advance * t, start[1] - amp * Math.sin(Math.PI * t) * (1.15 - 0.3 * t)];
+    });
+    let lo = 0, hi = Math.min(8, 0.18 * advance);
+    if (length(wave(hi)) <= budget) lo = hi;
+    else for (let i = 0; i < 24; i++) { const mid = (lo + hi) / 2; if (length(wave(mid)) > budget) hi = mid; else lo = mid; }
+    curve = wave(lo);
+  } else {
+    // Close range: slack in a returning loop that still leads the free jack outward. Only
+    // the endpoint needs the full plug margin: applying it to every link collapses
+    // short-range lashes behind the gripping hand.
+    const sample = size => Array.from({ length: 81 }, (_, i) => {
+      const t = i / 80, a = t * Math.PI * 2;
+      return [Math.min(reach - cordPad, start[0] + advance * t + 22 * size * Math.sin(a)),
+        start[1] + 16 * size * (1 - Math.cos(a))];
+    });
+    let size = 1; curve = sample(size);
+    for (let i = 0; i < 16 && length(curve) > budget; i++) curve = sample(size *= 0.95);
+  }
   const total = length(curve), pts = [start.slice()];
   let j = 1, walked = 0;
   for (let i = 1; i < n; i++) {
@@ -941,6 +961,23 @@ function solveV2(kind, input, opts) {
         if (!variants[depSlot] && table[depSlot]?.variants?.[depVar]) variants[depSlot] = depVar;
       }
     }
+  }
+  // A perspective variant with its own distal joint (a foreshortened forearm is drawn
+  // shorter) carries its children to that joint: every descendant translates rigidly by
+  // the variant's joint offset. Variants whose bone vector equals the default's (all of
+  // TurboFit's) are untouched, so their matrices stay bit-identical.
+  for (const [slot, v] of Object.entries(variants)) {
+    const base = table[slot], alt = base?.variants?.[v];
+    if (!base?.joint || !alt?.joint || !M[slot]) continue;
+    const dx = (alt.joint[0] - alt.px) - (base.joint[0] - base.px), dy = (alt.joint[1] - alt.py) - (base.joint[1] - base.py);
+    if (!dx && !dy) continue;
+    const m = M[slot], s = S[slot] || [1, 1], wx = m[0] * dx * s[0] + m[2] * dy * s[1], wy = m[1] * dx * s[0] + m[3] * dy * s[1];
+    const seen = new Set(), queue = [slot];
+    while (queue.length) {
+      const at = queue.shift();
+      for (const [n, q] of Object.entries(table)) if (q.parent === at && !seen.has(n)) { seen.add(n); queue.push(n); }
+    }
+    for (const n of seen) if (M[n]) M[n] = [M[n][0], M[n][1], M[n][2], M[n][3], M[n][4] + wx, M[n][5] + wy];
   }
   let order = orderFor(kind).filter(n => table[n] && !(n === 'hand_front' && variants.hand && !variants.hand_front) && !(n === 'hand_front_b' && !variants.hand_front_b));
   if (twoHand || supportBlend > 0) {
@@ -1297,6 +1334,22 @@ function v2Live(kind, sol, pose, angles, poseName, x, y, flip, scale, dt) {
   return applySecondary(kind, sol, res);
 }
 
+// Nous's contact stroke: the sheet's crescent lash sprite (sheetD obj 6) laid along the rope
+// chord (fist -> free jack), uniformly sized to the chord, on whip contact frames only.
+function drawLashStroke(ctx, img, sol, baseTint) {
+  const pts = Object.values(sol.ropes || {})[0];
+  if (!img || !pts || pts.length < 2) return;
+  const a = pts[0], b = pts[pts.length - 1], len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+  if (len < 10) return;
+  const k = len / img.width;
+  ctx.save();
+  if (baseTint) ctx.filter = baseTint.trim();
+  ctx.globalAlpha *= 0.6 * Math.min(1, sol.lash);
+  ctx.translate(a[0], a[1]); ctx.rotate(Math.atan2(b[1] - a[1], b[0] - a[0]));
+  ctx.scale(k, k);
+  ctx.drawImage(img, 0, -img.height * 0.5);
+  ctx.restore();
+}
 export function createRig() {
   const images = {};
   const drawn = {};
@@ -1364,6 +1417,7 @@ export function createRig() {
       const part = v2 ? sol.parts[name] : table[name], img = images[kind][part.file];
       if (!img) continue;
       if (part.role === 'rope') {
+        if (v2 && table.fx_lash && sol.lash > 0.35 && angles.__phase === 'active') drawLashStroke(ctx, images[kind][table.fx_lash.file], sol, baseTint);
         ctx.save(); if (part.back) ctx.filter = baseTint + (BACK_TINT[kind] || BACK_TINT_DEFAULT); else if (baseTint) ctx.filter = baseTint.trim();
         drawRope(ctx, img, sol.ropes[name], part); ctx.restore(); continue;
       }
@@ -1385,7 +1439,8 @@ export function createRig() {
       if (s[0] !== 1 || s[1] !== 1) ctx.scale(s[0], s[1]);
       if (part.back) {
         const frontArm = kind === 'turbofit' && (sol.twoHand || sol.supportBlend > 0) && (name === 'farm_b' || name === 'hand_b' || name === 'hand_front_b');
-        ctx.filter = baseTint + (frontArm ? 'brightness(0.88)' : (BACK_TINT[kind] || BACK_TINT_DEFAULT));
+        const frontView = FRONT_BACK_TINT[kind] && sol.variants && sol.variants.torso === 'front';
+        ctx.filter = baseTint + (frontArm ? 'brightness(0.88)' : frontView ? FRONT_BACK_TINT[kind] : (BACK_TINT[kind] || BACK_TINT_DEFAULT));
       } else if (baseTint) ctx.filter = baseTint.trim();
       ctx.drawImage(img, -part.px, -part.py);
       ctx.restore();

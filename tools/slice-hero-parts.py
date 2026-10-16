@@ -150,6 +150,56 @@ def cap_centre(a, end, frac=0.12):
     w = a[ys[sel], xs[sel]]
     return float((xs[sel] * w).sum() / w.sum()), float((ys[sel] * w).sum() / w.sum())
 
+def point_at(a, frac):
+    """Point at a vertical fraction `frac` of the opaque bounding box (or [fx, fy] fractions)."""
+    ys, xs = np.nonzero(a > 0.5)
+    y0, y1 = ys.min(), ys.max()
+    if isinstance(frac, (list, tuple)):
+        return float(xs.min() + frac[0] * (xs.max() - xs.min())), float(y0 + frac[1] * (y1 - y0))
+    target_y = y0 + frac * (y1 - y0)
+    band = np.abs(ys - target_y) <= max(1.5, (y1 - y0) * 0.04)
+    if not band.any():
+        band = np.abs(ys - target_y) <= 3
+    w = a[ys[band], xs[band]]
+    return float((xs[band] * w).sum() / w.sum()), float(target_y)
+
+def shape_limb_end(out, end, pt, radius=None, deoutline=False):
+    """Round a limb tenon above pivot ('top') or below joint ('bottom') and optionally replace
+    any dark horizontal cut-line outline inside the tenon with adjacent interior skin colour."""
+    arr = np.asarray(out).astype(np.float32).copy()
+    rgb, a = arr[..., :3], arr[..., 3] / 255.0
+    H, W = a.shape
+    px, py = pt
+    ys, xs = np.nonzero(a > 0.5)
+    if len(ys) == 0:
+        return out
+    row_y = min(H - 1, max(0, int(round(py))))
+    row_xs = np.nonzero(a[row_y] > 0.5)[0]
+    hw = (row_xs.max() - row_xs.min()) / 2.0 if len(row_xs) > 1 else 6.0
+    r = float(radius) if radius is not None else hw
+    yy, xx = np.mgrid[0:H, 0:W]
+    in_cap = (yy < py) if end == 'top' else (yy > py)
+    dist = np.hypot(xx - px, yy - py)
+    # Smoothly clip pixels outside the semicircular tenon cap
+    clip_scale = np.where(in_cap, np.clip(r + 0.5 - dist, 0.0, 1.0), 1.0)
+    a *= clip_scale
+    if deoutline:
+        # Sample warm interior colour just inside the pivot/joint row
+        ref_y0 = max(0, row_y + (1 if end == 'top' else -4))
+        ref_y1 = min(H, row_y + (5 if end == 'top' else 0))
+        ref_mask = (a[ref_y0:ref_y1] > 0.8) & (rgb[ref_y0:ref_y1].mean(axis=2) > 95)
+        if ref_mask.any():
+            skin = np.median(rgb[ref_y0:ref_y1][ref_mask], axis=0)
+            lum = rgb.mean(axis=2)
+            # Only de-outline inside the tenon cap, preserving left/right side outlines
+            inner_x = (xx >= (row_xs.min() + 2 if len(row_xs) else 0)) & (xx <= (row_xs.max() - 2 if len(row_xs) else W))
+            dark_cap = in_cap & (a > 0.05) & (lum < 110) & ( inner_x | (dist > r - 2.2) )
+            blend = np.clip((110 - lum) / 55.0, 0.0, 1.0)[..., None]
+            rgb = np.where(dark_cap[..., None], rgb * (1 - blend) + skin * blend, rgb)
+    arr[..., :3] = rgb
+    arr[..., 3] = a * 255.0
+    return Image.fromarray(arr.round().clip(0, 255).astype(np.uint8), 'RGBA')
+
 def rod_analysis(a, rgb, label):
     """Find a horizontal-ish rod through a hand: returns dict with band lines and hand span."""
     hard = a > 0.5
@@ -331,6 +381,55 @@ def main():
     measured = {}
     for name, p in spec['parts'].items():
         kind = p['kind']
+        if 'derive' in p:
+            src_name = p['derive']
+            src_out = outputs[src_name]
+            src_info = measured[src_name]
+            rgb_d, a_d = rgba_arrays(src_out)
+            Hd, Wd = a_d.shape
+            yy, xx = np.mgrid[0:Hd, 0:Wd]
+            mask = np.ones((Hd, Wd), np.float32)
+            if 'maskBox' in p:
+                bx0, by0, bx1, by1 = p['maskBox']
+                x0, y0, x1, y1 = bx0 * Wd, by0 * Hd, bx1 * Wd, by1 * Hd
+                feather = float(p.get('feather', 2.0))
+                if bx0 > 0: mask *= np.clip((xx - x0) / feather + 0.5, 0, 1)
+                if by0 > 0: mask *= np.clip((yy - y0) / feather + 0.5, 0, 1)
+                if bx1 < 1: mask *= np.clip((x1 - xx) / feather + 0.5, 0, 1)
+                if by1 < 1: mask *= np.clip((y1 - yy) / feather + 0.5, 0, 1)
+            if p.get('vestOnly'):
+                # Exclude warm bare chest skin so a vest shoulder cap never pastes chest skin over a crossing arm
+                r_ch, g_ch, b_ch = rgb_d[..., 0], rgb_d[..., 1], rgb_d[..., 2]
+                skin = (r_ch > 150) & (g_ch > 85) & (r_ch - b_ch > 38)
+                non_skin = (~skin).astype(np.float32)
+                non_skin = ndi.uniform_filter(non_skin, size=2)
+                mask *= non_skin
+            a_new = a_d * mask
+            a_new[a_new < 0.04] = 0.0
+            rgb_c, a_c, off_c = crop_to(rgb_d, a_new, 1)
+            out = to_image(rgb_c, a_c)
+            W, H = out.size
+            rgbo, ao = rgba_arrays(out)
+            partial = float(((ao > 0) & (ao < 1)).sum() / max(1, (ao > 0).sum()))
+            spill = int(((ao > 0) & (rgbo[..., 0] > 150) & (rgbo[..., 2] > 150) & (rgbo[..., 1] < 80)).sum())
+            src_pt = src_info['pivot']
+            if 'anchor' in p:
+                src_pt = src_info.get('anchors', {}).get(p['anchor']) or measured[p.get('anchorFrom', 'torso')]['anchors'][p['anchor']]
+            info = {
+                'w': W, 'h': H, 'kind': kind, 'scale': src_info['scale'],
+                'pivot': [int(src_pt[0] - off_c[0]), int(src_pt[1] - off_c[1])],
+                'registeredWith': src_name,
+                'partialAlpha': round(partial, 3), 'magentaPixels': spill
+            }
+            measured[name] = info
+            outputs[name] = out
+            report.append(f'{name:16s} -> {W}x{H} derived from {src_name} pivot={info["pivot"]} partialAlpha {partial:.2f} magenta {spill}')
+            if args.debug:
+                os.makedirs(args.debug, exist_ok=True)
+                big = out.resize((W * 4, H * 4), Image.NEAREST)
+                bgim = Image.new('RGBA', big.size, (40, 44, 60, 255)); bgim.alpha_composite(big)
+                bgim.save(os.path.join(args.debug, f'{hero}_{name}.png'))
+            continue
         if name in grip_out:
             rgb, a, g, iou, src = grip_out[name]
         else:
@@ -363,14 +462,22 @@ def main():
                 x, y = pt[0] - W / 2, pt[1] - H / 2
                 return (x * math.cos(r) - y * math.sin(r) + W2 / 2, x * math.sin(r) + y * math.cos(r) + H2 / 2)
             anchors = {k: (rp(v) if isinstance(v, tuple) else v + rot) for k, v in anchors.items()}
+            if rot % 90 != 0 and kind != 'foot':
+                rgb_r, a_r = rgba_arrays(im)
+                rgb_r, a_r, off2 = crop_to(rgb_r, a_r, 2)
+                im = to_image(rgb_r, a_r)
+                anchors = {k: ((v[0] - off2[0], v[1] - off2[1]) if isinstance(v, tuple) else v) for k, v in anchors.items()}
         if flip:
             W, H = im.size
             im = im.transpose(Image.FLIP_LEFT_RIGHT)
             anchors = {k: ((W - 1 - v[0], v[1]) if isinstance(v, tuple) else -v) for k, v in anchors.items()}
         # target scale
         rgb_, a_ = rgba_arrays(im)
-        if kind in ('limb',):
-            top = cap_centre(a_, 'top'); bot = cap_centre(a_, 'bottom')
+        if 'scaleAs' in p:
+            s = measured[p['scaleAs']]['scale'] * p.get('scaleMul', 1)
+        elif kind in ('limb',):
+            top = point_at(a_, p['pivotAt']) if 'pivotAt' in p else cap_centre(a_, 'top')
+            bot = point_at(a_, p['jointAt']) if 'jointAt' in p else cap_centre(a_, 'bottom')
             s = p['length'] / math.dist(top, bot)
         elif kind in ('head', 'torso', 'secondary'):
             s = p['height'] / im.size[1]
@@ -387,7 +494,15 @@ def main():
         info = {'w': W, 'h': H, 'kind': kind, 'scale': round(s, 4)}
         r1 = lambda v: [round(v[0]), round(v[1])]
         if kind == 'limb':
-            info['pivot'] = r1(cap_centre(ao, 'top')); info['joint'] = r1(cap_centre(ao, 'bottom'))
+            info['pivot'] = r1(point_at(ao, p['pivotAt']) if 'pivotAt' in p else cap_centre(ao, 'top'))
+            info['joint'] = r1(point_at(ao, p['jointAt']) if 'jointAt' in p else cap_centre(ao, 'bottom'))
+            if p.get('roundTop') or p.get('deoutlineTop'):
+                rad = p['roundTop'] if isinstance(p.get('roundTop'), (int, float)) and not isinstance(p.get('roundTop'), bool) else None
+                out = shape_limb_end(out, 'top', info['pivot'], radius=rad, deoutline=bool(p.get('deoutlineTop')))
+            if p.get('roundBottom') or p.get('deoutlineBottom'):
+                rad = p['roundBottom'] if isinstance(p.get('roundBottom'), (int, float)) and not isinstance(p.get('roundBottom'), bool) else None
+                out = shape_limb_end(out, 'bottom', info['joint'], radius=rad, deoutline=bool(p.get('deoutlineBottom')))
+            rgbo, ao = rgba_arrays(out)
         elif kind == 'secondary':
             info['pivot'] = r1(cap_centre(ao, 'top', 0.08))
         elif kind == 'foot':
@@ -404,13 +519,17 @@ def main():
             info['pivot'] = [round(W / 2), round(H / 2)]
             info['anchors'] = {k: [round(v[0] * W), round(v[1] * H)] for k, v in p.get('anchors', {}).items()}
         elif kind in ('hand', 'grip'):
-            info['pivot'] = r1(cap_centre(ao, 'top', 0.06))
+            info['pivot'] = r1(point_at(ao, p['pivotAt']) if 'pivotAt' in p else cap_centre(ao, 'top', 0.06))
             if partner and partner in measured:
                 info['pivot'] = measured[partner]['pivot']; info['registeredWith'] = partner
             if 'grip' in anchors:
                 info['grip'] = r1(anchors['grip']); info['axis'] = round(((anchors['axis'] + 90) % 180) - 90, 1)
             if 'gripPoint' in p:
                 info['grip'] = [round(p['gripPoint'][0] * W), round(p['gripPoint'][1] * H)]
+            if p.get('roundTop') or p.get('deoutlineTop'):
+                rad = p['roundTop'] if isinstance(p.get('roundTop'), (int, float)) and not isinstance(p.get('roundTop'), bool) else None
+                out = shape_limb_end(out, 'top', info['pivot'], radius=rad, deoutline=bool(p.get('deoutlineTop')))
+                rgbo, ao = rgba_arrays(out)
         elif kind == 'weapon':
             info['pivot'] = r1(anchors['grip'])
             if 'grip2' in anchors: info['grip2'] = r1(anchors['grip2'])

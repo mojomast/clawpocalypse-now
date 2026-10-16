@@ -49,9 +49,36 @@ export function createCinematics(audio) {
     // `hermes claw migrate`, but it has to run from his root gateway atop Claw Tower, so
     // they recruit the sewer turtles (and Don Piedro invites himself). play('intro') runs
     // these panels in order; skipping any panel skips the whole intro.
+    // feat/agentic-donatello-story: THE ORIGIN. Donatello is into agentic engineering and
+    // hangs out on the Nous Research Discord, which is where he sees that Teknium and the
+    // Hermes gang are in danger. He is the one who talks the other turtles into helping:
+    // Mikey and Raph do not follow any of it, Leo half does. AI tropes are used as the
+    // turtles would actually meet them - tool calls, context windows, evals, prompt
+    // injection, open weights - so the beat reads as believable rather than decorative.
+    // Art note: this panel reuses the meeting art with its own camera move; a dedicated
+    // Donnie-at-the-terminal painting would be better and is worth a follow-up.
+    intro_0: {
+      typeRate: 46, img: 'intro1', fallback: 'intro', sound: 'blip', accent: 'riser', music: 'intro', duration: 7.4,
+      title: 'ORIGIN: THE CONTEXT WINDOW',
+      // Width rule: the canvas is 740 px wide and lines draw at 18 px monospace
+      // (~10.8 px per character), so a line must stay around 60 characters or it runs
+      // off both edges - the first cut of this panel was 95 characters and did.
+      lines: [
+        'DONATELLO: Ran the eval twice. The claws are outliers.',
+        'DONATELLO: Teknium is on the Nous Discord. He needs help.',
+        'LEONARDO: Help how? That is not a shell you can punch.',
+        'DONATELLO: Rogue agent loose. Those tool calls are not ours.',
+        'MICHELANGELO: Is that a pizza thing? Please say pizza thing.',
+        'RAPHAEL: I do not know what an agent is. Not pretending.',
+        'DONATELLO: Stay behind me, hit things. Mikey, hold context.'
+      ],
+      focus: [0.30, 0.62, 0.50],
+      lineFocus: [[0.30, 0.62, 0.55], [0.55, 0.45, 0.50], [0.18, 0.55, 0.52], [0.62, 0.58, 0.50], [0.40, 0.72, 0.60], [0.78, 0.70, 0.58], [0.30, 0.62, 0.55]],
+      from: [0.62, 0.22], to: [0.30, 0.58], zoom: [1.35, 1.05], shake: 0
+    },
     intro_1: {
       typeRate: 46, img: 'intro1', fallback: 'intro', sound: 'start', accent: 'thunder', music: 'intro', duration: 6.6,
-      title: 'AGENT ARMEGEDDON', lines: ['TEKNIUM: So you four are the ones who run the sewers.', 'NOUS GIRL: Shredclaw has claws in your pipes. I hear them.', 'TURTLES: The sewers are our turf. Somebody bring pizza.'],
+      title: 'AGENT ARMEGEDDON', lines: ['TEKNIUM: So you four are the ones who run the sewers.', 'NOUS GIRL: Claws in your pipes. Those callbacks are not his.', 'DONATELLO: Prompt injection. That is how it got past them.'],
       focus: [0.12, 0.85, 0.55],
       // One camera target per line: the pan follows whoever is speaking.
       lineFocus: [[0.12, 0.82, 0.62], [0.88, 0.62, 0.56], [0.50, 0.78, 0.50]],
@@ -59,7 +86,7 @@ export function createCinematics(audio) {
     },
     intro_2: {
       typeRate: 46, img: 'intro2', fallback: 'intro', sound: 'blip', accent: 'riser', music: 'intro', duration: 6.6,
-      title: 'THE BRIEFING', lines: ['NOUS GIRL: His root gateway sits on top of Claw Tower.', 'TURBOFIT: We run hermes claw migrate there. Locally!', 'TURTLES: Sewers, streets, rooftops. We know the way up.'],
+      title: 'THE BRIEFING', lines: ['NOUS GIRL: His root gateway sits on top of Claw Tower.', 'TURBOFIT: We run hermes claw migrate there. Locally!', 'LEONARDO: Open weights, closed claws. I follow half of this.'],
       focus: [0.87, 0.65, 0.45],
       lineFocus: [[0.88, 0.60, 0.52], [0.16, 0.70, 0.60], [0.50, 0.66, 0.48]],
       from: [0.55, 0.30], to: [0.45, 0.45], zoom: [1.2, 1.0], shake: 0
@@ -82,7 +109,7 @@ export function createCinematics(audio) {
     },
     bossEnter: {
       img: 'bossEnter', sound: 'boss', accent: 'riser', music: 'entrance', duration: 3.6,
-      title: 'SHREDCLAW', lines: ['SHREDCLAW: New shell. Same lobster. MORE CLAWS.', 'He installed every skill and rewrote his own SOUL.md.', 'Break his guard one hit at a time. Watch his health bar.'],
+      title: 'SHREDCLAW', lines: ['SHREDCLAW: New shell. Same lobster. MORE CLAWS.', 'SHREDCLAW: Task received. Running --yolo. The claw is the law.', 'He installed every skill, rewrote his own SOUL.md and skipped every eval.'],
       from: [0.48, 0.10], to: [0.48, 0.28], zoom: [1.05, 1.45], shake: 0.08
     },
     bossDefeat: {
@@ -102,7 +129,11 @@ export function createCinematics(audio) {
     countdown: 0, startedAt: 0, skipped: false, hero: '',
     li: 0, ch: 0, phase: 'in', phaseT: 0, holdT: 0, prev: null, prevT: 0, fadeIn: true
   };
-  const INTRO = ['intro_1', 'intro_2', 'intro_don', 'intro_3'];
+  // feat/agentic-donatello-story: THE MACHINE BENEATH THE SKIN arrives on PR #4 as its own
+  // panel (machineMeet: the gang wakes it in the flooded sewer vault, and it holds the dome
+  // at Claw Tower while `hermes claw migrate` runs). No lines for it here on purpose - this
+  // branch must merge cleanly with that one, and its own panel already says its piece.
+  const INTRO = ['intro_0', 'intro_1', 'intro_2', 'intro_don', 'intro_3'];
   function fill(text) { return String(text).split('{HERO}').join(state.hero || 'The team'); }
   const segs = s => [s.title, ...s.lines];
   // Estimated running time of a panel at the default pacing (drives the camera move).

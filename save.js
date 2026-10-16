@@ -25,12 +25,13 @@ export function guardedStore(store) {
   const fallback = {
     get(k) { try { const ls = globalThis.localStorage; return ls ? ls.getItem(k) : null; } catch { return null; } },
     set(k, v) { try { const ls = globalThis.localStorage; if (ls) ls.setItem(k, v); } catch { /* sandboxed: memory only */ } },
+    remove(k) { try { const ls = globalThis.localStorage; if (ls) ls.removeItem(k); } catch { /* sandboxed: memory only */ } },
   };
   const base = store || fallback;
   return {
-    get(k) { let v = null; try { v = base.get(k); } catch { v = null; } return v == null ? (mem.has(k) ? mem.get(k) : null) : v; },
+    get(k) { if (mem.has(k)) return mem.get(k); try { const v = base.get(k); return v == null ? null : v; } catch { return null; } },
     set(k, v) { mem.set(k, v); try { base.set(k, v); } catch { /* memory only */ } },
-    remove(k) { mem.delete(k); try { if (base.remove) base.remove(k); else base.set(k, ''); } catch { /* ignore */ } },
+    remove(k) { mem.set(k, null); try { if (base.remove) base.remove(k); else base.set(k, ''); } catch { /* ignore */ } },
   };
 }
 

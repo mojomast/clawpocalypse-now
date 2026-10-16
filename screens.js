@@ -91,7 +91,7 @@ export function createScreens({ audio, onQuit, onClearClose } = {}) {
 
   function newStage(s) { st.stage = { level: s.level, t: 0, kos: 0, combo: 0, hits: s.hpHit || 0, coins0: s.coins || 0 }; }
   // Call when a fresh run starts (character select confirm or restart).
-  function reset(s) { st.mode = null; st.t = 0; st.run = { t: 0, kos: 0, combo: 0, continues: 0, stages: 0 }; newStage(s); }
+  function reset(s) { st.mode = null; st.t = 0; st.run = { t: 0, kos: 0, combo: 0, continues: 0, stages: 0 }; st.rollDone = false; newStage(s); }
   // Per sim step: snapshot before the world steps, count knockouts after.
   const counted = new WeakSet();
   function before(s) { st.tracked = s.ninjas.slice(); }
@@ -125,7 +125,7 @@ export function createScreens({ audio, onQuit, onClearClose } = {}) {
   // dolan: the stage-clear card closes here (key or timeout); onClearClose(stagesCleared, data) lets game.js chain the bonus stage.
   function closeClear() { st.mode = null; if (onClearClose) { try { onClearClose(st.run ? st.run.stages : 0, st.data); } catch (_) {} } }
   function gameOver(s) { st.mode = 'continue'; st.t = 0; fxs.drain = 0; st.data = { count: CONTINUE_SECS, s, crack: null }; play('continue'); try { audio && audio.music(null, 1); } catch (_) {} }
-  function ending(s) { st.mode = 'credits'; st.t = 0; st.data = { s, score: s.score, hero: s.selectedHero, heroes: winners(s) }; try { audio && audio.music('ending', 0.8); } catch (_) {} }
+  function ending(s) { st.mode = 'credits'; st.t = 0; st.data = { s, score: s.score, hero: s.selectedHero, heroes: winners(s) }; st.rollDone = false; try { audio && audio.music('ending', 0.8); } catch (_) {} }
 
   function doContinue() {
     const s = st.data.s;

@@ -398,7 +398,7 @@ export function enemyAI(state, dt) {
   // Release tokens from enemies that can't use them; grant to the longest waiter
   // (waitT; 500 px of distance counts as 1 s, so a fresh wave still goes nearest-first).
   // Idle holders time out after TOKEN_HOLD_MAX, so nobody holds or waits forever.
-  const ready = n => !(n.stun > 0) && !n.down && !n.grabbed && !((n.z || 0) > 4);
+  const ready = n => !(n.stun > 0) && !n.down && !n.grabbed && !((n.z || 0) > 4) && !(n.wake > 0);
   for (const n of live) {
     if (n.token && !ready(n)) n.token = false;
     const gap = Math.abs(n.x - p.x) + Math.abs(n.y - p.y), closing = gap < (n.tokGap ?? Infinity) - 0.25; n.tokGap = gap;
@@ -427,7 +427,7 @@ export function enemyAI(state, dt) {
     if (n.tokenCd > 0) n.tokenCd -= dt;
     if (n.cool > 0) n.cool -= dt;
     if (n.grabbed) { n.vx = 0; n.vy = 0; continue; }
-    if (n.stun > 0 || n.down || (n.z || 0) > 4) { n.vx = base; n.vy = 0; continue; }
+    if (n.stun > 0 || n.down || n.wake > 0 || (n.z || 0) > 4) { n.vx = base; n.vy = 0; continue; }
     const spec = KIND_ATTACK[n.kind] || DEFAULT_ATTACK;
     const dx = p.x - n.x, dy = p.y - n.y;
     const side = dx > 0 ? -1 : 1; // which side of the player this enemy stands on
@@ -580,8 +580,9 @@ export function combatStep(state, dt) {
       n.launchV = (n.launchV || 0) - 1000 * dt;
       if (n.spin) n.spinAngle = (n.spinAngle || 0) + n.spin * dt;
       if (n.z <= 0) {
+        const impactSpeed = n.launchV || 0;
         n.z = 0; n.launchV = 0; n.spinAngle = 0; n.spin = 0;
-        if (n.falling && !n.groundBounce && Math.abs(n.launchV || 0) >= 260 && n.z < 40) { n.launchV = Math.abs(n.launchV || 0) * 0.45 + 80; n.groundBounce = true; if (state.fxCue) state.fxCue('land', { x: n.x, y: n.y + n.r * 0.6, facing: 1 }); }
+        if (n.falling && !n.groundBounce && Math.abs(impactSpeed) >= 260 && n.z < 40) { n.launchV = Math.abs(impactSpeed) * 0.45 + 80; n.groundBounce = true; if (state.fxCue) state.fxCue('land', { x: n.x, y: n.y + n.r * 0.6, facing: 1 }); }
         else if (n.falling) { n.falling = false; n.juggle = false; n.juggles = 0; n.down = n.airTech ? 0.5 : 0.85; n.invuln = n.airTech ? Math.max(n.invuln || 0, 0.35) : (n.invuln || 0); n.react = 'down'; if (state.fxCue) state.fxCue('land', { x: n.x, y: n.y + n.r * 0.6, facing: 1 }); if (state.audioCue) state.audioCue('thud'); }
 
         n.thrown = false;

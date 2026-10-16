@@ -232,6 +232,11 @@ function dropPowerupFor(state, ninja, rand) {
 // scoring and power-up drop rules can never drift apart between subsystems.
 export function damageNinja(state, ninja, dmg, rand = Math.random) {
   if (!ninja || ninja.dead) return null;
+  // Gate ALL adopted boss kinds (boss, rider, levelBoss, etc.) by identity against the
+  // active fighter, not by ninja.kind; boss.js does not rewrite kind on adopt.
+  const _bossFight = state && state.bossFight;
+  const _bossFighter = _bossFight && _bossFight.active;
+  if (_bossFighter && _bossFighter.n === ninja && (_bossFighter.invuln || 0) > 0) return null;
   normalize(ninja);
   state.combo += 1;
   state.comboTimer = 2.5;
@@ -295,9 +300,10 @@ export function update(state, dt, rand = Math.random) {
   for (const z of state.pizzas) {
     if (z.dead) continue;
     for (const n of state.ninjas) {
-      if (n.dead || !(state.hpMode ? hitsBody(z, n) : collides(z, n))) continue;
+      if (n.dead || n.down > 0 || n.wake > 0 || n.grabbed || !(state.hpMode ? hitsBody(z, n) : collides(z, n))) continue;
       z.dead = !z.piercing;
       damageNinja(state, n, state.weaponLevel - 1, rand);
+      if (!z.piercing) break;
     }
   }
   for (const n of state.ninjas) {

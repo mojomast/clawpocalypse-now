@@ -1,12 +1,14 @@
 // In-game smoke for the Machine ally. Serves the repo and drives the real canvas.
-// Writes the four review shots under /opt/cursor/artifacts/screenshots/.
+// Writes review shots to a writable temp directory (or MACHINE_SHOTS).
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { mkdir } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { chromium } from 'playwright';
 
 const PORT = 48791;
-const OUT = process.env.MACHINE_SHOTS || '/opt/cursor/artifacts/screenshots';
+const OUT = process.env.MACHINE_SHOTS || join(tmpdir(), 'cpn-machine-shots');
 const url = `http://127.0.0.1:${PORT}/index.html?coach=0`;
 
 const server = spawn('python3', ['-m', 'http.server', String(PORT), '--bind', '127.0.0.1'], {

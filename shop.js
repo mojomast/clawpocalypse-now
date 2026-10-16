@@ -38,7 +38,12 @@ export function createShop({ audio, onDone } = {}) {
     if (owner === s) return;
     owner = s; hpSeen = new WeakMap(); carry = new WeakMap(); kos = new WeakSet(); tracked = [];
     if (!Number.isFinite(s.coins)) s.coins = 0;
-    s.shopBuys = { hp: 0, dmg: 0, life: 0, meter: 0, ammo: 0 }; s.dmgMult = 1; s.superStart = 0;
+    if (!s.shopBuys || typeof s.shopBuys !== 'object') s.shopBuys = {};
+    for (const k of ['hp', 'dmg', 'life', 'meter', 'ammo']) if (!Number.isFinite(s.shopBuys[k])) s.shopBuys[k] = 0;
+    if (!Number.isFinite(s.dmgMult)) s.dmgMult = 1;
+    if (!Number.isFinite(s.superStart)) s.superStart = 0;
+    if (!Number.isFinite(s.weaponLevel)) s.weaponLevel = 1;
+    if (!Number.isFinite(s.maxHp)) s.maxHp = 100;
     for (const n of s.ninjas || []) { hpSeen.set(n, n.hp); if (n.dead) kos.add(n); }
   }
   // Per sim step (game.js, after bosses.step): KO coins + the damage multiplier.

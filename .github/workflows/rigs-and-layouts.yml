@@ -8,6 +8,8 @@ jobs:
   regression:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      TMPDIR: ${{ runner.temp }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -36,6 +38,7 @@ jobs:
         with:
           name: browser-and-pixel-review
           path: |
-            after/gameplay/
-            after/levels/integration.json
+            ${{ runner.temp }}/cpn-browser-smoke/
+            ${{ runner.temp }}/cpn-level-layout-smoke/integration.json
+            ${{ runner.temp }}/cpn-machine-shots/
             /tmp/opencode/rig-pixel-seams/

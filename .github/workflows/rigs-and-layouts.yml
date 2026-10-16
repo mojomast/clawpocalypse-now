@@ -1,0 +1,41 @@
+name: Rig and level regression checks
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Locate test browser
+        run: |
+          CHROME=$(node --input-type=module -e "import { chromium } from 'playwright'; console.log(chromium.executablePath())")
+          echo "CHROMIUM=$CHROME" >> "$GITHUB_ENV"
+          echo "CHROMIUM_PATH=$CHROME" >> "$GITHUB_ENV"
+      - run: npm test
+      - run: npm run test:pixels
+      - name: Play all heroes and verify stage depth
+        run: |
+          python3 -m http.server 48791 --bind 127.0.0.1 > /tmp/game-server.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID"' EXIT
+          for i in $(seq 1 30); do curl -fsS http://127.0.0.1:48791/index.html > /dev/null && break; sleep 1; done
+          npm run test:browser
+          node tools/level-layout-smoke.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: browser-and-pixel-review
+          path: |
+            after/gameplay/
+            after/levels/integration.json
+            /tmp/opencode/rig-pixel-seams/

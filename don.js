@@ -1,12 +1,13 @@
 // don.js: registers the 8th hero, Don Piedro Savastano (id don_piedro), through the existing exported tables
 // (baba_booey, t_9ec48322f6de4bf7). A brown teddy bear in alien battle armour with a big spoon; Hermes' #1 fanboy.
-// Nothing here edits rig.js internals: the spoon art is upright like turtle_blue's katana (same MANIFEST grip, 120),
-// so Don plays turtle_blue's eased, planted keyframes (copied as don_piedro_* poses) with his own chain, kick and
-// special. Art: assets/heroes/don_piedro/ (hero-rigs.js via MANIFEST.md), portraits/don_piedro.png, ui/victory/don_piedro.png,
+// Shared mechanics are copied (never aliased), then hero-motion.js authors his
+// slouch, heavy walk, spoon-club swings and slower recovery. Art:
+// assets/heroes/don_piedro/, portraits/don_piedro.png, ui/victory/don_piedro.png,
 // row 8 of portraits/reactions.png, assets/cine/title/don_piedro.png.  Lines: a level beat (events TRIGGERS) here; the
 // intro panel lives in cinematics.js data. drawCineSpeaker() puts his portrait on the cinematic lines he speaks.
 import { POSES, HERO_CHAIN, HERO_KICK, HERO_MOVES, HERO_SPECIALS, HEROES as RIG_HEROES, SOLES, WRIST } from './rig.js';
 import { HERO_MOVES_COMBAT } from './hero-moves.js';
+import { addDonPoses } from './hero-motion.js';
 import { TRIGGERS } from './events.js';
 
 export const DON = 'don_piedro';
@@ -26,18 +27,19 @@ export const DON_LINES = {
 
 function register() {
   if (HERO_CHAIN[DON]) return;
-  // keyframes: every turtle_blue pose, under Don's name (idles, walk, jump, taunt, victory, moves, mechanics)
-  for (const k of Object.keys(POSES)) if (k.startsWith(BASE + '_')) POSES[DON + k.slice(BASE.length)] = POSES[k];
+  // Bootstrap complete mechanic coverage, then replace the personality poses.
+  for (const k of Object.keys(POSES)) if (k.startsWith(BASE + '_')) POSES[DON + k.slice(BASE.length)] = { ...POSES[k] };
+  addDonPoses(POSES);
   HERO_CHAIN[DON] = ['slash', 'slashUp', 'slashSpin'];
   HERO_KICK[DON] = 'slashB';
   HERO_MOVES[DON] = { ...HERO_MOVES[BASE] };
   HERO_SPECIALS[DON] = [{ move: 'slashSpin', name: 'Soup Tornado', rootSpin: 360, hits: 6, dmg: 2, knock: 280 }];
   if (!RIG_HEROES.includes(DON)) RIG_HEROES.push(DON);
   SOLES[DON] = [[5, 48], [41, 48]];   // boot heel / toe in shin px (slice_don_v2.py)
-  if (WRIST[BASE]) WRIST[DON] = { ...WRIST[BASE] };
+  WRIST[DON] = { c: 130, hw: 35 }; // upright spoon shaft stays in the forward hemisphere of the fist
   HERO_MOVES_COMBAT[DON] = {
-    finisher: { name: 'slashUp', label: 'Spoon Uppercut', dmg: 2, range: 58, wind: 0.12, active: 0.13, rec: 0.28, knock: 380, react: 'launch', stop: 0.12, shake: 0.3, heavy: true, pierceGuard: true },
-    special: { name: 'slashSpin', label: 'Soup Tornado', dmg: 2, range: 82, wind: 0.1, active: 0.3, rec: 0.28, knock: 320, react: 'knockdown', stop: 0.13, shake: 0.42, heavy: true, around: true, cost: 8, invuln: 0.7, multi: 3, tick: 0.09 },
+    finisher: { name: 'slashUp', label: 'Spoon Uppercut', dmg: 2, range: 58, wind: 0.18, active: 0.13, rec: 0.34, knock: 380, react: 'launch', stop: 0.12, shake: 0.3, heavy: true, pierceGuard: true },
+    special: { name: 'slashSpin', label: 'Soup Tornado', dmg: 2, range: 82, wind: 0.18, active: 0.3, rec: 0.34, knock: 320, react: 'knockdown', stop: 0.13, shake: 0.42, heavy: true, around: true, cost: 8, invuln: 0.8, multi: 3, tick: 0.09 },
   };
   // level cutscene beats with his portrait (letterboxed events line); durations follow the readability rule
   const beat = (level, x, text) => { if (!TRIGGERS.some(t => t.level === level && t.x === x)) TRIGGERS.push({ level, x, type: 'talk', kinds: [], only: DON, speaker: 'DON PIEDRO', portrait: DON_PORTRAIT, line: text, lineDur: readFor(text) + DON_PAUSE }); };

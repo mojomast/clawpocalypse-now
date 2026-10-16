@@ -1,0 +1,28 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Hero rig review</title>
+<link rel="icon" href="data:,">
+<style>body{margin:0;background:#171b2b;color:white;font:14px monospace}canvas{max-width:100%;height:auto}</style>
+<canvas id="review"></canvas>
+<script type="module">
+const beforeOnly = new URLSearchParams(location.search).has('before');
+const modes = beforeOnly ? ['before'] : ['before', 'after'];
+const load = async path => { const im = new Image(); im.src = path; await im.decode(); return im; };
+const manifests = await Promise.all(modes.map(m => fetch(`../${m}/manifest.json`).then(r => r.json())));
+const c = document.querySelector('canvas'), ctx = c.getContext('2d');
+const attacks = { turtle_purple: 'sweep_active', turtle_blue: 'slash_active', turtle_red: 'stabL_active', turtle_orange: 'nunchakuSpin_active', nous_girl: 'whipA_active', teknium: 'bladeC_active', turbofit: 'axeHeavy_active', don_piedro: 'slash_active' };
+c.width = 1104 * modes.length; c.height = 80 + 8 * 260;
+ctx.fillStyle = '#171b2b'; ctx.fillRect(0, 0, c.width, c.height);
+for (let side = 0; side < modes.length; side++) {
+  ctx.fillStyle = 'white'; ctx.font = 'bold 28px monospace'; ctx.fillText(modes[side].toUpperCase(), side * 1104 + 16, 40);
+  for (const [row, entry] of manifests[side].entries()) {
+    const image = await load(`../${modes[side]}/${entry.hero}.png`);
+    ctx.fillStyle = '#c4cee9'; ctx.font = 'bold 18px monospace'; ctx.fillText(entry.hero, side * 1104 + 12, 80 + row * 260 - 4);
+    for (const [col, state] of ['idleA', attacks[entry.hero], 'down'].entries()) {
+      const index = entry.poses.indexOf(`${entry.hero}_${state}`) * 2;
+      if (index < 0) throw Error(`${entry.hero}: missing ${state}`);
+      ctx.drawImage(image, index % 8 * 184, 80 + Math.floor(index / 8) * 230, 368, 230,
+        side * 1104 + col * 368, 80 + row * 260, 368, 230);
+    }
+  }
+}
+window.__rigReview = c.toDataURL('image/png');
+</script></html>

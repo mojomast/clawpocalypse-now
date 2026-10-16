@@ -7,6 +7,8 @@ import { createParallax } from './parallax.js';
 import { createPause } from './pause.js';
 import { createAmbient } from './ambient.js';
 import { createAnim } from './anim.js';
+import { createFootLocks } from './foot-lock.js';
+import { actorDepth, drawDepthEntries } from './layout-render.js';
 import { attackBox, hurtbox, DEPTH } from './combat.js';
 import { createAudio, levelMusic } from './audio.js';
 import { createFX } from './fx.js';
@@ -95,6 +97,7 @@ const parallax = createParallax(); window.__ppParallax = parallax;
 const ambient = createAmbient(); window.__ppAmbient = ambient;
 const pause = createPause(W, H, { audio, fx, defaults: { musicVolume: 0.82, sfxVolume: 0.95, shakeEnabled: true } }); window.__ppPause = pause;
 const anim = createAnim(); window.__ppAnim = anim;
+const footLocks = createFootLocks();
 coop.setAnim(anim); // cheese: co-op P2 uses the same animator
 // Stage clear / continue / ending + credits (screens.js). Quit returns to the title.
 const screens = createScreens({ audio, onClearClose: (n, d) => { if (n === 2 && bonus.start(s)) return; shop.open(s, { level: d && d.level }); }, onQuit: () => { paused = false; pause.close(); title.start(() => { selecting = true; cineFade = 0.4; }); } }); window.__ppScreens = screens; // dolan: bonus stage after the 2nd stage clear
@@ -336,19 +339,20 @@ function draw(dt = 1 / 60) {
   ctx.strokeStyle = '#2c3d2e'; for (let y = 0; y < H; y += 34) for (let x = Math.floor(camX / 60) * 60 - 60 + (y / 34 % 2) * 30; x < camX + W; x += 60) ctx.strokeRect(x, y, 60, 34);
   ctx.fillStyle = '#2f8f3a'; ctx.fillRect(camX, H / 2 - 30, W, 60); }
   fx.bg(ctx, W);
-  // Props stand on the floor band behind the actors (world coordinates, so they
-  // scroll with the level and line up with their collision footprints).
-  guard('props', () => { if (!skating) { props.draw(ctx, s.level, camX, camX + W, breakables.propMod(s.level)); breakables.draw(ctx, s, camX, camX + W); }
+  // Floor effects precede the shared object/fighter queue. Object bases and
+  // actor ground feet (not airborne sprite positions) determine occlusion.
+  const depthEntries = [];
+  guard('props', () => { if (!skating) { depthEntries.push(...props.depthEntries(ctx, s.level, camX, camX + W, breakables.propMod(s.level))); breakables.draw(ctx, s, camX, camX + W); }
   else drawObstacles(ctx, s); });
   guard('subway.world', () => subway.drawWorld(ctx, s, camX, animT)); // cheese: subway signal hazards
-  guard('harbor.world', () => harbor.drawWorld(ctx, s, camX, animT)); // mr_india: harbor props, crane drops
-  guard('arcade.world', () => arcade.drawWorld(ctx, s, camX, animT)); // mr_india: arcade machines, smashable cabinets, tickets
+  guard('harbor.world', () => { harbor.drawWorld(ctx, s, camX, animT, true); depthEntries.push(...harbor.depthEntries(ctx, s, camX)); });
+  guard('arcade.world', () => depthEntries.push(...arcade.depthEntries(ctx, s, camX)));
   guard('impacts', () => impacts.draw(ctx));
   guard('boss.world', () => bosses.drawWorld(ctx, s, animT)); // boss telegraph markers under the actors
   guard('enemies-ext.world', () => extEnemies.drawWorld(ctx, s, animT)); // new-enemy telegraphs + burning ground
   const p = s.player;
   const pv = p.z ? { ...p, y: p.y - p.z } : p;
-  guard('player', () => {
+  depthEntries.push({ y: actorDepth(p), name: 'player', draw: () => {
   if (s.combat && s.combat.airborne) {
     ctx.fillStyle = 'rgba(0,0,0,0.35)';
     ctx.beginPath(); ctx.ellipse(p.x, p.y + p.r * 0.7, p.r * 0.9, p.r * 0.34, 0, 0, 7); ctx.fill();
@@ -356,26 +360,24 @@ function draw(dt = 1 / 60) {
   if (!(s.invuln > 0 && Math.floor(s.invuln * 10) % 2)) {
     const pFace = s.combat && s.combat.facing < 0 ? -1 : 1;
     if (skating) drawBoard(ctx, p.x, p.y + p.r + 2, p.z || 0, pFace, 1.8);
-    const downA = s.playerDown > 0 ? Math.min(1, s.playerDown / 0.25) * (Math.PI / 2) * -pFace : 0;
-    if (downA) { ctx.save(); ctx.translate(pv.x, pv.y + pv.r); ctx.rotate(downA); ctx.translate(-pv.x, -(pv.y + pv.r)); }
     fx.player(ctx, pv, () => {
       const kind = rig.heroKind(s), c = s.combat, sc = rigScale(kind);
       const poseName = rig.playerPose(s, animT);
       const a = c && c.attack;
-      const info = { phase: a && !a.hold ? c.phase : null, dur: a ? (c.phase === 'wind' ? a.wind : c.phase === 'active' ? a.active : a.rec) : 0, heavy: !!(a && a.heavy), walkT: c && c.moving ? c.walkT : null, walkRate: c && c.running ? 10 : 8 };
-      const angles = anim.step('player:' + kind, poseName, info, dt, animT);
-      const rootY = pv.y + pv.r - FEET_SCREEN + (poseName === 'idle' ? anim.breath(animT) : 0);
+      const info = { phase: a && !a.hold ? c.phase : null, dur: a ? (c.phase === 'wind' ? a.wind : c.phase === 'active' ? a.active : a.rec) : 0, heavy: !!(a && a.heavy), walkT: c && c.moving ? c.walkT : null, walkRate: 8 };
+      const drawing = anim.step('player:' + kind, poseName, info, inHitStop(s) ? 0 : dt, animT);
+      const rootY = pv.y + pv.r - FEET_SCREEN;
+      const angles = footLocks.place('player:' + kind, kind, drawing, { x: pv.x, y: rootY, flip: !!(c && c.facing < 0), scale: sc, dt: inHitStop(s) ? 0 : dt });
       // Mirror the whole rig around the hero's x by facing (heroes face right natively).
       const heroPalette = s.palette || paletteStore.pickedFor(kind);
       if (rig.draw(ctx, kind, angles, pv.x, rootY, !!(c && c.facing < 0), sc, null, dt, tintFor(kind, heroPalette, progressRecord(s)))) return;
       if (IMG.turtle) spr(IMG.turtle, pv.x, pv.y, pv.r * 3); else {
       circle(pv.x - 4, pv.y, pv.r, '#6b4a1e'); circle(pv.x + 6, pv.y, pv.r * .7, '#3fae3f');
       ctx.fillStyle = '#1e5fd0'; ctx.fillRect(pv.x, pv.y - 5, 18, 5); circle(pv.x + 10, pv.y - 2, 2, '#fff'); } });
-    if (downA) ctx.restore();
   }
-  });
-  guard('coop.world', () => coop.drawWorld(ctx, s, animT, dt)); // cheese: co-op P2 (no-op until P2 joins)
-  guard('shots', () => {
+  } });
+  guard('coop.entries', () => depthEntries.push(...coop.depthEntries(ctx, s, animT, dt)));
+  const drawProjectiles = () => guard('shots', () => {
   for (const h of s.hazards) {
     // A warning ring while the telegraph runs: the crusher cannot hurt you yet.
     if (h.warn > 0) {
@@ -392,10 +394,10 @@ function draw(dt = 1 / 60) {
   }
   for (const z of s.pizzas) { if (IMG.pizza) { const zz = { ...z, y: z.y - 55 }; fx.pizza(ctx, zz, () => spr(IMG.pizza, zz.x, zz.y, z.r * 3.2)); continue; } circle(z.x, z.y, z.r, '#e8b04a'); circle(z.x, z.y, z.r - 3, '#d23b2a'); circle(z.x + 2, z.y - 1, 1.5, '#fde'); }
   });
-  guard('enemies', () => {
-  const order = s.ninjas.slice().sort((a, b) => a.y - b.y);
-  for (const n of order) { if (n.kind === 'hoverdrone') { fx.ninja(ctx, n, () => drones.draw(ctx, n, animT)); hud.enemy(ctx, n, dt); continue; } /* mr_india: hover drones */ if (n.kind === 'drone') { if (n.__rigId == null) n.__rigId = ++rigSeq; drawDrone(ctx, n, animT); continue; }
-    if (n.mech) { let drew = false; fx.ninja(ctx, n, () => { drew = drawMech(ctx, n, animT); }); if (drew) continue; } // mech walker (mech.js), boss bar via boss.js
+  for (const n of s.ninjas) depthEntries.push({ y: actorDepth(n), name: 'enemy:' + n.kind, draw: () => {
+    if (n.kind === 'hoverdrone') { fx.ninja(ctx, n, () => drones.draw(ctx, n, animT)); hud.enemy(ctx, n, dt); return; }
+    if (n.kind === 'drone') { if (n.__rigId == null) n.__rigId = ++rigSeq; drawDrone(ctx, n, animT); hud.enemy(ctx, n, dt); return; }
+    if (n.mech) { let drew = false; fx.ninja(ctx, n, () => { drew = drawMech(ctx, n, animT); }); if (drew) return; } // mech walker (mech.js), boss bar via boss.js
     if (n.skate) drawBoard(ctx, n.x, n.y + n.r + 2, n.z || 0, n.face || -1, 1.8 * (n.scale || 1));
     fx.ninja(ctx, n, () => {
     // The foot art faces left natively, so it only flips when one turns around.
@@ -412,9 +414,10 @@ function draw(dt = 1 / 60) {
     const drew = rig.draw(ctx, skinKind(ek, s.level), eangles, n.x, n.y - nz + n.r - FEET_SCREEN * (n.scale || 1), n.face != null ? n.face < 0 : (n.vx || 0) < -2, sc, null, dt); // enemy art faces RIGHT natively (iteration 8 audit)
     if (nz || spin) ctx.restore();
     if (drew) return;
-    if (IMG.ninja) spr(IMG.ninja, n.x, n.y - nz, n.r * 3); else { circle(n.x, n.y - nz, n.r, '#2b2b35'); ctx.fillStyle = '#c62828'; ctx.fillRect(n.x - n.r, n.y - nz - 4, n.r * 2, 4); circle(n.x - 5, n.y - nz - 2, 2, '#fff'); } }); hud.enemy(ctx, n, dt); }
-  for (const n of s.ninjas) if (n.kind === 'drone') hud.enemy(ctx, n, dt);
-  });
+    if (IMG.ninja) spr(IMG.ninja, n.x, n.y - nz, n.r * 3); else { circle(n.x, n.y - nz, n.r, '#2b2b35'); ctx.fillStyle = '#c62828'; ctx.fillRect(n.x - n.r, n.y - nz - 4, n.r * 2, 4); circle(n.x - 5, n.y - nz - 2, 2, '#fff'); } }); hud.enemy(ctx, n, dt);
+  } });
+  drawDepthEntries(depthEntries, entry => guard(entry.name || 'stage.object', entry.draw));
+  drawProjectiles();
   guard('skate.shots', () => drawShots(ctx, s, IMG.pizza));
   guard('enemies-ext.over', () => extEnemies.drawOver(ctx, s, animT)); // flames, shuriken, smoke over the actors
   guard('drones.over', () => drones.drawOver(ctx, s, animT)); // mr_india: drone lane telegraphs, laser bolts, explosions

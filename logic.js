@@ -91,18 +91,24 @@ export function spawnWave(state, rand = Math.random) {
   if (state.hpMode) {
     // Iteration 7: a walking level is one long authored run (events.js beats);
     // start at the left edge with an opening pair and hold until the end beat.
-    state.player.x = 80; state.player.y = level.walkables[0].y + Math.min(50, level.walkables[0].h / 2); state.cameraX = 0;
+    const start = resolveWalkable(level, 80, level.walkables[0].y + Math.min(50, level.walkables[0].h / 2), state.player.r);
+    state.player.x = start.x; state.player.y = start.y; state.cameraX = 0;
     state.holdWave = true; state.walkLevel = true;
     const kinds = [['brawler', 17, 2], ['striker', 14, 1]];
     const dsc = state.difficulty === 'easy' ? .7 : (state.difficulty === 'hard' ? 1.35 : 1);
-    kinds.forEach(([kind, r, hp], i) => state.ninjas.push({ kind, level: state.level, x: 520 + i * 90, y: level.spawnY(rand), r, hp: Math.max(1, Math.round(hp * dsc)), maxHp: Math.max(1, Math.round(hp * dsc)), vx: -60, vy: 0 }));
+    kinds.forEach(([kind, r, hp], i) => {
+      const pos = resolveWalkable(level, 520 + i * 90, level.spawnY(rand), r);
+      state.ninjas.push({ kind, level: state.level, x: pos.x, y: pos.y, r, hp: Math.max(1, Math.round(hp * dsc)), maxHp: Math.max(1, Math.round(hp * dsc)), vx: -60, vy: 0 });
+    });
     return kinds.length;
   }
   const n = 2 + state.wave * 2;
   const speed = 50 + state.wave * 12;
+  const spawnPosition = (x, r) => resolveWalkable(level, x, level.spawnY(rand), r);
   for (let i = 0; i < n; i++) {
+    const pos = spawnPosition(W + 20 + i * 45, 14);
     state.ninjas.push({
-      kind: 'foot', level: state.level, x: (state.hpMode ? (state.cameraX || 0) : 0) + W + 20 + i * 45, y: level.spawnY(rand),
+      kind: 'foot', level: state.level, x: pos.x, y: pos.y,
       r: 14, hp: 1, maxHp: 1, vx: -(speed + rand() * 30), vy: (rand() - 0.5) * 80
     });
   }
@@ -110,8 +116,9 @@ export function spawnWave(state, rand = Math.random) {
   if (state.wave >= 2) {
     const runners = Math.min(state.wave - 1, 4);
     for (let i = 0; i < runners; i++) {
+      const pos = spawnPosition(W + 40 + i * 55, 11);
       state.ninjas.push({
-        kind: 'runner', level: state.level, x: (state.hpMode ? (state.cameraX || 0) : 0) + W + 40 + i * 55, y: level.spawnY(rand),
+        kind: 'runner', level: state.level, x: pos.x, y: pos.y,
         r: 11, hp: 1, maxHp: 1,
         vx: -(speed + 55 + rand() * 45), vy: (rand() - 0.5) * 170
       });
@@ -121,8 +128,9 @@ export function spawnWave(state, rand = Math.random) {
   if (state.wave >= 3) {
     const troopers = Math.min(Math.floor(state.wave / 3), 3);
     for (let i = 0; i < troopers; i++) {
+      const pos = spawnPosition(W + 55 + i * 70, 17);
       state.ninjas.push({
-        kind: 'trooper', level: state.level, x: (state.hpMode ? (state.cameraX || 0) : 0) + W + 55 + i * 70, y: level.spawnY(rand),
+        kind: 'trooper', level: state.level, x: pos.x, y: pos.y,
         r: 17, hp: 2, maxHp: 2,
         vx: -(36 + state.wave * 4), vy: (rand() - 0.5) * 45
       });
@@ -144,8 +152,9 @@ export function spawnWave(state, rand = Math.random) {
     });
   }
   if (state.wave % 5 === 0) {
+    const pos = spawnPosition(W + 60, 26);
     state.ninjas.push({
-      kind: 'boss', level: state.level, x: (state.hpMode ? (state.cameraX || 0) : 0) + W + 60, y: level.spawnY(rand), r: 26,
+      kind: 'boss', level: state.level, x: pos.x, y: pos.y, r: 26,
       vx: -(38 + state.wave * 3), vy: (rand() - 0.5) * 35,
       hp: 4 + Math.floor(state.wave / 5), maxHp: 4 + Math.floor(state.wave / 5)
     });

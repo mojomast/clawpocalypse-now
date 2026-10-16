@@ -53,7 +53,7 @@ export const LEVELS = [
     obstacles: [
       ...propObstacles(2)
     ],
-    spawnY: (rand) => 375 + rand() * 40
+    spawnY: (rand) => 375 + rand() * 33
   },
   {
     // Iteration 6: auto-scrolling skate highway (skate.js). Played between street
@@ -65,7 +65,7 @@ export const LEVELS = [
       { x: -1e5, y: 384, w: 1e7, h: 112 }
     ],
     obstacles: [],
-    spawnY: (rand) => 400 + rand() * 80
+    spawnY: (rand) => 401 + rand() * 78
   },
   {
     // OpenClaw Tower (baba_booey): the final level, after the rooftop. Three
@@ -79,7 +79,7 @@ export const LEVELS = [
       { x: 0, y: 384, w: WORLD_W, h: 116 }
     ],
     obstacles: [],
-    spawnY: (rand) => 400 + rand() * 84
+    spawnY: (rand) => 401 + rand() * 82
   }
 ];
 LEVELS[5] = SUBWAY_LEVEL; // cheese: subway train level (index 5; tower is 4)
@@ -111,30 +111,33 @@ export function isWalkable(levelOrIndex, x, y, radius = 0) {
 
 export function resolveWalkable(levelOrIndex, x, y, radius = 0) {
   const level = typeof levelOrIndex === 'number' ? levelForIndex(levelOrIndex) : levelOrIndex;
-  const r = radius > 0 ? radius : 0;
-  if (isWalkable(level, x, y, r)) {
-    return { x, y, allowed: true };
-  }
-  // Search near the body first (8px grid, widening rings) so a blocked step
-  // nudges it aside instead of snapping across a long level.
+  if (isWalkable(level, x, y, radius)) return { x, y, allowed: true };
+  const r = radius > 0 ? radius + 1 : 0; // Same clearance as isWalkable.
+  const obstacles = level.obstacles || [];
   let best = null;
-  for (const span of [48, 160, 600]) {
-    for (let gx = x - span; gx <= x + span; gx += 8) {
-      for (let gy = y - span; gy <= y + span; gy += 4) {
-        if (!isWalkable(level, gx, gy, r)) continue;
-        const d2 = (gx - x) ** 2 + (gy - y) ** 2;
-        if (!best || d2 < best.d2) best = { x: Math.round(gx), y: Math.round(gy), d2 };
+  // The nearest free point must lie on a lane edge, an obstacle edge, or
+  // the projection of (x,y) onto those edges. Test their intersections instead
+  // of sampling a grid (which misses narrow lanes and can round back into a wall).
+  const epsilon = 0.001; // Obstacle edges themselves are closed/blocked.
+  for (const lane of level.walkables || []) {
+    const left = lane.x + r, right = lane.x + lane.w - r;
+    const top = lane.y + r, bottom = lane.y + lane.h - r;
+    if (left > right || top > bottom) continue;
+    const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+    const xs = [left, right, clamp(x, left, right)];
+    const ys = [top, bottom, clamp(y, top, bottom)];
+    for (const ob of obstacles) {
+      if (ob.y - r <= bottom && ob.y + ob.h + r >= top) {
+        xs.push(clamp(ob.x - r - epsilon, left, right), clamp(ob.x + ob.w + r + epsilon, left, right));
+      }
+      if (ob.x - r <= right && ob.x + ob.w + r >= left) {
+        ys.push(clamp(ob.y - r - epsilon, top, bottom), clamp(ob.y + ob.h + r + epsilon, top, bottom));
       }
     }
-    if (best) break;
-  }
-  if (!best) for (const box of level.walkables || []) {
-    for (let gx = box.x + r; gx <= box.x + box.w - r; gx += Math.max(1, (box.w - 2 * r + 1) / 40)) {
-      for (let gy = box.y + r; gy <= box.y + box.h - r; gy += Math.max(1, (box.h - 2 * r + 1) / 5)) {
-        if (!isWalkable(level, gx, gy, r)) continue;
-        const d2 = (gx - x) ** 2 + (gy - y) ** 2;
-        if (!best || d2 < best.d2) best = { x: Math.round(gx), y: Math.round(gy), d2 };
-      }
+    for (const px of xs) for (const py of ys) {
+      const d2 = (px - x) ** 2 + (py - y) ** 2;
+      if (best && d2 >= best.d2) continue;
+      if (isWalkable(level, px, py, radius)) best = { x: px, y: py, d2 };
     }
   }
   return best ? { x: best.x, y: best.y, allowed: false } : { x, y, allowed: false };
@@ -144,14 +147,42 @@ export function moveWalkable(p, dx, dy, dt, levelOrIndex = 0) {
   const level = typeof levelOrIndex === 'number' ? levelForIndex(levelOrIndex) : levelOrIndex;
   const r = p.r || 0;
   const speed = p.speed || 0;
-  const nx = p.x + dx * speed * dt;
-  const ny = p.y + dy * speed * dt;
-  let x = p.x, y = p.y;
-  if (isWalkable(level, nx, ny, r)) {
-    x = nx; y = ny;
-  } else {
-    if (isWalkable(level, nx, y, r)) x = nx;
-    if (isWalkable(level, x, ny, r)) y = ny;
+  const start = isWalkable(level, p.x, p.y, r) ? p : resolveWalkable(level, p.x, p.y, r);
+  if (!isWalkable(level, start.x, start.y, r)) return { x: p.x, y: p.y, blocked: true };
+  const mx = dx * speed * dt, my = dy * speed * dt;
+  // Sweep in small spatial steps, independent of dt: endpoint-only checks let
+  // a laggy frame teleport through thin props. Keep the axis slide at each step.
+  const steps = Math.max(1, Math.ceil(Math.hypot(mx, my) / 4));
+  const sx = mx / steps, sy = my / steps;
+  const clearance = r > 0 ? r + 1 : 0;
+  const canTraverse = (ax, ay, bx, by) => {
+    if (!isWalkable(level, bx, by, r)) return false;
+    // Segment/AABB slab intersection prevents tunneling even through a blocker
+    // thinner than the step size (including radius-zero callers).
+    for (const ob of level.obstacles || []) {
+      let enter = 0, leave = 1;
+      for (const [a, delta, lo, hi] of [
+        [ax, bx - ax, ob.x - clearance, ob.x + ob.w + clearance],
+        [ay, by - ay, ob.y - clearance, ob.y + ob.h + clearance]
+      ]) {
+        if (delta === 0) { if (a < lo || a > hi) { enter = 2; break; } }
+        else {
+          const t0 = (lo - a) / delta, t1 = (hi - a) / delta;
+          enter = Math.max(enter, Math.min(t0, t1));
+          leave = Math.min(leave, Math.max(t0, t1));
+        }
+      }
+      if (enter <= leave) return false;
+    }
+    return true;
+  };
+  let x = start.x, y = start.y, blocked = false;
+  for (let i = 0; i < steps; i++) {
+    const nx = x + sx, ny = y + sy;
+    if (canTraverse(x, y, nx, ny)) { x = nx; y = ny; continue; }
+    blocked = true;
+    if (canTraverse(x, y, nx, y)) x = nx;
+    if (canTraverse(x, y, x, ny)) y = ny;
   }
-  return { x, y, blocked: !(x === nx && y === ny) };
+  return { x, y, blocked: blocked || start !== p };
 }

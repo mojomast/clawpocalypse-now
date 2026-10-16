@@ -5,6 +5,7 @@
 // skater goons that ride in, then beat the Claw Rider mini-boss to finish.
 import { W, H, SKATE_LEVEL, damagePlayer, spawnPowerup } from './logic.js';
 import { KIND_R, KIND_HP, speakLine, heroBark } from './events.js'; // story-v2: hero lines come from the hero(es) in the run
+import { resolveWalkable } from './collision.js';
 
 export const SKATE = { speed: 150, length: 9000, band: [392, 488] };
 
@@ -53,7 +54,8 @@ export const skatePlan = () => ({
   events: [...new Set(BEATS.flatMap(b => [b.event, b.barks && b.barks.length ? 'bark' : null]).filter(Boolean))],
 });
 
-export function laneY(f) { return SKATE.band[0] + 8 + f * (SKATE.band[1] - SKATE.band[0] - 16); }
+// The collision road is y384..496: radius-16 riders need a one-pixel inset.
+export function laneY(f) { return SKATE.band[0] + 9 + f * (SKATE.band[1] - SKATE.band[0] - 18); }
 
 function startSkate(state) {
   const p = state.player;
@@ -62,8 +64,9 @@ function startSkate(state) {
   state.skateStart = false;
   state.cameraX = cam;
   state.scrollSpeed = SKATE.speed;
-  p.y = laneY(0.5);
-  p.x = cam + 160;
+  const start = resolveWalkable(SKATE_LEVEL, cam + 160, laneY(0.5), p.r);
+  p.y = start.y;
+  p.x = start.x;
   state.ninjas = [];
   state.hazards = [];
 }
@@ -77,8 +80,9 @@ function spawn(state, what, from) {
   const sk = state.skate;
   const k = KIND[what];
   const x = from === 'left' || from === 'sky' ? sk.cam - 40 - (from === 'sky' ? state.ninjas.filter(m => m.flyover).length * 90 : 0) : sk.cam + W + 40;
+  const pos = resolveWalkable(SKATE_LEVEL, x, laneY(0.15 + Math.random() * 0.7), k.r);
   const n = {
-    kind: what === 'rider' ? 'skater' : what, level: SKATE_LEVEL, x, y: laneY(0.15 + Math.random() * 0.7),
+    kind: what === 'rider' ? 'skater' : what, level: SKATE_LEVEL, x: pos.x, y: pos.y,
     r: k.r, hp: k.hp, maxHp: k.hp, vx: SKATE.speed, vy: 0, skate: true,
   };
   if (what === 'drone') { n.hover = 70; n.flying = true; }

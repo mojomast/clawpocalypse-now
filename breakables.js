@@ -4,7 +4,7 @@
 // wobble, shatter into debris, free their collision footprint and drop a pickup.
 // Pickups: pizza (heal 35), soda (heal 15), ruby (+1000), emerald (+500).
 import { placementsFor, propObstacles } from './props.js';
-import { LEVELS } from './collision.js';
+import { LEVELS, resolveWalkable } from './collision.js';
 import { attackBox, DEPTH } from './combat.js';
 import { healPlayer } from './logic.js';
 
@@ -29,11 +29,12 @@ export function createBreakables({ audio, rand = Math.random } = {}) {
   function footprints(li) {
     const lv = LEVELS[li]; if (!lv) return [];
     const obs = lv.obstacles || [];
-    return propObstacles(li).map(f => obs.find(o => o.x === f.x && o.y === f.y && o.w === f.w && o.h === f.h) || null);
+    return propObstacles(li).map(f => obs.find(o => o.id === f.id) || obs.find(o => o.x === f.x && o.y === f.y && o.w === f.w && o.h === f.h) || null);
   }
   function restoreAll() {
-    for (const k of Object.keys(props)) for (const b of props[k]) if (b.ob && b.ob.__x0 != null) { b.ob.x = b.ob.__x0; delete b.ob.__x0; }
+    for (const k of Object.keys(props)) for (const b of props[k]) if (b.ob && b.broken) b.ob.x = b.obX;
     props = {}; debris = []; pickups = []; texts = [];
+    lastPhase = null; swing = 0;
   }
   function levelProps(li) {
     if (props[li]) return props[li];
@@ -41,8 +42,8 @@ export function createBreakables({ audio, rand = Math.random } = {}) {
     props[li] = placementsFor(li).map((p, i) => {
       const def = BREAKABLE[p.name];
       const foot = p.spec ? p.spec.foot : [0, 0, 0, 0];
-      return { i, p, def, hp: def ? def.hp : Infinity, broken: false, wob: 0, flash: 0, swing: -1, ob: fps[i],
-        x0: p.x - p.spec.w / 2, x1: p.x + p.spec.w / 2, footY: p.baseY - p.spec.h + foot[1] + foot[3] / 2, top: p.baseY - p.spec.h, bot: p.baseY };
+      return { i, p, def, hp: def ? def.hp : Infinity, broken: false, wob: 0, flash: 0, swing: -1, ob: fps[i], obX: fps[i]?.x,
+        x0: p.x - p.spec.w / 2, x1: p.x + p.spec.w / 2, footDepth: foot[3] / 2, footY: p.baseY - p.spec.h + foot[1] + foot[3] / 2, top: p.baseY - p.spec.h, bot: p.baseY };
     });
     return props[li];
   }
@@ -60,7 +61,7 @@ export function createBreakables({ audio, rand = Math.random } = {}) {
   }
   function smash(s, b, dir) {
     b.broken = true; stats.broken++;
-    if (b.ob) { b.ob.__x0 = b.ob.x; b.ob.x -= 1e6; } // free the footprint (restored on a new run)
+    if (b.ob) b.ob.x = b.obX - 1e6; // preserve identity; restore exactly on a new run
     play('smash');
     const cx = b.p.x, cy = b.top + (b.bot - b.top) * 0.45;
     for (let k = 0; k < 8; k++) {
@@ -70,7 +71,8 @@ export function createBreakables({ audio, rand = Math.random } = {}) {
     // Drop one pickup from the prop's table.
     let r = rand(), type = b.def.drops[b.def.drops.length - 1][0];
     for (const [t, w] of b.def.drops) { if (r < w) { type = t; break; } r -= w; }
-    pickups.push({ type, x: cx, y: b.bot + 12, z: 30, vz: 220, vx: (dir || 1) * 40, t: 0 }); stats.dropped++;
+    const drop = resolveWalkable(s.level, cx, b.bot + 12, 16);
+    pickups.push({ type, x: drop.x, y: drop.y, z: 30, vz: 220, vx: (dir || 1) * 40, t: 0 }); stats.dropped++;
   }
 
   function step(s, dt) {
@@ -84,7 +86,7 @@ export function createBreakables({ audio, rand = Math.random } = {}) {
       for (const b of list) {
         if (b.broken || !b.def || b.swing === swing) continue;
         if (box.x1 < b.x0 || box.x0 > b.x1) continue;
-        if (Math.abs(s.player.y - b.footY) > box.depth + 22) continue;
+        if (Math.abs(s.player.y - b.footY) > box.depth + b.footDepth) continue;
         if (box.bot < b.top || box.top > b.bot) continue;
         b.swing = swing;
         hit(s, b, c.attack.heavy || c.attack.around ? 2 : 1, c.attackFacing || 1);
@@ -94,7 +96,7 @@ export function createBreakables({ audio, rand = Math.random } = {}) {
       if (z.dead) continue;
       for (const b of list) {
         if (b.broken || !b.def) continue;
-        if (z.x > b.x0 && z.x < b.x1 && Math.abs(z.y - b.footY) < DEPTH + 26) { z.dead = true; hit(s, b, 1, Math.sign((z.vx || 1)) || 1); break; }
+        if (z.x > b.x0 && z.x < b.x1 && Math.abs(z.y - b.footY) < DEPTH + b.footDepth) { z.dead = true; hit(s, b, 1, Math.sign((z.vx || 1)) || 1); break; }
       }
     }
     for (const b of list) { b.wob *= Math.max(0, 1 - dt * 9); b.flash = Math.max(0, b.flash - dt); }

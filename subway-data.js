@@ -25,7 +25,7 @@ export const SUBWAY_LEVEL = {
   width: SUBWAY_W,
   walkables: [{ x: 0, y: SUBWAY_BAND.y, w: SUBWAY_W, h: SUBWAY_BAND.h }],
   obstacles: [],
-  spawnY: rand => SUBWAY_BAND.y + 14 + rand() * (SUBWAY_BAND.h - 28),
+  spawnY: rand => SUBWAY_BAND.y + 18 + rand() * (SUBWAY_BAND.h - 36),
 };
 
 // events.js beats for level 5 (same schema as the other walking levels): rising

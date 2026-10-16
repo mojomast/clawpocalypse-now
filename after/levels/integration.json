@@ -1,0 +1,65 @@
+{
+  "results": [
+    {
+      "stage": "sewer",
+      "trace": [
+        "rear enemy",
+        "P1",
+        "P2",
+        "barrel",
+        "front boss"
+      ]
+    },
+    {
+      "level": 1,
+      "renderErrors": {
+        "count": 0,
+        "by": {}
+      }
+    },
+    {
+      "level": 2,
+      "renderErrors": {
+        "count": 0,
+        "by": {}
+      }
+    },
+    {
+      "level": 3,
+      "renderErrors": {
+        "count": 0,
+        "by": {}
+      }
+    },
+    {
+      "level": 4,
+      "renderErrors": {
+        "count": 0,
+        "by": {}
+      }
+    },
+    {
+      "level": 5,
+      "renderErrors": {
+        "count": 0,
+        "by": {}
+      }
+    },
+    {
+      "level": 6,
+      "renderErrors": {
+        "count": 0,
+        "by": {}
+      }
+    },
+    {
+      "level": 7,
+      "renderErrors": {
+        "count": 0,
+        "by": {}
+      }
+    }
+  ],
+  "errors": [],
+  "httpErrors": []
+}

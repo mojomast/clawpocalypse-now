@@ -3,8 +3,8 @@
 //   harbor.back(ctx, s, camX, W, H)     -> true when it drew the background (far + mid)
 //   harbor.step(s, dt)                  -> crane crate drops, wet-plank sliding, foghorn
 //   harbor.drawWorld(ctx, s, camX, t)   -> dock props, crane shadows and falling crates (world space)
-import { HARBOR_LEVEL_INDEX as LV, HARBOR_TILE_W as TW, HARBOR_BAND as BAND, SHIP_X, CRANES, CRANE, WET_ZONES, SLIDE, HARBOR_EXT_SPAWNS } from './harbor-data.js';
-import { damagePlayer, isWalkable } from './logic.js';
+import { HARBOR_LEVEL_INDEX as LV, HARBOR_TILE_W as TW, HARBOR_BAND as BAND, SHIP_X, CRANES, CRANE, WET_ZONES, SLIDE, HARBOR_EXT_SPAWNS, HARBOR_PROPS } from './harbor-data.js';
+import { damagePlayer, moveWalkable } from './logic.js';
 import { loadSegment } from './parallax.js'; // baba_booey: distinct second pier tile
 import { STAGE_NAMES } from './screens.js';
 import { EXT_SPAWNS } from './enemies-ext.js';
@@ -20,8 +20,7 @@ const SLIDE_MAX = SLIDE.max || 800, SLIDE_JUMP = SLIDE.jump || 8; // px/s cap (d
 export const onShip = x => x >= SHIP_X;
 const ART = 'assets/levels/harbor/';
 // Decorative props behind the walk band (bottom = band top), per pier tile.
-const PROPS = [['containers', 180], ['drum', 620], ['bollard', 760], ['rope', 1060], ['crate', 1500], ['lifering', 1700],
-  ['containers', 180 + TW], ['fishcrate', 700 + TW], ['bollard', 1000 + TW], ['drum', 1600 + TW], ['crate', 3800], ['crate', 3860], ['drum', 4600], ['rope', 5000]];
+const PROPS = HARBOR_PROPS;
 
 export function ensureHarbor(s) {
   if (!s.harbor || s.harbor.wave !== s.wave) s.harbor = { wave: s.wave, drops: [], cd: {}, sv: 0, px: null, horn: 2, log: [] };
@@ -62,6 +61,7 @@ export function createHarbor(opts = {}) {
     // Foghorn every ~20 s.
     h.horn -= dt; if (h.horn <= 0) { h.horn = 20; foghorn(); h.log.push('foghorn'); }
     // Cranes: when the hero walks under one, a shadow marks the floor, then a crate drops.
+    const activeDrops = h.drops.length; // Preserve the entire warning on a newly spawned drop.
     for (const cx of CRANES) {
       h.cd[cx] = Math.max(0, (h.cd[cx] || 0) - dt);
       if (h.cd[cx] > 0 || Math.abs(p.x - cx) > CRANE.reach || s.over) continue;
@@ -70,7 +70,8 @@ export function createHarbor(opts = {}) {
       h.log.push('telegraph');
       play('warn');
     }
-    for (const d of h.drops) {
+    for (let i = 0; i < activeDrops; i++) {
+      const d = h.drops[i];
       d.t += dt;
       if (!d.landed && d.t >= CRANE.telegraph + CRANE.fall) {
         d.landed = true; h.log.push('drop');
@@ -96,8 +97,9 @@ export function createHarbor(opts = {}) {
       const pushing = c ? c.moving && !(s.playerDown > 0) : false;
       if (pushing) h.sv = v;
       else if (Math.abs(h.sv) > SLIDE.min) {
-        const nx = p.x + h.sv * dt;
-        if (isWalkable(LV, nx, p.y, p.r)) p.x = nx; else h.sv = 0;
+        const next = moveWalkable({ x: p.x, y: p.y, r: p.r, speed: Math.abs(h.sv) }, Math.sign(h.sv), 0, dt, LV);
+        p.x = next.x;
+        if (next.blocked) h.sv = 0;
         h.sv *= Math.exp(-SLIDE.decay * dt);
         h.sliding = true;
       } else { h.sv = v; h.sliding = false; }
@@ -118,16 +120,26 @@ export function createHarbor(opts = {}) {
     return true;
   }
 
-  function drawWorld(ctx, s, camX, t) {
+  function depthEntries(ctx, s, camX) {
+    if ((s.level | 0) !== LV) return [];
+    const entries = PROPS.flatMap(([k, x, baseY]) => {
+      const im = img[k];
+      return im && x > camX - 300 && x < camX + 1100
+        ? [{ y: baseY, draw: () => ctx.drawImage(im, x - im.width / 2, baseY - im.height) }] : [];
+    });
+    for (const d of s.harbor?.drops || []) entries.push({ y: d.y + 14, draw: () => drawDrop(ctx, d) });
+    return entries;
+  }
+  function drawWorld(ctx, s, camX, t, depthSorted = false) {
     if ((s.level | 0) !== LV) return;
-    for (const [k, x] of PROPS) { const im = img[k]; if (im && x > camX - 300 && x < camX + 1100) ctx.drawImage(im, x - im.width / 2, BAND.y - im.height + 4); }
+    if (!depthSorted) for (const entry of depthEntries(ctx, s, camX)) entry.draw();
     // Wet sheen on the slick planks.
     ctx.save(); ctx.globalAlpha = 0.12 + 0.05 * Math.sin((t || 0) * 2);
     ctx.fillStyle = '#9fd8ff';
     for (const z of WET_ZONES) if (z.x1 > camX && z.x0 < camX + 800) ctx.fillRect(z.x0, BAND.y + 4, z.x1 - z.x0, BAND.h - 8);
     ctx.restore();
-    const h = s.harbor; if (!h) return;
-    for (const d of h.drops) {
+  }
+  function drawDrop(ctx, d) {
       if (d.t < CRANE.telegraph + CRANE.fall) {
         // Shadow telegraph grows as the crate nears.
         const k = Math.min(1, d.t / (CRANE.telegraph + CRANE.fall));
@@ -142,7 +154,6 @@ export function createHarbor(opts = {}) {
         const a = 1 - (d.t - CRANE.telegraph - CRANE.fall) / 1.2;
         ctx.save(); ctx.globalAlpha = Math.max(0, a); if (img.crate) ctx.drawImage(img.crate, d.x - 30, d.y - 46, 60, 60); ctx.restore();
       }
-    }
   }
-  return { step, back, drawWorld, images: img, info: s => s.harbor ? { drops: s.harbor.drops.length, log: s.harbor.log.slice(-20), sv: s.harbor.sv, sliding: !!s.harbor.sliding } : null };
+  return { step, back, drawWorld, depthEntries, images: img, info: s => s.harbor ? { drops: s.harbor.drops.length, log: s.harbor.log.slice(-20), sv: s.harbor.sv, sliding: !!s.harbor.sliding } : null };
 }

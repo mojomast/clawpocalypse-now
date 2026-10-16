@@ -1,0 +1,65 @@
+<!doctype html>
+<meta charset="utf-8"><base href="/"><title>Level layout review</title>
+<style>body{margin:0;background:#10151c;color:#fff;font:16px monospace}canvas{display:block;max-width:100%;height:auto}</style>
+<canvas id="sheet"></canvas>
+<script type="module">
+try {
+  const imageLoads = [], NativeImage = window.Image;
+  window.Image = class extends NativeImage {
+    constructor(...args) { super(...args); imageLoads.push(new Promise(resolve => { this.addEventListener('load', resolve, { once: true }); this.addEventListener('error', resolve, { once: true }); })); }
+  };
+  Object.defineProperty(performance, 'now', { value: () => 1000 });
+  const q = new URLSearchParams(location.search), index = Number(q.get('level') || 0);
+  const prefix = q.get('baseline') === '1' ? '/baseline/' : '/';
+  // Actual production renderers, not placeholder art. The capture server serves
+  // baseline modules from the immutable source snapshot.
+  const [{ LEVELS, isWalkable }, { createProps, placementsFor }, { createParallax }, { createSubway }, { createHarbor }, { createArcade, ensureArcade }] = await Promise.all([
+    'collision.js', 'props.js', 'parallax.js', 'subway.js', 'harbor.js', 'arcade.js'
+  ].map(n => import(prefix + n)));
+  const props = createProps(), parallax = createParallax(), subway = createSubway(), harbor = createHarbor(), arcade = createArcade();
+  await Promise.race([Promise.all(imageLoads), new Promise((_, reject) => setTimeout(() => reject(Error('Asset load timeout')), 15000))]);
+  const images = [...Object.values(props.images), ...Object.values(harbor.images), ...Object.values(arcade.images), ...Object.values(subway.images)];
+  await Promise.all(images.filter(x => x instanceof HTMLImageElement).map(im => im.decode()));
+  const level = LEVELS[index], canvas = document.querySelector('canvas');
+  canvas.width = 1814; canvas.height = 3 * 572 + 42;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#10151c'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#eee'; ctx.font = '18px monospace';
+  ctx.fillText(`${level.id.toUpperCase()} / ${prefix.includes('baseline') ? 'BEFORE' : 'AFTER'} — cyan floor · red solid footprints · green radius-16 centers`, 18, 28);
+  const state = { level: index, wave: 1, player: { x: 200, y: 420, r: 16 }, ninjas: [], hpMode: true };
+  if (index === 7) ensureArcade(state);
+  for (let tile = 0; tile < 3; tile++) {
+    const cam = tile * 1814, top = 42 + tile * 572;
+    ctx.save(); ctx.translate(0, top);
+    ctx.save(); ctx.beginPath(); ctx.rect(0, 0, 1814, 510); ctx.clip();
+    if (!(subway.back(ctx, state, cam, 1814, 510, 0) || harbor.back(ctx, state, cam, 1814, 510) || arcade.back(ctx, state, cam, 1814, 510))) parallax.back(ctx, index, cam, 1814, 510);
+    ctx.translate(-cam, 0);
+    props.draw(ctx, index, cam, cam + 1814);
+    // Stage renderers cull for a ~960px viewport. Draw two clipped views so the
+    // right half of each strip also contains its real dressing/cabinets.
+    for (const offset of [0, 907]) {
+      ctx.save(); ctx.beginPath(); ctx.rect(cam + offset, 0, 907, 510); ctx.clip();
+      subway.drawWorld(ctx, state, cam + offset, 0); harbor.drawWorld(ctx, state, cam + offset, 0); arcade.drawWorld(ctx, state, cam + offset, 0);
+      ctx.restore();
+    }
+    for (const b of level.walkables) {
+      ctx.fillStyle = '#00dfff18'; ctx.fillRect(b.x, b.y, b.w, b.h);
+      ctx.strokeStyle = '#00dfff'; ctx.lineWidth = 2; ctx.strokeRect(b.x, b.y, b.w, b.h);
+    }
+    ctx.fillStyle = '#8bff8759';
+    for (let x = cam + 18; x < cam + 1814; x += 16) for (let y = 350; y < 500; y += 4) if (isWalkable(level, x, y, 16)) ctx.fillRect(x, y, 2, 2);
+    for (const b of level.obstacles) {
+      ctx.fillStyle = '#ff454557'; ctx.fillRect(b.x, b.y, b.w, b.h);
+      ctx.strokeStyle = '#ff5959'; ctx.strokeRect(b.x, b.y, b.w, b.h);
+    }
+    for (const p of placementsFor(index)) {
+      ctx.strokeStyle = '#ffd76a'; ctx.beginPath(); ctx.moveTo(p.x - 8, p.baseY); ctx.lineTo(p.x + 8, p.baseY); ctx.stroke();
+    }
+    ctx.restore();
+    ctx.fillStyle = '#eee'; ctx.font = '16px monospace'; ctx.fillText(`Segment ${tile + 1} / x ${cam}–${cam + 1814} | ${level.auto ? 'auto-scroll: static lane only; hazards tested separately' : 'ground occupancy before breakables are smashed'}`, 16, 536);
+    ctx.fillStyle = '#9baabb'; ctx.font = '14px monospace'; ctx.fillText('World y matches production 510px art. Foreground occluders omitted for readable collision review.', 16, 558);
+    ctx.restore();
+  }
+  window.__levelSheet = { id: level.id, index, png: canvas.toDataURL('image/png'), obstacles: level.obstacles, placements: placementsFor(index), imageCount: images.length };
+} catch (error) { window.__levelSheet = { error: error.stack || String(error) }; }
+</script>

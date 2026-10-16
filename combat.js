@@ -78,6 +78,7 @@ export function createCombat(state) {
 }
 
 const busy = c => c.phase === 'wind' || c.phase === 'active';
+const canHitCancel = c => !!(c.attack && c.attack.cancel && c.phase === 'active' && c.hitDone && c.landed > 0 && c.timer <= c.attack.active * 0.6);
 const playerLocked = state => (state.playerDown > 0) || (state.hurtT > 0);
 
 // Double-tap a direction to run (dash). Called on arrow/AD keydown.
@@ -116,7 +117,7 @@ export function combatPress(state, button, opts = {}) {
   if (playerLocked(state)) { c.buffer = { button, t: BUFFER }; return 'buffered'; }
   // Mid-attack presses are buffered and fire the first legal frame.
   if (c.grab && c.attack && c.attack.hold) return fire(state, button, opts);
-  if (busy(c)) { c.buffer = { button, t: BUFFER }; return 'buffered'; }
+  if (busy(c) && !(canHitCancel(c) && (button === 'jump' || button === 'kick'))) { c.buffer = { button, t: BUFFER }; return 'buffered'; }
   return fire(state, button, opts);
 }
 
@@ -183,7 +184,7 @@ function start(state, baseMove) {
 export function combatDash(state, dir = 0) {
   const c = state.combat;
   if (!c || state.over || c.grab || playerLocked(state)) return null;
-  if (c.phase === 'wind' || c.phase === 'active') return null;
+  if ((c.phase === 'wind' || c.phase === 'active') && !canHitCancel(c)) return null;
   if (dir) c.facing = dir > 0 ? 1 : -1;
   const back = !dir;
   if (c.airborne) return null;
@@ -313,6 +314,7 @@ export function react(state, n, kind, dir, knock) {
   if ((n.kind === 'charger' || n.kind === 'boss' || n.elite) && kind === 'flinch') { n.stun = 0.08; n.knock *= 0.3; }
   n.bounce = (kind === 'knockdown' || kind === 'thrown' || kind === 'launch') && Math.abs(knock || 0) >= 120;
   n.groundBounce = false;
+  n.wallBounce = false;
 }
 
 function land(state, move, quiet = false) {
@@ -396,10 +398,15 @@ export function enemyAI(state, dt) {
   // Taunt aggro (t_4c09d44981a04666): a taunt gives nearby enemies credit time,
   // so the token passes to those closest to the hero and one extra can attack.
   if (state.taunt && state.taunt > 0) {
+    let aggroed = 0;
     for (const n of live) {
-      if (Math.hypot(n.x - p.x, n.y - p.y) < 320) n.waitT = Math.max(n.waitT || 0, 2.25);
+      if (Math.hypot(n.x - p.x, n.y - p.y) < 320) { n.waitT = Math.max(n.waitT || 0, 2.25); aggroed++; }
     }
-  }
+    if (aggroed > 0 && state.combat && !state.combat._tauntCued) {
+      state.combat._tauntCued = true;
+      if (state.fxCue) state.fxCue('swing', { x: p.x, y: p.y - 24, facing: state.combat.facing || 1 });
+    }
+  } else if (state.combat) state.combat._tauntCued = false;
   // Release tokens from enemies that can't use them; grant to the longest waiter
   // (waitT; 500 px of distance counts as 1 s, so a fresh wave still goes nearest-first).
   // Idle holders time out after TOKEN_HOLD_MAX, so nobody holds or waits forever.
@@ -616,6 +623,22 @@ export function combatStep(state, dt) {
     if (n.stun > 0) {
       n.stun = Math.max(0, n.stun - dt);
       n.x += (n.knock || 0) * dt;
+      // Arena wall-bounce: heavy knockbacks/throws slamming into a locked arena edge rebound into a juggle pop
+      const lock = state.events && state.events.lock;
+      if (lock && !n.wallBounce && (n.thrown || n.falling) && Math.abs(n.knock || 0) >= 200) {
+        const hitLeft = n.knock < 0 && n.x <= lock.L + n.r + 4;
+        const hitRight = n.knock > 0 && n.x >= lock.R - n.r - 4;
+        if (hitLeft || hitRight) {
+          n.wallBounce = true;
+          n.x = hitLeft ? lock.L + n.r + 4 : lock.R - n.r - 4;
+          n.knock = -(n.knock || 0) * 0.42;
+          n.launchV = Math.max(n.launchV || 0, 210);
+          n.z = Math.max(n.z || 0, 6);
+          if ((n.juggles || 0) <= JUGGLE_CAP) n.juggle = true;
+          if (state.fxCue) state.fxCue('land', { x: n.x, y: n.y - (n.z || 0), facing: hitLeft ? 1 : -1 });
+          if (state.audioCue) state.audioCue('thud');
+        }
+      }
       n.knock = (n.knock || 0) * Math.max(0, 1 - dt * 4);
       if (n.stun === 0) { n.knock = 0; if (n.react === 'flinch' || n.react === 'stagger') n.react = null; }
     }

@@ -7,10 +7,13 @@
 import OPTIONS from './options-live.js';
 export const SFX_FRAME = { w: 160, h: 144, n: 8 }, SFX_DUR = 0.5, SFX_SCALE = 1.35;
 // Frame-space anchor that sits on the hero's feet (x measured toward the hero's facing).
-export const SFX_ANCHOR = { turtle_purple: [80, 134], turtle_blue: [80, 134], turtle_red: [80, 140], turtle_orange: [80, 134], nous_girl: [22, 126], teknium: [10, 124], turbofit: [80, 140] };
+export const SFX_ANCHOR = { turtle_purple: [80, 134], turtle_blue: [80, 134], turtle_red: [80, 140], turtle_orange: [80, 134], nous_girl: [22, 126], teknium: [10, 124], turbofit: [80, 140], don_piedro: [80, 134] };
 export function createSpecialFX() {
   const img = {};
-  if (typeof Image !== 'undefined') for (const id of Object.keys(SFX_ANCHOR)) { try { const im = new Image(); im.src = `assets/fx/specials/${id}.png`; img[id] = im; } catch (_) {} }
+  if (typeof Image !== 'undefined') for (const id of Object.keys(SFX_ANCHOR)) {
+    if (id === 'don_piedro') continue;
+    try { const im = new Image(); im.src = `assets/fx/specials/${id}.png`; img[id] = im; } catch (_) {}
+  }
   const st = { live: [], lastAtk: null, cam: null, spawned: {}, skipped: 0, draws: {}, held: null };
   const reduced = () => { try { return !!(OPTIONS && (OPTIONS.reducedMotion || OPTIONS.reducedFlash)); } catch (_) { return false; } };
   function step(s, dt) {
@@ -26,6 +29,20 @@ export function createSpecialFX() {
   // Called from fx.player while the camera transform is on the context: remember it so over() can draw in world space.
   function mark(ctx) { try { st.cam = ctx.getTransform(); } catch (_) {} }
   function one(ctx, hero, k, p, face) {
+    if (hero === 'don_piedro') {
+      const fx0 = p.x, fy0 = p.y + (p.r || 16) - (p.z || 0), prog = (k + 0.5) / SFX_FRAME.n;
+      ctx.save(); ctx.translate(fx0, fy0);
+      ctx.globalAlpha = Math.max(0, (1 - prog * 0.78) * 0.82);
+      for (let ring = 0; ring < 3; ring++) {
+        const ry = -14 - ring * 22 - prog * 14, rx = 34 + ring * 16 + prog * 18;
+        ctx.strokeStyle = ring === 1 ? '#fff2b0' : '#ffca4b';
+        ctx.lineWidth = 3.2 - ring * 0.6;
+        ctx.beginPath(); ctx.ellipse(0, ry, rx, rx * 0.34, 0, prog * 5 + ring, prog * 5 + ring + Math.PI * 1.45); ctx.stroke();
+      }
+      ctx.restore();
+      st.draws[hero] = (st.draws[hero] || 0) + 1;
+      return;
+    }
     const im = img[hero]; if (!im || !im.complete || !im.naturalWidth) return;
     const [ax, ay] = SFX_ANCHOR[hero], { w, h } = SFX_FRAME, sc = SFX_SCALE;
     const fx0 = p.x, fy0 = p.y + (p.r || 16) - (p.z || 0);

@@ -1,6 +1,10 @@
 // Presentation-only distinctions for shared combat actions. Damage, startup,
 // recovery and input bindings still come from combat.js / grab.js.
-const TEK_KICK_ARM = [-120, -30]; // Teknium kicks: blade raised in a high guard, clear of the leg
+const TEK_KICK_ARM = {
+  wind: [-132, -42],   // chamber: coil blade high as the kicking leg loads
+  active: [-104, -26], // extension: counter-swing blade back to balance the snap kick
+  follow: [-116, -34], // follow-through: settle blade guard back over the hip
+};
 export function installPolishedActions(poses, chains) {
   for (const hero of ['teknium', 'nous_girl', 'turbofit']) {
     const idle = poses[hero + '_idleA'], put = (n, p) => { poses[`${hero}_${n}`] = { ...idle, ...p }; };
@@ -22,9 +26,16 @@ export function installPolishedActions(poses, chains) {
         put(action + '_follow', { ...idle, thigh: -62, shin: 110, thigh_b: -2, shin_b: 16 });
         put(action + '_recover', idle);
       }
-      // Teknium: carry the blade arm clear of the raised leg instead of crossing it.
-      if (hero === 'teknium') for (const move of ['kick', 'jumpKick', 'kick_knee', 'kick_kneeFinal'])
-        for (const phase of ['wind', 'active', 'follow']) put(`${move}_${phase}`, { ...poses[`${hero}_${move}_${phase}`], uarm: TEK_KICK_ARM[0], farm: TEK_KICK_ARM[1] });
+      // Teknium: carry the blade arm clear of the raised leg with dynamic phase counter-swing.
+      if (hero === 'teknium') for (const move of ['kick', 'jumpKick', 'kick_knee', 'kick_kneeFinal']) {
+        const clinch = move.startsWith('kick_knee');
+        const rear = { wind: [-34, -52], active: [-16, -64], follow: [-20, -50] };
+        for (const phase of ['wind', 'active', 'follow']) put(`${move}_${phase}`, {
+          ...poses[`${hero}_${move}_${phase}`],
+          uarm: TEK_KICK_ARM[phase][0], farm: TEK_KICK_ARM[phase][1],
+          ...(clinch ? { uarm_b: rear[phase][0], farm_b: rear[phase][1] } : {}),
+        });
+      }
     }
     // Third punch is a compact hook; the heavy finisher keeps its own named
     // wind/contact/follow poses and its fourth-hit combat timing.

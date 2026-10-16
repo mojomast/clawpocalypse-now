@@ -158,12 +158,18 @@ export const ENEMY_MOVES = {
   thrower: { throw: ['throwWind', 'throw'] },
   charger: { charge: ['crouch', 'charge'], pound: ['poundWind', 'pound'] },
   acrobat: { flip: ['flipWind', 'flip'], jumpkick: ['flipWind', 'jumpkick'], spin: ['spinA', 'spinB'] },
+  skater:  { swing: ['batWind', 'batSwing'], charge: ['crouch', 'charge'] },
 };
 for (const [kind, moves] of Object.entries(ENEMY_MOVES)) {
   for (const [move, [wind, active]] of Object.entries(moves)) {
+    const act = POSES[active] || POSES.idle;
+    const rec = { ...POSES.idle };
+    for (const k of ['torso', 'head', 'uarm', 'farm', 'uarm_b', 'farm_b', 'thigh', 'shin', 'thigh_b', 'shin_b', 'weapon']) {
+      rec[k] = Math.round((POSES.idle[k] || 0) * 0.72 + (act[k] || 0) * 0.28);
+    }
     POSES[`${kind}_${move}_wind`] = POSES[wind];
     POSES[`${kind}_${move}_active`] = POSES[active];
-    POSES[`${kind}_${move}_recover`] = POSES.idle;
+    POSES[`${kind}_${move}_recover`] = rec;
   }
 }
 
@@ -1317,13 +1323,27 @@ function drawLash(ctx, kind, sol, k, A) {
   ctx.restore();
 }
 
-// A rope (Nous Girl's cable) is drawn as one cable-segment image per link, stretched along it.
-function drawRope(ctx, img, pts, part) {
+// A rope (Nous Girl's cable) is drawn as one cable-segment image per link, stretched along it,
+// plus a subtle high-contrast audio-cable rim highlight so dark stages never swallow the silhouette.
+function drawRope(ctx, img, pts, part, lash = 0) {
   for (let i = 1; i < pts.length; i++) {
     const [x0, y0] = pts[i - 1], [x1, y1] = pts[i], l = Math.hypot(x1 - x0, y1 - y0);
     if (l < 0.01) continue;
     ctx.save(); ctx.translate(x0, y0); ctx.rotate(Math.atan2(y1 - y0, x1 - x0));
     ctx.drawImage(img, -0.6, -part.h / 2, l + 1.2, part.h);
+    ctx.restore();
+  }
+  if (pts.length >= 2 && typeof ctx.beginPath === 'function' && typeof ctx.stroke === 'function') {
+    ctx.save();
+    ctx.filter = 'none';
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.strokeStyle = lash > 0.2 ? 'rgba(130, 228, 255, 0.72)' : 'rgba(92, 168, 255, 0.42)';
+    ctx.lineWidth = lash > 0.2 ? 1.4 : 0.95;
+    ctx.beginPath();
+    ctx.moveTo(pts[0][0], pts[0][1] - 0.5);
+    for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1] - 0.5);
+    ctx.stroke();
     ctx.restore();
   }
 }
@@ -1449,7 +1469,7 @@ export function createRig() {
         const ropeEff = part.back ? baseTint + (BACK_TINT[kind] || BACK_TINT_DEFAULT) : baseTint ? baseTint.trim() : '';
         const ropeBaked = cacheable && ropeEff ? tintCache.get(img, ropeEff) : null;
         if (ropeBaked) ctx.filter = 'none'; else if (ropeEff) ctx.filter = ropeEff;
-        drawRope(ctx, ropeBaked || img, sol.ropes[name], part); ctx.restore(); continue;
+        drawRope(ctx, ropeBaked || img, sol.ropes[name], part, sol.lash || 0); ctx.restore(); continue;
       }
       if (name === 'weapon' && lash > 0.35) { drawLash(ctx, kind, sol, lash, angles); continue; }
       // smear: the strike leaves ghost copies of the weapon (or the striking fist) along its arc

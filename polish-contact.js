@@ -54,18 +54,52 @@ export function impactPoint(box, target, hurtbox) {
     y: (Math.max(box.top, hb.top) + Math.min(box.bot, hb.bot)) / 2 };
 }
 export function drawContactCue(ctx, state, box) {
+  const hero = state.hero || state.selectedHero;
   const c = state.combat, move = c?.attack;
-  if (!POLISHED_HEROES.has(state.hero || state.selectedHero) || c.phase !== 'active' || !move || move.noHit) return;
+  if (!POLISHED_HEROES.has(hero) || c.phase !== 'active' || !move || move.noHit) return;
   const shape = contactShape(state, move);
-  if (!shape?.area) return;
-  ctx.save(); ctx.strokeStyle = (state.hero || state.selectedHero) === 'teknium' ? '#80ecff' : '#f3d99b';
-  ctx.globalAlpha *= .5; ctx.lineWidth = 2;
+  if (!shape) return;
+  const col = hero === 'teknium' ? '#66f2ff' : hero === 'nous_girl' ? '#70c4ff' : '#ffb84d';
+  const core = hero === 'teknium' ? '#eaffff' : hero === 'nous_girl' ? '#e4f7ff' : '#fff3c4';
+  const sign = (c.attackFacing || c.facing || 1) < 0 ? -1 : 1;
   const y = state.player.y + state.player.r - 44 - (state.player.z || 0);
-  if (move.around) {
-    ctx.beginPath(); ctx.ellipse(state.player.x, y, (box.x1 - box.x0) / 2, 34, 0, 0, Math.PI * 2); ctx.stroke();
-  } else {
-    const sign = c.attackFacing < 0 ? -1 : 1, end = sign > 0 ? box.x1 : box.x0;
-    for (let i = 0; i < 3; i++) { const x = end - sign * i * 9; ctx.beginPath(); ctx.moveTo(x - sign * 8, y - 25); ctx.quadraticCurveTo(x + sign * 8, y, x - sign * 8, y + 25); ctx.stroke(); }
+  ctx.save();
+  ctx.lineCap = 'round';
+  if (shape.area) {
+    ctx.strokeStyle = col;
+    ctx.globalAlpha *= 0.58;
+    ctx.lineWidth = 2.4;
+    if (move.around) {
+      const rx = (box.x1 - box.x0) / 2;
+      ctx.beginPath(); ctx.ellipse(state.player.x, y, rx, 34, 0, 0, Math.PI * 2); ctx.stroke();
+      ctx.strokeStyle = core; ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.ellipse(state.player.x, y, rx * 0.82, 26, 0, 0, Math.PI * 2); ctx.stroke();
+    } else {
+      const end = sign > 0 ? box.x1 : box.x0;
+      for (let i = 0; i < 3; i++) {
+        const x = end - sign * i * 9;
+        ctx.beginPath(); ctx.moveTo(x - sign * 8, y - 25); ctx.quadraticCurveTo(x + sign * 9, y, x - sign * 8, y + 25); ctx.stroke();
+      }
+      ctx.strokeStyle = core; ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.moveTo(end - sign * 6, y - 18); ctx.quadraticCurveTo(end + sign * 8, y, end - sign * 6, y + 18); ctx.stroke();
+    }
+  } else if (shape.points && shape.points.length >= 2) {
+    const tipX = sign > 0 ? shape.x1 - 4 : shape.x0 + 4;
+    const midY = (shape.top + shape.bot) * 0.5;
+    const spanY = Math.max(16, Math.min(38, (shape.bot - shape.top) * 0.65));
+    ctx.globalAlpha *= move.heavy ? 0.68 : 0.48;
+    ctx.strokeStyle = col;
+    ctx.lineWidth = move.heavy ? 3.2 : 2.2;
+    ctx.beginPath();
+    ctx.moveTo(tipX - sign * 18, midY - spanY * 0.75);
+    ctx.quadraticCurveTo(tipX + sign * 8, midY, tipX - sign * 14, midY + spanY * 0.75);
+    ctx.stroke();
+    ctx.strokeStyle = core;
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(tipX - sign * 13, midY - spanY * 0.52);
+    ctx.quadraticCurveTo(tipX + sign * 5, midY, tipX - sign * 10, midY + spanY * 0.52);
+    ctx.stroke();
   }
   ctx.restore();
 }

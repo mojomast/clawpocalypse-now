@@ -449,9 +449,10 @@ function draw(dt = 1 / 60) {
   const p = s.player;
   const pv = p.z ? { ...p, y: p.y - p.z } : p;
   depthEntries.push({ y: actorDepth(p), name: 'player', draw: () => {
-  if (s.combat && s.combat.airborne) {
-    ctx.fillStyle = 'rgba(0,0,0,0.35)';
-    ctx.beginPath(); ctx.ellipse(p.x, p.y + p.r * 0.7, p.r * 0.9, p.r * 0.34, 0, 0, 7); ctx.fill();
+  {
+    const pShadowK = Math.max(0.42, 1 - (p.z || 0) / 180);
+    ctx.fillStyle = `rgba(0,0,0,${(0.32 * pShadowK).toFixed(3)})`;
+    ctx.beginPath(); ctx.ellipse(p.x, p.y + p.r * 0.72, p.r * 1.04 * pShadowK, p.r * 0.34 * pShadowK, 0, 0, Math.PI * 2); ctx.fill();
   }
   if (!(s.invuln > 0 && Math.floor(s.invuln * 10) % 2)) {
     const pFace = s.combat && s.combat.facing < 0 ? -1 : 1;
@@ -496,6 +497,11 @@ function draw(dt = 1 / 60) {
     if (n.kind === 'hoverdrone') { fx.ninja(ctx, n, () => drones.draw(ctx, n, animT)); hud.enemy(ctx, n, dt); return; }
     if (n.kind === 'drone') { if (n.__rigId == null) n.__rigId = ++rigSeq; drawDrone(ctx, n, animT); hud.enemy(ctx, n, dt); return; }
     if (n.mech) { let drew = false; fx.ninja(ctx, n, () => { drew = drawMech(ctx, n, animT); }); if (drew) return; } // mech walker (mech.js), boss bar via boss.js
+    {
+      const nShadowK = Math.max(0.4, 1 - (n.z || 0) / 180) * (n.scale || 1);
+      ctx.fillStyle = n.boss || n.kind === 'boss' ? `rgba(45,0,20,${(0.38 * nShadowK).toFixed(3)})` : `rgba(0,0,0,${(0.28 * nShadowK).toFixed(3)})`;
+      ctx.beginPath(); ctx.ellipse(n.x, n.y + n.r * 0.72, n.r * 0.98 * nShadowK, n.r * 0.32 * nShadowK, 0, 0, Math.PI * 2); ctx.fill();
+    }
     if (n.skate) drawBoard(ctx, n.x, n.y + n.r + 2, n.z || 0, n.face || -1, 1.8 * (n.scale || 1));
     fx.ninja(ctx, n, () => {
     // The foot art faces left natively, so it only flips when one turns around.

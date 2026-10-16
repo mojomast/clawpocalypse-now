@@ -116,15 +116,26 @@ export function createFX() {
       else { ctx.fillStyle = q.c; ctx.globalAlpha = a; ctx.fillRect(q.x, q.y, q.r, q.r); ctx.globalAlpha = 1; }
     }
     ctx.textAlign = 'center'; ctx.font = 'bold 16px monospace';
-    for (const q of fx.pops) { ctx.globalAlpha = 1 - q.t / 0.9; ctx.fillStyle = q.c; ctx.fillText(q.text, q.x, q.y); }
+    for (const q of fx.pops) {
+      ctx.globalAlpha = Math.max(0, 1 - q.t / 0.9);
+      ctx.fillStyle = 'rgba(0,0,0,0.65)';
+      ctx.fillText(q.text, q.x + 1, q.y + 1);
+      ctx.fillStyle = q.c;
+      ctx.fillText(q.text, q.x, q.y);
+    }
     ctx.globalAlpha = 1;
     const b = fx.banner;
     if (b) {
       const k = Math.min(1, b.t / 0.25), out = Math.max(0, (b.t - 1.4) / 0.4);
       ctx.globalAlpha = 1 - out;
-      ctx.fillStyle = b.boss ? 'rgba(120,0,0,0.6)' : 'rgba(0,0,0,0.5)'; ctx.fillRect(0, H / 2 - 40, W, 70);
+      ctx.fillStyle = b.boss ? 'rgba(120,0,0,0.65)' : 'rgba(0,0,0,0.58)'; ctx.fillRect(0, H / 2 - 40, W, 70);
+      ctx.fillStyle = b.boss ? '#ff5252' : '#7CFC5A';
+      ctx.fillRect(0, H / 2 - 40, W, 2);
+      ctx.fillRect(0, H / 2 + 28, W, 2);
       ctx.save(); ctx.translate(W / 2 + (1 - k) * -W, H / 2); const sc = b.boss ? 1 + Math.sin(b.t * 20) * 0.04 : 1; ctx.scale(sc, sc);
-      ctx.font = 'bold 46px monospace'; ctx.fillStyle = b.boss ? '#ff5252' : '#7CFC5A'; ctx.fillText(b.text, 0, 12); ctx.restore();
+      ctx.font = 'bold 46px monospace';
+      ctx.fillStyle = 'rgba(0,0,0,0.7)'; ctx.fillText(b.text, 2, 14);
+      ctx.fillStyle = b.boss ? '#ff5252' : '#7CFC5A'; ctx.fillText(b.text, 0, 12); ctx.restore();
       ctx.globalAlpha = 1;
     }
     ctx.textAlign = 'left';

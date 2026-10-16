@@ -91,8 +91,22 @@ export function installTekniumPolish(POSES) {
   for (const move of ['axe', 'axeHeavy', 'bash', 'pound'])
     arms(`${move}_follow`, -24, -44, -24, -50);
   arms('throw_follow', -26, -44, -64, -24);
-  for (const name of Object.keys(POSES).filter(n => n.startsWith('teknium_') && n.endsWith('_recover')))
-    POSES[name] = { ...POSES.teknium_idleA };
+  const idleA = POSES.teknium_idleA;
+  const blend = (a, b, t = 0.25) => Math.round((a || 0) + ((b ?? a ?? 0) - (a || 0)) * t);
+  for (const name of Object.keys(POSES).filter(n => n.startsWith('teknium_') && n.endsWith('_recover'))) {
+    const f = POSES[name.replace(/_recover$/, '_follow')] || idleA;
+    POSES[name] = {
+      ...idleA,
+      torso: blend(idleA.torso, f.torso, 0.25),
+      head: blend(idleA.head, f.head, 0.25),
+      uarm: blend(idleA.uarm, f.uarm, 0.2),
+      farm: Math.min(-26, blend(idleA.farm, f.farm, 0.2)),
+      uarm_b: Math.min(-16, blend(idleA.uarm_b, f.uarm_b, 0.2)),
+      farm_b: Math.min(-34, blend(idleA.farm_b, f.farm_b, 0.2)),
+      thigh: blend(idleA.thigh, f.thigh, 0.22),
+      shin: blend(idleA.shin, f.shin, 0.22),
+    };
+  }
   for (const name of Object.keys(POSES).filter(n => n.startsWith('teknium_')))
     POSES[name] = { ...POSES[name], __variants: tekniumPresentation(name) };
 }

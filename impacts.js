@@ -103,8 +103,31 @@ export function createImpacts() {
         ctx.globalAlpha *= 0.18 + 0.22 * (1 - life);
         ctx.fillStyle = e.shade || '#ffe86b';
         ctx.beginPath(); ctx.arc(0, 0, sw * 0.75, 0, Math.PI * 2); ctx.fill();
+        // Expanding heavy-hit shockwave ring
+        ctx.globalAlpha = Math.max(0, 0.65 * fade);
+        ctx.strokeStyle = e.shade || '#ffe86b';
+        ctx.lineWidth = 2.2 * life + 0.6;
+        ctx.beginPath(); ctx.arc(0, 0, sw * (0.42 + local * 0.55), 0, Math.PI * 2); ctx.stroke();
         ctx.restore();
         ctx.globalAlpha = 0.96 * fade;
+      }
+      if (e.spec.mode === 'hit') {
+        // Crisp directional arcade impact streaks
+        ctx.save();
+        ctx.translate(e.x, e.y);
+        if (e.facing < 0) ctx.scale(-1, 1);
+        ctx.globalAlpha = Math.max(0, 0.75 * fade);
+        ctx.strokeStyle = e.aura ? '#fff4b8' : '#ffffff';
+        ctx.lineWidth = e.aura ? 2.0 : 1.4;
+        const r0 = sw * 0.22, r1 = sw * (0.58 + local * 0.38);
+        for (const ang of [-0.55, -0.18, 0.22, 0.62]) {
+          const ca = Math.cos(ang), sa = Math.sin(ang);
+          ctx.beginPath();
+          ctx.moveTo(ca * r0, sa * r0);
+          ctx.lineTo(ca * r1, sa * r1);
+          ctx.stroke();
+        }
+        ctx.restore();
       }
       ctx.translate(e.x, e.y);
       if (e.facing < 0) ctx.scale(-1, 1);

@@ -318,7 +318,7 @@ export function createHud() {
     ctx.restore();
   }
   function controls(ctx, W, H, info) {
-    const text = `J PUNCH  K KICK  L JUMP  J+K BACK  J+L SPECIAL  -> RUN${info.chain > 1 ? '   CHAIN x' + info.chain : ''}${info.airborne ? '   AIR' : ''}`;
+    const text = `J PUNCH  K KICK  L JUMP  J+K BACK  J+L SPECIAL  Q MACHINE  -> RUN${info.chain > 1 ? '   CHAIN x' + info.chain : ''}${info.airborne ? '   AIR' : ''}`;
     ctx.save();
     // The footer legend stays full width so it never clips the score card or status panel.
     ctx.globalAlpha = 0.52;

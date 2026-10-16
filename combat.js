@@ -19,6 +19,7 @@
 // (launcher, juggle, dashAttack, grab, grabThrow, backAttack, healthSpecial) or
 // punch/kick/jumpKick; enemies set ninja.move / ninja.phase.
 import { CHAR_SCALE, movePlayer, damageNinja, damagePlayer, isWalkable, resolveWalkable, levelForIndex, clamp } from './logic.js';
+import { shotBlocked } from './machine.js'; // hex dome eats projectiles while the Machine is shielding
 
 const GRAVITY = 1400, JUMP_V = 560; // taller jump to match the 2x characters
 const SZ = CHAR_SCALE, RANGE_K = 1.8; // attack reach scales a touch under body size
@@ -477,6 +478,7 @@ export function enemyAI(state, dt) {
   if (state.enemyShots) {
     for (const s of state.enemyShots) {
       s.x += s.vx * dt; s.t += dt;
+      if (!s.dead && shotBlocked(state, s)) { s.dead = true; continue; }
       if (!s.dead && Math.abs(s.x - p.x) < s.r + p.r * SZ * 0.6 && Math.abs(s.y + 18 * SZ - p.y) <= DEPTH + s.r && !((p.z || 0) > 18 * SZ)) { s.dead = true; damagePlayer(state, s.dmg, s); }
       if (s.t > 3) s.dead = true;
     }

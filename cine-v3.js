@@ -12,6 +12,7 @@ export const PORTRAITS = {
   'NOUS GIRL': 'assets/cine/v3/portraits/nous_girl.png',
   'TURBOFIT': 'assets/cine/v3/portraits/turbofit.png',
   'DON PIEDRO': 'assets/cine/v3/portraits/don_piedro.png',
+  'THE MACHINE': 'assets/allies/machine/portrait.png', // PR #4 ally card (framed, opaque)
   'SHREDCLAW': 'assets/bosses/splash/shredclaw.png'
 };
 // Every story portrait is now a bust (cropped at the chest), so they all fade out at the bottom.
@@ -23,7 +24,7 @@ export const GROUP = ['LEONARDO', 'DONATELLO', 'RAPHAEL', 'MICHELANGELO'];
 export const NAME_COLOR = {
   'DONATELLO': '#c58bff', 'LEONARDO': '#6fb6ff', 'RAPHAEL': '#ff6b6b', 'MICHELANGELO': '#ffab4a',
   'TEKNIUM': '#5fe08a', 'NOUS GIRL': '#e9eef5', 'TURBOFIT': '#ff9a52', 'DON PIEDRO': '#ffd23f',
-  'SHREDCLAW': '#ff4a4a', 'TURTLES': '#9bd66a'
+  'SHREDCLAW': '#ff4a4a', 'TURTLES': '#9bd66a', 'THE MACHINE': '#3fe0e8'
 };
 // Hero select names (heroes.js) -> portrait speaker, for the '{HERO}' lines.
 const HERO_NAME = {

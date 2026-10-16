@@ -15,6 +15,7 @@
 // assets/enemies/ext/). Spawns are layered onto events.js beats from here: when
 // a listed trigger fires, its extra enemies join that arena.
 import { SKATE_LEVEL, LEVELS, damagePlayer } from './logic.js';
+import { shotBlocked } from './machine.js';
 import { boxHits, DEPTH, maxTokens } from './combat.js';
 import { WORLD_W } from './collision.js';
 
@@ -290,6 +291,7 @@ export function createEnemiesExt(opts = {}) {
     // Shuriken
     for (const s of X.shots) {
       s.x += s.vx * dt; s.t += dt;
+      if (!s.dead && shotBlocked(state, s)) { s.dead = true; continue; }
       if (!s.dead && boxHits({ x0: s.x - 8, x1: s.x + 8, y: s.y, depth: DEPTH + 6, top: s.y - 72, bot: s.y - 48 }, p)) {
         s.dead = true; const got = damagePlayer(state, s.dmg, { x: s.x - s.vx * 0.05 }); log(X, 'hit', { type: 'stars', dmg: got, kind: 'clawninja' });
       }

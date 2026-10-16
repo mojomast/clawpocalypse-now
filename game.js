@@ -28,6 +28,7 @@ import { createImpacts } from './impacts.js';
 import { ensureEvents, stepEvents, drawEventOverlay } from './events.js';
 import { createBreakables } from './breakables.js'; // dolan: smashable props + pickups
 import { createAssist } from './assist.js'; // dolan: team-up super meter + Nous gang assist
+import { createMachine, drawMachineSpeaker } from './machine.js'; // the Machine Beneath the Skin: summonable ally
 import { createBonus } from './bonus.js'; // dolan: pizza delivery bonus stage
 import { createShop } from './shop.js'; // dolan: between-stage shop (pizza coins)
 import { createSubway } from './subway.js'; // cheese: subway train level
@@ -82,6 +83,7 @@ const props = createProps(); window.__ppProps = props;
 const impacts = createImpacts(); window.__ppImpacts = impacts;
 const breakables = createBreakables({ audio }); window.__ppBreak = breakables;
 const assist = createAssist({ audio }); window.__ppAssist = assist; // dolan: team-up assist
+const machine = createMachine({ audio, playScene: (id, done) => cinema.play(id, done), cinemaActive: () => cinema.isActive() }); window.__ppMachine = machine;
 const shop = createShop({ audio }); window.__ppShop = shop; // dolan: between-stage shop (owns input + screen while open)
 const bonus = createBonus({ audio, onDone: st => shop.open(st) }); window.__ppBonus = bonus; // dolan: bonus stage (owns input + screen while active); the shop follows it
 const subway = createSubway({ rig, audio }); window.__ppSubway = subway; // cheese: subway
@@ -273,6 +275,7 @@ addEventListener('keydown', e => {
   }
   if (e.code === 'KeyF') { e.preventDefault(); moveList.toggle(selectedHero); }
   if (e.code === 'KeyU') { e.preventDefault(); if (!paused && !s.over && !screens.active() && !cinema.isActive()) assist.handleKey(e, s); } // dolan: team-up assist
+  if ((e.code === 'KeyQ' || e.code === 'Numpad9') && !e.repeat) { e.preventDefault(); if (!paused && !s.over && !screens.active() && !cinema.isActive()) machine.handleKey(e, s); } // Machine assist: Q (P1), numpad 9 (P2)
   if (e.code === 'KeyM') audio.toggle();
   if (e.code === 'BracketRight') audio.nudgeVolume(0.08);
   if (e.code === 'BracketLeft') audio.nudgeVolume(-0.08);
@@ -423,6 +426,7 @@ function draw(dt = 1 / 60) {
   drawProjectiles();
   guard('skate.shots', () => drawShots(ctx, s, IMG.pizza));
   guard('enemies-ext.over', () => extEnemies.drawOver(ctx, s, animT)); // flames, shuriken, smoke over the actors
+  guard('machine.world', () => machine.drawWorld(ctx, s)); // ally sprite, lens beam, hex dome
   guard('drones.over', () => drones.drawOver(ctx, s, animT)); // mr_india: drone lane telegraphs, laser bolts, explosions
   guard('grab', () => drawGrab(ctx, s)); // MR.INDIA: screen throws fly at the camera
   guard('powerups', () => {
@@ -460,6 +464,7 @@ function draw(dt = 1 / 60) {
   guard('coop.hud', () => coop.drawHud(ctx, s, dt, W, H)); // cheese: co-op P2 card / join picker
   guard('boss.hud', () => bosses.drawHud(ctx, s, dt, W, H)); // named, phase-segmented boss bar
   if (!selecting) guard('assist', () => assist.draw(ctx, s, W, H)); // dolan: TEAM UP meter + assist cut-in
+  if (!selecting) guard('machine.hud', () => machine.drawHud(ctx, s, W, H)); // Machine meter: ready / cooldown
   // Controls live in the HUD footer now, where they stay out of the combat coaching bar.
   ctx.textAlign = 'center';
   if (screens.active()) { /* screens.js draws last, below */ }
@@ -563,6 +568,7 @@ function simStep(dt) {
     attempt('drones.step', () => drones.step(s, dt)); // mr_india: hover-drone packs (swoop, dive, laser)
     attempt('bosses.step', () => coop.as(s, 'boss', () => bosses.step(s, dt))); // cheese: co-op target (coop.js) // boss AI, phases, defeat signal (after damage, before fx diff)
     if (!screens.active()) attempt('assist.step', () => assist.step(s, dt)); // dolan: team-up meter gains + assist strike
+    if (!screens.active()) attempt('machine.step', () => machine.step(s, dt)); // Machine meter, summon, vault meeting
     if (!screens.active()) shop.stepWorld(s, dt); // dolan: KO coins + shop damage multiplier (hp diff, no combat.js edit)
     attempt('extEnemies.step', () => coop.as(s, 'ext', () => extEnemies.step(s, dt))); // cheese: co-op target (coop.js) // new enemy types: AI, spawns layered on event beats
     attempt('tower.step', () => tower.step(s, dt)); // OpenClaw Tower elevator ride (level 4)
@@ -654,7 +660,7 @@ function loop(t) {
     return;
   }
   if (title.isActive()) { title.update(dt); title.draw(ctx, W, H); checkpoint.draw(ctx, W, H, title.ready(), dt); requestAnimationFrame(tick); return; } // mr_india: checkpoint menu over the title
-  if (cinema.isActive()) { cinema.update(dt); cinema.draw(ctx, W, H); drawCineSpeaker(ctx, W, H, cinema); cineFade = 0.5; requestAnimationFrame(tick); return; }
+  if (cinema.isActive()) { cinema.update(dt); cinema.draw(ctx, W, H); drawCineSpeaker(ctx, W, H, cinema); drawMachineSpeaker(ctx, W, H, cinema); cineFade = 0.5; requestAnimationFrame(tick); return; }
   // Boss edges are tracked every frame, including while a cinematic plays: if
   // this only ran inside the gameplay block, a skipped entrance scene would see
   // prevBossAlive still false and re-trigger itself forever.

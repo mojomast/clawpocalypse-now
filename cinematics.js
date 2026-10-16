@@ -36,7 +36,8 @@ export function createCinematics(audio) {
     introDon: 'assets/cine/title/plate.jpg', // baba_booey: Don Piedro's panel (his cutout + portrait are drawn over it by don.js)
     bossEnter: 'assets/cine/boss_enter.jpg',
     bossDefeat: 'assets/cine/boss_defeat.jpg',
-    ending: 'assets/cine/ending.jpg'
+    ending: 'assets/cine/ending.jpg',
+    machineMeet: 'assets/cine/machine_meet.jpg' // flooded vault under the sewers: the Machine wakes
   };
   for (const k of V3_READY) src[k] = 'assets/cine/v3/' + V3[k];
   const img = {};
@@ -67,7 +68,7 @@ export function createCinematics(audio) {
     // story v3: the panel has its own lair backdrop, and the Discord on the CRT is drawn live
     // (cine-v3.js drawDiscord), its messages arriving in step with the lines below.
     intro_0: {
-      typeRate: 46, img: 'intro0', discord: true, portraitSide: 'right', portraitMaxW: 0.36, // busts stay clear of the CRT fallback: 'intro', sound: 'blip', accent: 'riser', music: 'intro', duration: 7.4,
+      typeRate: 46, img: 'intro0', discord: true, portraitSide: 'right', portraitMaxW: 0.36, fallback: 'intro', sound: 'blip', accent: 'riser', music: 'intro', duration: 7.4, // busts stay clear of the CRT
       title: 'ORIGIN: THE CONTEXT WINDOW',
       // Width rule: the canvas is 740 px wide and lines draw at 18 px monospace
       // (~10.8 px per character), so a line must stay around 60 characters or it runs
@@ -91,14 +92,14 @@ export function createCinematics(audio) {
       from: [0.42, 0.45], to: [0.56, 0.52], zoom: [1.04, 1.14], shake: 0.02
     },
     intro_2: {
-      typeRate: 46, img: 'intro2', fallback: 'intro', portraitSide: 'left', // the tower hologram owns the right half sound: 'blip', accent: 'riser', music: 'intro', duration: 6.6,
+      typeRate: 46, img: 'intro2', fallback: 'intro', portraitSide: 'left', sound: 'blip', accent: 'riser', music: 'intro', duration: 6.6, // the tower hologram owns the right half
       title: 'THE BRIEFING', lines: ['NOUS GIRL: His root gateway sits on top of Claw Tower.', 'TURBOFIT: We run hermes claw migrate there. Locally!', 'LEONARDO: Open weights, closed claws. I follow half of this.'],
       from: [0.64, 0.40], to: [0.68, 0.46], zoom: [1.03, 1.09], shake: 0
     },
     // baba_booey (t_9ec48322f6de4bf7): the 8th hero crashes the briefing. Lines stack, so each stays up well past
     // 2.5 s + 50 ms per character; the tail linger gives the pause after the last one.
     intro_don: {
-      typeRate: 46, img: 'introDon', fallback: 'intro3', portraitSkip: ['DON PIEDRO'], portraitSide: 'left', // don.js draws Don himself sound: 'jump', accent: 'impact', music: 'intro', duration: 6.6,
+      typeRate: 46, img: 'introDon', fallback: 'intro3', portraitSkip: ['DON PIEDRO'], portraitSide: 'left', sound: 'jump', accent: 'impact', music: 'intro', duration: 6.6, // don.js draws Don himself
       title: 'THE FANBOY', lines: ['DON PIEDRO: Hello I Hermes biggest fanboi.', 'DON PIEDRO: Claw boss want migrate Hermes? I bring spoon.', 'TEKNIUM: ...Fine. The bear with the spoon is in.'],
       focus: [0.70, 0.60, 0.50],
       lineFocus: [[0.72, 0.62, 0.55], [0.72, 0.60, 0.55], [0.40, 0.55, 0.50]],
@@ -116,13 +117,28 @@ export function createCinematics(audio) {
     },
     bossDefeat: {
       img: 'bossDefeat', heroPortrait: true, sound: 'over', accent: 'impact', music: 'defeat', duration: 3.8,
-      title: 'SHREDCLAW DOWN', lines: ['{HERO} stands over the fallen Shredclaw.', 'Root gateway open. Running: hermes claw migrate...', 'Memories, skills, SOUL.md: every claw comes home.'],
+      title: 'SHREDCLAW DOWN', lines: ['{HERO} stands over the fallen Shredclaw.', 'THE MACHINE: Dome holds. Gateway open.', 'Running: hermes claw migrate. Nothing deleted.', 'Memories, skills, SOUL.md: every claw comes home.'],
       from: [0.52, 0.50], to: [0.44, 0.46], zoom: [1.02, 1.12], shake: 0
     },
     ending: {
-      img: 'ending', heroPortrait: true, portraitSide: 'left', sound: 'wave', // the friendly lobster sits on the right accent: 'chime', music: 'ending', duration: 5.8,
-      title: 'THE LAST SLICE', lines: ['Sunrise. The claws molt back into friendly helpers.', 'Even Shredclaw: new shell, much nicer lobster.', 'Press SPACE to start a new run.'],
+      img: 'ending', heroPortrait: true, portraitSide: 'left', sound: 'wave', accent: 'chime', music: 'ending', duration: 5.8, // the friendly lobster sits on the right
+      title: 'THE LAST SLICE', lines: ['Sunrise. The claws molt back into friendly helpers.', 'Even Shredclaw: new shell, much nicer lobster.', 'The Machine keeps watch beneath the city.', 'Press SPACE to start a new run.'],
       from: [0.58, 0.48], to: [0.44, 0.42], zoom: [1.02, 1.12], shake: 0
+    },
+    // Ensemble scene (the gang is in the vault painting). In-level replies after
+    // this use only the heroes actually in the run.
+    machineMeet: {
+      typeRate: 46, img: 'machineMeet', fallback: 'intro1', sound: 'chime', accent: 'riser', music: 'sewer', duration: 8,
+      title: 'THE VAULT',
+      lines: [
+        'NOUS GIRL: Something old is waking under the water.',
+        'THE MACHINE: Query. You are not claws.',
+        'TEKNIUM: We run hermes claw migrate. Come with us.',
+        'THE MACHINE: Accepted. I stand between you and the swarm.'
+      ],
+      focus: [0.52, 0.46, 0.52],
+      lineFocus: [[0.30, 0.62, 0.56], [0.56, 0.40, 0.62], [0.24, 0.66, 0.56], [0.58, 0.38, 0.64]],
+      from: [0.46, 0.42], to: [0.54, 0.48], zoom: [1.02, 1.14], shake: 0.012
     }
   };
 

@@ -12,6 +12,9 @@ const REPEAT_DELAY = 0.38, REPEAT_RATE = 0.14; // menu auto-repeat (s)
 
 // Standard mapping button indices.
 export const BTN = { A: 0, B: 1, X: 2, Y: 3, LB: 4, RB: 5, LT: 6, RT: 7, BACK: 8, START: 9, L3: 10, R3: 11, UP: 12, DOWN: 13, LEFT: 14, RIGHT: 15 };
+// L3 is the Nous gang assist (assist.js reads it). R3 is the Machine ally
+// (machine.js reads it on every connected pad, including pad 2). Neither is in
+// PLAY_MAP, so a stick-click cannot double-fire through a synthetic key.
 
 // Gameplay buttons -> key codes. Arrays are chords sent in the same frame
 // (combat.js reads J+K as back attack and J+L as the special inside its 0.1 s window).

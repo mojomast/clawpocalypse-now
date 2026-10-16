@@ -213,7 +213,7 @@ function addBark(e, who, text, n, portrait) {
 export const READ = { BASE: 2.5, PER_CHAR: 0.05, PAUSE: 0.6 };
 export const readTime = text => READ.BASE + READ.PER_CHAR * String(text || '').length;
 export const PLACE = { 0: 'the sewers', 1: 'the street', 2: 'the rooftops', 3: 'the highway', 4: 'Claw Tower', 5: 'the night train', 6: 'the docks', 7: 'the arcade' };
-export const SAY_KEYS = ['enter', 'ahead', 'surround', 'behind', 'drop', 'drones', 'breach', 'pizza', 'story', 'gate', 'boss', 'hazard', 'ride', 'glitch', 'hype', 'snack', 'onward'];
+export const SAY_KEYS = ['enter', 'ahead', 'surround', 'behind', 'drop', 'drones', 'breach', 'pizza', 'story', 'gate', 'boss', 'hazard', 'ride', 'glitch', 'hype', 'snack', 'onward', 'vault', 'migrate'];
 export const VOICE = {
   // Long reach, longer explanations: the gadget brain of the sewer crew.
   turtle_purple: {
@@ -361,6 +361,43 @@ export const VOICE = {
     hype: ['Spoon time!', 'Capisce?', 'For Hermes!'], snack: ['Mangia!', 'Is good.'], onward: ['Andiamo!', 'Hermes, I come!']
   }
 };
+// The Machine Beneath the Skin. Only the hero actually in the run says these
+// (speakLine). The sentinel itself speaks through its own portrait lines.
+const MACHINE_BEATS = {
+  turtle_purple: {
+    vault: ['Ancient silicon. Still within tolerance. Welcome.', 'I mapped the pipes. I did not map you. Noted.'],
+    migrate: ['Hold the dome. I will read the gateway.', 'Migration math checks out if you hold.'],
+  },
+  turtle_blue: {
+    vault: ['You kept the watch. Keep it with us.', 'Stand with the team. We go up together.'],
+    migrate: ['Hold the line. We finish this with honour.', 'Dome up. Nobody breaks formation.'],
+  },
+  turtle_red: {
+    vault: ['A flashlight with opinions. Stay out of my sai.', 'Fine. You shield. I hit. Do not narrate it.'],
+    migrate: ['Hold him still. I brought the butter.', 'Dome up, tin can. I have a lobster to crack.'],
+  },
+  turtle_orange: {
+    vault: ['Robot dude! Cowabunga, metal style!', 'Whoa. Eye laser. This level rules, dude!'],
+    migrate: ['Shield us, dude! Then pizza!', 'Dome party! Shredclaw is not invited!'],
+  },
+  nous_girl: {
+    vault: ['Old signal. Clean. I hear you.', 'You were under the noise floor. Not anymore.'],
+    migrate: ['Hold the dome. I will hear the gateway open.', 'Quiet now. Let the migration through.'],
+  },
+  teknium: {
+    vault: ['Pre-allowlist sentinel. Shipping you with us.', 'Logged. Ancient hardware, current patch.'],
+    migrate: ['Dome up. Running hermes claw migrate.', 'You hold. I ship the migration. Nothing deleted.'],
+  },
+  turbofit: {
+    vault: ['Local metal! This vault runs itself! Rock on!', 'TurboFit Check: you fit. Welcome to the band!'],
+    migrate: ['Hold the dome! I am migrating this cluster LOCAL!', 'Gateway open! Run it on our hardware!'],
+  },
+  don_piedro: {
+    vault: ['Metal man protect Hermes? Don Piedro accept.', 'You old machine. Don like. Spoon like too.'],
+    migrate: ['You hold dome. Don spoon the lobster. For Hermes!', 'Hermes come home. You shield. Don finish.'],
+  },
+};
+for (const [id, extra] of Object.entries(MACHINE_BEATS)) if (VOICE[id]) Object.assign(VOICE[id], extra);
 const HERO_NAME = Object.fromEntries(HERO_LIST.map(h => [h.id, h.name]));
 const titleCase = s => String(s || '').toLowerCase().replace(/\b[a-z]/g, c => c.toUpperCase());
 // Who is actually in the run: P1's hero, plus P2's hero while a co-op partner is playing.

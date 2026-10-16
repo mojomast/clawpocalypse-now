@@ -3,8 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node tests/check-rig-sources.mjs && node tests/check-polish-protected.mjs && node tests/check-polish-locomotion.mjs && node tests/check-rigs.mjs && node tests/check-hero-v2.mjs && node check-animation.mjs && node tests/check-polish-rigs.mjs && node tests/check-polish-nous.mjs && node tests/check-polish-timing.mjs && node tests/check-polish-contact.mjs && node tests/check-polish-recovery.mjs && node tests/check-levels.mjs",
-    "test:browser": "node browser-smoke.mjs",
+    "test": "node tests/check-rig-sources.mjs && node tests/check-polish-protected.mjs && node tests/check-polish-locomotion.mjs && node tests/check-rigs.mjs && node tests/check-hero-v2.mjs && node check-animation.mjs && node tests/check-polish-rigs.mjs && node tests/check-polish-nous.mjs && node tests/check-polish-timing.mjs && node tests/check-polish-contact.mjs && node tests/check-polish-recovery.mjs && node tests/check-levels.mjs && node tests/check-machine.mjs",
+    "test:browser": "node browser-smoke.mjs && node tests/browser-machine.mjs",
     "test:pixels": "node tests/check-rig-pixels.mjs",
     "rigs:after": "node tools/render-rigs.mjs after --out evidence/hero-assets-v2/after/contact-sheets",
     "rigs:gen": "node tools/gen-hero-rigs.mjs",

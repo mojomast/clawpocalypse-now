@@ -26,7 +26,7 @@ export function createCinematics(audio) {
   // A panel switches to its v3 backdrop once that JPG is in assets/cine/v3/ and its key is in
   // V3_READY (no build step, and no request for a file that is not shipped, so nothing 404s).
   const V3 = { intro0: 'bg_donnie_lair.jpg', intro1: 'bg_meeting.jpg', intro2: 'bg_briefing.jpg', intro3: 'bg_teamup.jpg', bossEnter: 'bg_boss_enter.jpg', bossDefeat: 'bg_boss_defeat.jpg', ending: 'bg_ending.jpg' };
-  const V3_READY = new Set(['intro0']);
+  const V3_READY = new Set(['intro0', 'intro1', 'intro2', 'intro3', 'bossEnter', 'bossDefeat', 'ending']);
   const src = {
     intro: 'assets/cine/intro.jpg', // legacy single panel, kept as a fallback
     intro0: 'assets/cine/intro_1_meeting.jpg', // Donatello's lair (v3): the CRT shows the live Discord feed
@@ -91,9 +91,9 @@ export function createCinematics(audio) {
       from: [0.42, 0.45], to: [0.56, 0.52], zoom: [1.04, 1.14], shake: 0.02
     },
     intro_2: {
-      typeRate: 46, img: 'intro2', fallback: 'intro', sound: 'blip', accent: 'riser', music: 'intro', duration: 6.6,
+      typeRate: 46, img: 'intro2', fallback: 'intro', portraitSide: 'left', // the tower hologram owns the right half sound: 'blip', accent: 'riser', music: 'intro', duration: 6.6,
       title: 'THE BRIEFING', lines: ['NOUS GIRL: His root gateway sits on top of Claw Tower.', 'TURBOFIT: We run hermes claw migrate there. Locally!', 'LEONARDO: Open weights, closed claws. I follow half of this.'],
-      from: [0.54, 0.42], to: [0.46, 0.48], zoom: [1.14, 1.04], shake: 0
+      from: [0.64, 0.40], to: [0.68, 0.46], zoom: [1.03, 1.09], shake: 0
     },
     // baba_booey (t_9ec48322f6de4bf7): the 8th hero crashes the briefing. Lines stack, so each stays up well past
     // 2.5 s + 50 ms per character; the tail linger gives the pause after the last one.
@@ -115,12 +115,12 @@ export function createCinematics(audio) {
       from: [0.50, 0.40], to: [0.50, 0.48], zoom: [1.02, 1.16], shake: 0.08
     },
     bossDefeat: {
-      img: 'bossDefeat', sound: 'over', accent: 'impact', music: 'defeat', duration: 3.8,
+      img: 'bossDefeat', heroPortrait: true, sound: 'over', accent: 'impact', music: 'defeat', duration: 3.8,
       title: 'SHREDCLAW DOWN', lines: ['{HERO} stands over the fallen Shredclaw.', 'Root gateway open. Running: hermes claw migrate...', 'Memories, skills, SOUL.md: every claw comes home.'],
       from: [0.52, 0.50], to: [0.44, 0.46], zoom: [1.02, 1.12], shake: 0
     },
     ending: {
-      img: 'ending', sound: 'wave', accent: 'chime', music: 'ending', duration: 5.8,
+      img: 'ending', heroPortrait: true, portraitSide: 'left', sound: 'wave', // the friendly lobster sits on the right accent: 'chime', music: 'ending', duration: 5.8,
       title: 'THE LAST SLICE', lines: ['Sunrise. The claws molt back into friendly helpers.', 'Even Shredclaw: new shell, much nicer lobster.', 'Press SPACE to start a new run.'],
       from: [0.58, 0.48], to: [0.44, 0.42], zoom: [1.02, 1.12], shake: 0
     }
@@ -267,7 +267,7 @@ export function createCinematics(audio) {
     if (!state.active) return;
     syncTyped();
     // story v3: who is speaking right now (the last line on screen) drives the portraits.
-    { const n = curLine(); stepPortraits(s, n >= 0 ? s.raw[n] : null, state.hero, state.t, { side: s.portraitSide, skip: s.portraitSkip }); }
+    { const n = curLine(); stepPortraits(s, n >= 0 ? s.raw[n] : null, state.hero, state.t, { side: s.portraitSide, skip: s.portraitSkip, hero: s.heroPortrait }); }
     state.countdown = Math.max(0, s.duration - state.t);
     // Typewriter ticks: one blip every couple of revealed characters.
     const typedNow = Math.floor(state.typed);

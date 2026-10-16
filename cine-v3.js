@@ -66,7 +66,9 @@ function sprite(k, dim) {
 // slots.left / slots.right = { key, t } (t = panel time it arrived); out = list of fading leavers.
 export function stepPortraits(s, raw, heroName, t, opts) {
   const p = s._pt || (s._pt = { slots: { left: null, right: null }, out: [], active: null, cur: undefined, last: null, groupT: -1 });
-  const key = raw == null ? undefined : speakerOf(raw, heroName);
+  let key = raw == null ? undefined : speakerOf(raw, heroName);
+  // opts.hero: a narration line in this panel keeps the chosen hero on stage (boss defeat, ending)
+  if (key === null && opts.hero) key = speakerOf('{HERO}', heroName);
   if (key === p.cur) return p;
   p.cur = key;
   if (key === 'TURTLES') { p.active = null; p.groupT = t; return p; }
@@ -108,7 +110,8 @@ export function drawPortraits(ctx, W, H, s, t, floorY, motion) {
   for (const side of ['left', 'right']) {
     const sl = p.slots[side]; if (!sl) continue;
     const a = ease((t - sl.t) / 0.28), on = p.active === side;
-    one(sl.key, side, a * (on ? 1 : 0.85), 1 - a, !on);
+    const back = p.groupT >= 0 ? 1 - 0.7 * ease((t - p.groupT) / 0.3) : 1;   // step back for the TURTLES row
+    one(sl.key, side, a * (on ? 1 : 0.85) * back, 1 - a, !on);
   }
   if (p.groupT >= 0) {   // TURTLES: all four, small, in a row
     const a = ease((t - p.groupT) / 0.3), keys = GROUP.filter(ready);

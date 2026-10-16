@@ -67,19 +67,19 @@ for (const { id: hero } of HEROES) for (const flip of [false, true]) for (const 
     const name = `${hero}_${running ? 'run' : 'walk'}${Math.floor(walkT * 8) % 4 + 1}`;
     const drawing = anim.step(hero, name, { walkT, walkRate: 8 }, 1 / 60, frame / 60);
     const pose = locks.place(hero, hero, drawing, { x, y: 0, flip, scale: 0.7 });
-    const sol = solve(hero, pose, { poseName: name, animated: true, footTargets: pose.__footTargets });
+    const sol = solve(hero, pose, { poseName: name, animated: true, footTargets: pose.__footTargets, rootDy: pose.__rootDy });
     for (const side of sol.contacts) {
       assert.ok(pose.__footTargets[side], `${name}: ordinary gait should not release its support anchor`);
       const n = side === 'front' ? 'shin' : 'shin_b', part = HERO_RIGS[hero][n], scale = sol.S[n];
-      const point = SOLES[hero][sol.ground[side].contactIndex];
+      const point = SOLES[hero][V2[hero] ? 0 : sol.ground[side].contactIndex];
       let q = apply(sol.M[n], (point[0] - part.px) * scale[0], (point[1] - part.py) * scale[1]);
       let expected = locks.tracks.get(hero).anchors[side];
-      if (V2[hero] && sol.ground[side].toeOff) {
-        // v2 toe-off: the toe stays where the flat foot's toe was (anchor + ankle-to-toe offset)
+      if (V2[hero]) {
+        assert.ok(!sol.ground[side].toeOff, `${name}: planted support fell back to a toe pivot`);
         const fn = side === 'front' ? 'foot' : 'foot_b', f = HERO_RIGS[hero][fn];
-        q = apply(sol.M[fn], f.sole[2] - f.px, f.sole[3] - f.py);
-        expected += (flip ? -1 : 1) * 0.7 * (f.sole[2] - f.px);
-        toeOffs++;
+        const heel = apply(sol.M[fn], f.sole[0] - f.px, f.sole[1] - f.py);
+        const toe = apply(sol.M[fn], f.sole[2] - f.px, f.sole[3] - f.py);
+        assert.ok(Math.abs(heel[1] - toe[1]) < .1, `${name}: planted sole is not flat`);
       }
       const worldX = x + (flip ? -1 : 1) * 0.7 * q[0];
       const drift = Math.abs(worldX - expected);

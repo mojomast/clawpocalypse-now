@@ -10,6 +10,7 @@ import { createAnim } from './anim.js';
 import { createFootLocks } from './foot-lock.js';
 import { actorDepth, drawDepthEntries } from './layout-render.js';
 import { attackBox, hurtbox, DEPTH } from './combat.js';
+import { drawContactCue, presentationReach } from './polish-contact.js';
 import { createAudio, levelMusic } from './audio.js';
 import { createFX } from './fx.js';
 import { OPTIONS } from './options-live.js';
@@ -365,11 +366,13 @@ function draw(dt = 1 / 60) {
       const poseName = rig.playerPose(s, animT);
       const a = c && c.attack;
       const info = { phase: a && !a.hold ? c.phase : null, dur: a ? (c.phase === 'wind' ? a.wind : c.phase === 'active' ? a.active : a.rec) : 0, heavy: !!(a && a.heavy), walkT: c && c.moving ? c.walkT : null, walkRate: 8 };
+      info.reach = presentationReach(s, a);
       const drawing = anim.step('player:' + kind, poseName, info, inHitStop(s) ? 0 : dt, animT);
       const rootY = pv.y + pv.r - FEET_SCREEN;
       const angles = footLocks.place('player:' + kind, kind, drawing, { x: pv.x, y: rootY, flip: !!(c && c.facing < 0), scale: sc, dt: inHitStop(s) ? 0 : dt });
       // Mirror the whole rig around the hero's x by facing (heroes face right natively).
       const heroPalette = s.palette || paletteStore.pickedFor(kind);
+      if (c?.attack && c.phase === 'active') drawContactCue(ctx, s, attackBox(s, c.attack));
       if (rig.draw(ctx, kind, angles, pv.x, rootY, !!(c && c.facing < 0), sc, null, dt, tintFor(kind, heroPalette, progressRecord(s)))) return;
       if (IMG.turtle) spr(IMG.turtle, pv.x, pv.y, pv.r * 3); else {
       circle(pv.x - 4, pv.y, pv.r, '#6b4a1e'); circle(pv.x + 6, pv.y, pv.r * .7, '#3fae3f');

@@ -1,0 +1,2040 @@
+{
+  "revision": "5d72948d3ee446e1255463448ea84d26bb93a3d8",
+  "scale": 0.7,
+  "fps": 30,
+  "clips": [
+    {
+      "hero": "teknium",
+      "move": "bladeA",
+      "frames": 68,
+      "sequence": [
+        {
+          "state": "idleA",
+          "time": 0.2
+        },
+        {
+          "state": "bladeA_wind",
+          "phase": "wind",
+          "time": 0.16
+        },
+        {
+          "state": "bladeA_active",
+          "phase": "active",
+          "time": 0.13
+        },
+        {
+          "state": "bladeA_recover",
+          "phase": "rec",
+          "time": 0.32
+        },
+        {
+          "state": "idleA",
+          "time": 0.3
+        }
+      ],
+      "file": "teknium/bladeA.mp4"
+    },
+    {
+      "hero": "teknium",
+      "move": "bladeB",
+      "frames": 68,
+      "sequence": [
+        {
+          "state": "idleA",
+          "time": 0.2
+        },
+        {
+          "state": "bladeB_wind",
+          "phase": "wind",
+          "time": 0.16
+        },
+        {
+          "state": "bladeB_active",
+          "phase": "active",
+          "time": 0.13
+        },
+        {
+          "state": "bladeB_recover",
+          "phase": "rec",
+          "time": 0.32
+        },
+        {
+          "state": "idleA",
+          "time": 0.3
+        }
+      ],
+      "file": "teknium/bladeB.mp4"
+    },
+    {
+      "hero": "teknium",
+      "move": "bladeC",
+      "frames": 58,
+      "sequence": [
+        {
+          "state": "idleA",
+          "time": 0.2
+        },
+        {
+          "state": "bladeC_wind",
+          "phase": "wind",
+          "time": 0.1
+        },
+        {
+          "state": "bladeC_active",
+          "phase": "active",
+          "time": 0.13
+        },
+        {
+          "state": "bladeC_recover",
+          "phase": "rec",
+          "time": 0.22
+        },
+        {
+          "state": "idleA",
+          "time": 0.3
+        }
+      ],
+      "file": "teknium/bladeC.mp4"
+    },
+    {
+      "hero": "teknium",
+      "move": "dash",
+      "frames": 68,
+      "sequence": [
+        {
+          "state": "idleA",
+          "time": 0.2
+        },
+        {
+          "state": "dash_wind",
+          "phase": "wind",
+          "time": 0.16
+        },
+        {
+          "state": "dash_active",
+          "phase": "active",
+          "time": 0.13
+        },
+        {
+          "state": "dash_recover",
+          "phase": "rec",
+          "time": 0.32
+        },
+        {
+          "state": "idleA",
+          "time": 0.3
+        }
+      ],
+      "file": "teknium/dash.mp4"
+    },
+    {
+      "hero": "teknium",
+      "move": "burst",
+      "frames": 68,
+      "sequence": [
+        {
+          "state": "idleA",
+          "time": 0.2
+        },
+        {
+          "state": "burst_wind",
+          "phase": "wind",
+          "time": 0.11
+        },
+        {
+          "state": "burst_active",
+          "phase": "active",
+          "time": 0.22
+        },
+        {
+          "state": "burst_recover",
+          "phase": "rec",
+          "time": 0.28
+        },
+        {
+          "state": "idleA",
+          "time": 0.3
+        }
+      ],
+      "file": "teknium/burst.mp4"
+    },
+    {
+      "hero": "teknium",
+      "move": "launcher",
+      "frames": 68,
+      "sequence": [
+        {
+          "state": "idleA",
+          "time": 0.2
+        },
+        {
+          "state": "launcher_wind",
+          "phase": "wind",
+          "time": 0.16
+        },
+        {
+          "state": "launcher_active",
+          "phase": "active",
+          "time": 0.13
+        },
+        {
+          "state": "launcher_recover",
+          "phase": "rec",
+          "time": 0.32
+        },
+        {
+          "state": "idleA",
+          "time": 0.3
+        }
+      ],
+      "file": "teknium/launcher.mp4"
+    },
+    {
+      "hero": "teknium",
+      "move": "juggle",
+      "frames": 68,
+      "sequence": [
+        {
+          "state": "idleA",
+          "time": 0.2
+        },
+        {
+          "state": "juggle_wind",
+          "phase": "wind",
+          "time": 0.16
+        },
+        {
+          "state": "juggle_active",
+          "phase": "active",
+          "time": 0.13
+        },
+        {
+          "state": "juggle_recover",
+          "phase": "rec",
+          "time": 0.32
+        },
+        {
+          "state": "idleA",
+          "time": 0.3
+        }
+      ],
+      "file": "teknium/juggle.mp4"
+    },
+    {
+      "hero": "teknium",
+      "move": "dashAttack",
+      "frames": 68,
+      "sequence": [
+        {
+          "state": "idleA",
+          "time": 0.2
+        },
+        {
+          "state": "dashAttack_wind",
+          "phase": "wind",
+          "time": 0.16
+        },
+        {
+          "state": "dashAttack_active",
+          "phase": "active",
+          "time": 0.13
+        },
+        {
+          "state": "dashAttack_recover",
+          "phase": "rec",
+          "time": 0.32
+        },
+        {
+          "state": "idleA",
+          "time": 0.3
+        }
+      ],
+      "file": "teknium/dashAttack.mp4"
+    },
+    {
+      "hero": "teknium",
+      "move": "grab",
+      "frames": 68,
+      "sequence": [
+        {
+          "state": "idleA",
+          "time": 0.2
+        },
+        {
+          "state": "grab_wind",
+          "phase": "wind",
+          "time": 0.16
+        },
+        {
+          "state": "grab_active",
+          "phase": "active",
+          "time": 0.13
+        },
+        {
+          "state": "grab_recover",
+          "phase": "rec",
+          "time": 0.32
+        },
+        {
+          "state": "idleA",
+          "time": 0.3
+        }
+      ],
+      "file": "teknium/grab.mp4"
+    },
+    {
+      "hero": "teknium",
+      "move": "grabThrow",
+      "frames": 68,
+      "sequence": [
+        {
+          "state": "idleA",
+          "time": 0.2
+        },
+        {
+          "state": "grabThrow_wind",
+          "phase": "wind",
+          "time": 0.16
+        },
+        {
+          "state": "grabThrow_active",
+          "phase": "active",
+          "time": 0.13
+        },
+        {
+          "state": "grabThrow_recover",
+          "phase": "rec",
+          "time": 0.32
+        },
+        {
+          "state": "idleA",
+          "time": 0.3
+        }
+      ],
+      "file": "teknium/grabThrow.mp4"
+    },
+    {
+      "hero": "teknium",
+      "move": "backAttack",
+      "frames": 68,
+      "sequence": [
+        {
+          "state": "idleA",
+          "time": 0.2
+        },
+        {
+          "state": "backAttack_wind",
+          "phase": "wind",
+          "time": 0.16
+        },
+        {
+          "state": "backAttack_active",
+          "phase": "active",
+          "time": 0.13
+        },
+        {
+          "state": "backAttack_recover",
+          "phase": "rec",
+          "time": 0.32
+        },
+        {
+          "state": "idleA",
+          "time": 0.3
+        }
+      ],
+      "file": "teknium/backAttack.mp4"
+    },
+    {
+      "hero": "teknium",
+      "move": "hitReact",
+      "frames": 68,
+      "sequence": [
+        {
+          "state": "idleA",
+          "time": 0.2
+        },
+        {
+          "state": "hitReact_wind",
+          "phase": "wind",
+          "time": 0.16
+        },
+        {
+          "state": "hitReact_active",
+          "phase": "active",
+          "time": 0.13
+        },
+        {
+          "state": "hitReact_recover",
+          "phase": "rec",
+          "time": 0.32
+        },
+        {
+          "state": "idleA",
+          "time": 0.3
+        }
+      ],
+      "file": "teknium/hitReact.mp4"
+    },
+    {
+      "hero": "teknium",
+      "move": "healthSpecial",
+      "frames": 68,
+      "sequence": [
+        {
+          "state": "idleA",
+          "time": 0.2
+        },
+        {
+          "state": "healthSpecial_wind",
+          "phase": "wind",
+          "time": 0.16
+        },
+        {
+          "state": "healthSpecial_active",
+          "phase": "active",
+          "time": 0.13
+        },
+        {
+          "state": "healthSpecial_recover",
+          "phase": "rec",
+          "time": 0.32
+        },
+        {
+          "state": "idleA",
+          "time": 0.3
+        }
+      ],
+      "file": "teknium/healthSpecial.mp4"
+    },
+    {
+      "hero": "teknium",
+      "move": "groundPound",
+      "frames": 68,
+      "sequence": [
+        {
+          "state": "idleA",
+          "time": 0.2
+        },
+        {
+          "state": "groundPound_wind",
+          "phase": "wind",
+          "time": 0.16
+        },
+        {
+          "state": "groundPound_active",
+          "phase": "active",
+          "time": 0.13
+        },
+        {
+          "state": "groundPound_recover",
+          "phase": "rec",
+          "time": 0.32
+        },
+        {
+          "state": "idleA",
+          "time": 0.3
+        }
+      ],
+      "file": "teknium/groundPound.mp4"
+    },
+    {
+      "hero": "teknium",
+      "move": "dodgeRoll",
+      "frames": 68,
+      "sequence": [
+        {
+          "state": "idleA",
+          "time": 0.2
+        },
+        {
+          "state": "dodgeRoll_wind",
+          "phase": "wind",
+          "time": 0.16
+        },
+        {
+          "state": "dodgeRoll_active",
+          "phase": "active",
+          "time": 0.13
+        },
+        {
+          "state": "dodgeRoll_recover",
+          "phase": "rec",
+          "time": 0.32
+        },
+        {
+          "state": "idleA",
+          "time": 0.3
+        }
+      ],
+      "file": "teknium/dodgeRoll.mp4"
+    },
+    {
+      "hero": "teknium",
+      "move": "idleA",
+      "frames": 72,
+      "sequence": [
+        {
+          "state": "idleA",
+          "time": 1.2
+        }
+      ],
+      "file": "teknium/idleA.mp4"
+    },
+    {
+      "hero": "teknium",
+      "move": "idleB",
+      "frames": 72,
+      "sequence": [
+        {
+          "state": "idleB",
+          "time": 1.2
+        }
+      ],
+      "file": "teknium/idleB.mp4"
+    },
+    {
+      "hero": "teknium",
+      "move": "idleC",
+      "frames": 72,
+      "sequence": [
+        {
+          "state": "idleC",
+          "time": 1.2
+        }
+      ],
+      "file": "teknium/idleC.mp4"
+    },
+    {
+      "hero": "teknium",
+      "move": "walk",
+      "frames": 72,
+      "sequence": [
+        {
+          "state": "walk",
+          "time": 1.2
+        }
+      ],
+      "file": "teknium/walk.mp4"
+    },
+    {
+      "hero": "teknium",
+      "move": "run",
+      "frames": 72,
+      "sequence": [
+        {
+          "state": "run",
+          "time": 1.2
+        }
+      ],
+      "file": "teknium/run.mp4"
+    },
+    {
+      "hero": "teknium",
+      "move": "jump",
+      "frames": 72,
+      "sequence": [
+        {
+          "state": "jump",
+          "time": 1.2
+        }
+      ],
+      "file": "teknium/jump.mp4"
+    },
+    {
+      "hero": "teknium",
+      "move": "turn",
+      "frames": 72,
+      "sequence": [
+        {
+          "state": "turn",
+          "time": 1.2
+        }
+      ],
+      "file": "teknium/turn.mp4"
+    },
+    {
+      "hero": "teknium",
+      "move": "grabHold",
+      "frames": 72,
+      "sequence": [
+        {
+          "state": "grabHold",
+          "time": 1.2
+        }
+      ],
+      "file": "teknium/grabHold.mp4"
+    },
+    {
+      "hero": "teknium",
+      "move": "grabbed",
+      "frames": 72,
+      "sequence": [
+        {
+          "state": "grabbed",
+          "time": 1.2
+        }
+      ],
+      "file": "teknium/grabbed.mp4"
+    },
+    {
+      "hero": "teknium",
+      "move": "stagger",
+      "frames": 72,
+      "sequence": [
+        {
+          "state": "stagger",
+          "time": 1.2
+        }
+      ],
+      "file": "teknium/stagger.mp4"
+    },
+    {
+      "hero": "teknium",
+      "move": "hurt-down-getup",
+      "frames": 72,
+      "sequence": [
+        {
+          "state": "flinch",
+          "time": 0.2
+        },
+        {
+          "state": "down",
+          "time": 0.4
+        },
+        {
+          "state": "wake",
+          "time": 0.3
+        },
+        {
+          "state": "idleA",
+          "time": 0.3
+        }
+      ],
+      "file": "teknium/hurt-down-getup.mp4"
+    },
+    {
+      "hero": "teknium",
+      "move": "taunt",
+      "frames": 72,
+      "sequence": [
+        {
+          "state": "taunt",
+          "time": 1.2
+        }
+      ],
+      "file": "teknium/taunt.mp4"
+    },
+    {
+      "hero": "teknium",
+      "move": "victory",
+      "frames": 72,
+      "sequence": [
+        {
+          "state": "victory",
+          "time": 1.2
+        }
+      ],
+      "file": "teknium/victory.mp4"
+    },
+    {
+      "hero": "nous_girl",
+      "move": "whipA",
+      "frames": 68,
+      "sequence": [
+        {
+          "state": "idleA",
+          "time": 0.2
+        },
+        {
+          "state": "whipA_wind",
+          "phase": "wind",
+          "time": 0.16
+        },
+        {
+          "state": "whipA_active",
+          "phase": "active",
+          "time": 0.13
+        },
+        {
+          "state": "whipA_recover",
+          "phase": "rec",
+          "time": 0.32
+        },
+        {
+          "state": "idleA",
+          "time": 0.3
+        }
+      ],
+      "file": "nous_girl/whipA.mp4"
+    },
+    {
+      "hero": "nous_girl",
+      "move": "whipB",
+      "frames": 68,
+      "sequence": [
+        {
+          "state": "idleA",
+          "time": 0.2
+        },
+        {
+          "state": "whipB_wind",
+          "phase": "wind",
+          "time": 0.16
+        },
+        {
+          "state": "whipB_active",
+          "phase": "active",
+          "time": 0.13
+        },
+        {
+          "state": "whipB_recover",
+          "phase": "rec",
+          "time": 0.32
+        },
+        {
+          "state": "idleA",
+          "time": 0.3
+        }
+      ],
+      "file": "nous_girl/whipB.mp4"
+    },
+    {
+      "hero": "nous_girl",
+      "move": "wave",
+      "frames": 63,
+      "sequence": [
+        {
+          "state": "idleA",
+          "time": 0.2
+        },
+        {
+          "state": "wave_wind",
+          "phase": "wind",
+          "time": 0.12
+        },
+        {
+          "state": "wave_active",
+          "phase": "active",
+          "time": 0.14
+        },
+        {
+          "state": "wave_recover",
+          "phase": "rec",
+          "time": 0.26
+        },
+        {
+          "state": "idleA",
+          "time": 0.3
+        }
+      ],
+      "file": "nous_girl/wave.mp4"
+    },
+    {
+      "hero": "nous_girl",
+      "move": "bassDrop",
+      "frames": 72,
+      "sequence": [
+        {
+          "state": "idleA",
+          "time": 0.2
+        },
+        {
+          "state": "bassDrop_wind",
+          "phase": "wind",
+          "time": 0.14
+        },
+        {
+          "state": "bassDrop_active",
+          "phase": "active",
+          "time": 0.24
+        },
+        {
+          "state": "bassDrop_recover",
+          "phase": "rec",
+          "time": 0.3
+        },
+        {
+          "state": "idleA",
+          "time": 0.3
+        }
+      ],
+      "file": "nous_girl/bassDrop.mp4"
+    },
+    {
+      "hero": "nous_girl",
+      "move": "roll",
+      "frames": 68,
+      "sequence": [
+        {
+          "state": "idleA",
+          "time": 0.2
+        },
+        {
+          "state": "roll_wind",
+          "phase": "wind",
+          "time": 0.16
+        },
+        {
+          "state": "roll_active",
+          "phase": "active",
+          "time": 0.13
+        },
+        {
+          "state": "roll_recover",
+          "phase": "rec",
+          "time": 0.32
+        },
+        {
+          "state": "idleA",
+          "time": 0.3
+        }
+      ],
+      "file": "nous_girl/roll.mp4"
+    },
+    {
+      "hero": "nous_girl",
+      "move": "launcher",
+      "frames": 68,
+      "sequence": [
+        {
+          "state": "idleA",
+          "time": 0.2
+        },
+        {
+          "state": "launcher_wind",
+          "phase": "wind",
+          "time": 0.16
+        },
+        {
+          "state": "launcher_active",
+          "phase": "active",
+          "time": 0.13
+        },
+        {
+          "state": "launcher_recover",
+          "phase": "rec",
+          "time": 0.32
+        },
+        {
+          "state": "idleA",
+          "time": 0.3
+        }
+      ],
+      "file": "nous_girl/launcher.mp4"
+    },
+    {
+      "hero": "nous_girl",
+      "move": "juggle",
+      "frames": 68,
+      "sequence": [
+        {
+          "state": "idleA",
+          "time": 0.2
+        },
+        {
+          "state": "juggle_wind",
+          "phase": "wind",
+          "time": 0.16
+        },
+        {
+          "state": "juggle_active",
+          "phase": "active",
+          "time": 0.13
+        },
+        {
+          "state": "juggle_recover",
+          "phase": "rec",
+          "time": 0.32
+        },
+        {
+          "state": "idleA",
+          "time": 0.3
+        }
+      ],
+      "file": "nous_girl/juggle.mp4"
+    },
+    {
+      "hero": "nous_girl",
+      "move": "dashAttack",
+      "frames": 68,
+      "sequence": [
+        {
+          "state": "idleA",
+          "time": 0.2
+        },
+        {
+          "state": "dashAttack_wind",
+          "phase": "wind",
+          "time": 0.16
+        },
+        {
+          "state": "dashAttack_active",
+          "phase": "active",
+          "time": 0.13
+        },
+        {
+          "state": "dashAttack_recover",
+          "phase": "rec",
+          "time": 0.32
+        },
+        {
+          "state": "idleA",
+          "time": 0.3
+        }
+      ],
+      "file": "nous_girl/dashAttack.mp4"
+    },
+    {
+      "hero": "nous_girl",
+      "move": "grab",
+      "frames": 68,
+      "sequence": [
+        {
+          "state": "idleA",
+          "time": 0.2
+        },
+        {
+          "state": "grab_wind",
+          "phase": "wind",
+          "time": 0.16
+        },
+        {
+          "state": "grab_active",
+          "phase": "active",
+          "time": 0.13
+        },
+        {
+          "state": "grab_recover",
+          "phase": "rec",
+          "time": 0.32
+        },
+        {
+          "state": "idleA",
+          "time": 0.3
+        }
+      ],
+      "file": "nous_girl/grab.mp4"
+    },
+    {
+      "hero": "nous_girl",
+      "move": "grabThrow",
+      "frames": 68,
+      "sequence": [
+        {
+          "state": "idleA",
+          "time": 0.2
+        },
+        {
+          "state": "grabThrow_wind",
+          "phase": "wind",
+          "time": 0.16
+        },
+        {
+          "state": "grabThrow_active",
+          "phase": "active",
+          "time": 0.13
+        },
+        {
+          "state": "grabThrow_recover",
+          "phase": "rec",
+          "time": 0.32
+        },
+        {
+          "state": "idleA",
+          "time": 0.3
+        }
+      ],
+      "file": "nous_girl/grabThrow.mp4"
+    },
+    {
+      "hero": "nous_girl",
+      "move": "backAttack",
+      "frames": 68,
+      "sequence": [
+        {
+          "state": "idleA",
+          "time": 0.2
+        },
+        {
+          "state": "backAttack_wind",
+          "phase": "wind",
+          "time": 0.16
+        },
+        {
+          "state": "backAttack_active",
+          "phase": "active",
+          "time": 0.13
+        },
+        {
+          "state": "backAttack_recover",
+          "phase": "rec",
+          "time": 0.32
+        },
+        {
+          "state": "idleA",
+          "time": 0.3
+        }
+      ],
+      "file": "nous_girl/backAttack.mp4"
+    },
+    {
+      "hero": "nous_girl",
+      "move": "hitReact",
+      "frames": 68,
+      "sequence": [
+        {
+          "state": "idleA",
+          "time": 0.2
+        },
+        {
+          "state": "hitReact_wind",
+          "phase": "wind",
+          "time": 0.16
+        },
+        {
+          "state": "hitReact_active",
+          "phase": "active",
+          "time": 0.13
+        },
+        {
+          "state": "hitReact_recover",
+          "phase": "rec",
+          "time": 0.32
+        },
+        {
+          "state": "idleA",
+          "time": 0.3
+        }
+      ],
+      "file": "nous_girl/hitReact.mp4"
+    },
+    {
+      "hero": "nous_girl",
+      "move": "healthSpecial",
+      "frames": 68,
+      "sequence": [
+        {
+          "state": "idleA",
+          "time": 0.2
+        },
+        {
+          "state": "healthSpecial_wind",
+          "phase": "wind",
+          "time": 0.16
+        },
+        {
+          "state": "healthSpecial_active",
+          "phase": "active",
+          "time": 0.13
+        },
+        {
+          "state": "healthSpecial_recover",
+          "phase": "rec",
+          "time": 0.32
+        },
+        {
+          "state": "idleA",
+          "time": 0.3
+        }
+      ],
+      "file": "nous_girl/healthSpecial.mp4"
+    },
+    {
+      "hero": "nous_girl",
+      "move": "groundPound",
+      "frames": 68,
+      "sequence": [
+        {
+          "state": "idleA",
+          "time": 0.2
+        },
+        {
+          "state": "groundPound_wind",
+          "phase": "wind",
+          "time": 0.16
+        },
+        {
+          "state": "groundPound_active",
+          "phase": "active",
+          "time": 0.13
+        },
+        {
+          "state": "groundPound_recover",
+          "phase": "rec",
+          "time": 0.32
+        },
+        {
+          "state": "idleA",
+          "time": 0.3
+        }
+      ],
+      "file": "nous_girl/groundPound.mp4"
+    },
+    {
+      "hero": "nous_girl",
+      "move": "dash",
+      "frames": 68,
+      "sequence": [
+        {
+          "state": "idleA",
+          "time": 0.2
+        },
+        {
+          "state": "dash_wind",
+          "phase": "wind",
+          "time": 0.16
+        },
+        {
+          "state": "dash_active",
+          "phase": "active",
+          "time": 0.13
+        },
+        {
+          "state": "dash_recover",
+          "phase": "rec",
+          "time": 0.32
+        },
+        {
+          "state": "idleA",
+          "time": 0.3
+        }
+      ],
+      "file": "nous_girl/dash.mp4"
+    },
+    {
+      "hero": "nous_girl",
+      "move": "dodgeRoll",
+      "frames": 68,
+      "sequence": [
+        {
+          "state": "idleA",
+          "time": 0.2
+        },
+        {
+          "state": "dodgeRoll_wind",
+          "phase": "wind",
+          "time": 0.16
+        },
+        {
+          "state": "dodgeRoll_active",
+          "phase": "active",
+          "time": 0.13
+        },
+        {
+          "state": "dodgeRoll_recover",
+          "phase": "rec",
+          "time": 0.32
+        },
+        {
+          "state": "idleA",
+          "time": 0.3
+        }
+      ],
+      "file": "nous_girl/dodgeRoll.mp4"
+    },
+    {
+      "hero": "nous_girl",
+      "move": "idleA",
+      "frames": 72,
+      "sequence": [
+        {
+          "state": "idleA",
+          "time": 1.2
+        }
+      ],
+      "file": "nous_girl/idleA.mp4"
+    },
+    {
+      "hero": "nous_girl",
+      "move": "idleB",
+      "frames": 72,
+      "sequence": [
+        {
+          "state": "idleB",
+          "time": 1.2
+        }
+      ],
+      "file": "nous_girl/idleB.mp4"
+    },
+    {
+      "hero": "nous_girl",
+      "move": "idleC",
+      "frames": 72,
+      "sequence": [
+        {
+          "state": "idleC",
+          "time": 1.2
+        }
+      ],
+      "file": "nous_girl/idleC.mp4"
+    },
+    {
+      "hero": "nous_girl",
+      "move": "walk",
+      "frames": 72,
+      "sequence": [
+        {
+          "state": "walk",
+          "time": 1.2
+        }
+      ],
+      "file": "nous_girl/walk.mp4"
+    },
+    {
+      "hero": "nous_girl",
+      "move": "run",
+      "frames": 72,
+      "sequence": [
+        {
+          "state": "run",
+          "time": 1.2
+        }
+      ],
+      "file": "nous_girl/run.mp4"
+    },
+    {
+      "hero": "nous_girl",
+      "move": "jump",
+      "frames": 72,
+      "sequence": [
+        {
+          "state": "jump",
+          "time": 1.2
+        }
+      ],
+      "file": "nous_girl/jump.mp4"
+    },
+    {
+      "hero": "nous_girl",
+      "move": "turn",
+      "frames": 72,
+      "sequence": [
+        {
+          "state": "turn",
+          "time": 1.2
+        }
+      ],
+      "file": "nous_girl/turn.mp4"
+    },
+    {
+      "hero": "nous_girl",
+      "move": "grabHold",
+      "frames": 72,
+      "sequence": [
+        {
+          "state": "grabHold",
+          "time": 1.2
+        }
+      ],
+      "file": "nous_girl/grabHold.mp4"
+    },
+    {
+      "hero": "nous_girl",
+      "move": "grabbed",
+      "frames": 72,
+      "sequence": [
+        {
+          "state": "grabbed",
+          "time": 1.2
+        }
+      ],
+      "file": "nous_girl/grabbed.mp4"
+    },
+    {
+      "hero": "nous_girl",
+      "move": "stagger",
+      "frames": 72,
+      "sequence": [
+        {
+          "state": "stagger",
+          "time": 1.2
+        }
+      ],
+      "file": "nous_girl/stagger.mp4"
+    },
+    {
+      "hero": "nous_girl",
+      "move": "hurt-down-getup",
+      "frames": 72,
+      "sequence": [
+        {
+          "state": "flinch",
+          "time": 0.2
+        },
+        {
+          "state": "down",
+          "time": 0.4
+        },
+        {
+          "state": "wake",
+          "time": 0.3
+        },
+        {
+          "state": "idleA",
+          "time": 0.3
+        }
+      ],
+      "file": "nous_girl/hurt-down-getup.mp4"
+    },
+    {
+      "hero": "nous_girl",
+      "move": "taunt",
+      "frames": 72,
+      "sequence": [
+        {
+          "state": "taunt",
+          "time": 1.2
+        }
+      ],
+      "file": "nous_girl/taunt.mp4"
+    },
+    {
+      "hero": "nous_girl",
+      "move": "victory",
+      "frames": 72,
+      "sequence": [
+        {
+          "state": "victory",
+          "time": 1.2
+        }
+      ],
+      "file": "nous_girl/victory.mp4"
+    },
+    {
+      "hero": "turbofit",
+      "move": "axe",
+      "frames": 68,
+      "sequence": [
+        {
+          "state": "idleA",
+          "time": 0.2
+        },
+        {
+          "state": "axe_wind",
+          "phase": "wind",
+          "time": 0.16
+        },
+        {
+          "state": "axe_active",
+          "phase": "active",
+          "time": 0.13
+        },
+        {
+          "state": "axe_recover",
+          "phase": "rec",
+          "time": 0.32
+        },
+        {
+          "state": "idleA",
+          "time": 0.3
+        }
+      ],
+      "file": "turbofit/axe.mp4"
+    },
+    {
+      "hero": "turbofit",
+      "move": "axeHeavy",
+      "frames": 69,
+      "sequence": [
+        {
+          "state": "idleA",
+          "time": 0.2
+        },
+        {
+          "state": "axeHeavy_wind",
+          "phase": "wind",
+          "time": 0.16
+        },
+        {
+          "state": "axeHeavy_active",
+          "phase": "active",
+          "time": 0.13
+        },
+        {
+          "state": "axeHeavy_recover",
+          "phase": "rec",
+          "time": 0.34
+        },
+        {
+          "state": "idleA",
+          "time": 0.3
+        }
+      ],
+      "file": "turbofit/axeHeavy.mp4"
+    },
+    {
+      "hero": "turbofit",
+      "move": "chord",
+      "frames": 75,
+      "sequence": [
+        {
+          "state": "idleA",
+          "time": 0.2
+        },
+        {
+          "state": "chord_wind",
+          "phase": "wind",
+          "time": 0.15
+        },
+        {
+          "state": "chord_active",
+          "phase": "active",
+          "time": 0.24
+        },
+        {
+          "state": "chord_recover",
+          "phase": "rec",
+          "time": 0.34
+        },
+        {
+          "state": "idleA",
+          "time": 0.3
+        }
+      ],
+      "file": "turbofit/chord.mp4"
+    },
+    {
+      "hero": "turbofit",
+      "move": "headbang",
+      "frames": 68,
+      "sequence": [
+        {
+          "state": "idleA",
+          "time": 0.2
+        },
+        {
+          "state": "headbang_wind",
+          "phase": "wind",
+          "time": 0.16
+        },
+        {
+          "state": "headbang_active",
+          "phase": "active",
+          "time": 0.13
+        },
+        {
+          "state": "headbang_recover",
+          "phase": "rec",
+          "time": 0.32
+        },
+        {
+          "state": "idleA",
+          "time": 0.3
+        }
+      ],
+      "file": "turbofit/headbang.mp4"
+    },
+    {
+      "hero": "turbofit",
+      "move": "launcher",
+      "frames": 68,
+      "sequence": [
+        {
+          "state": "idleA",
+          "time": 0.2
+        },
+        {
+          "state": "launcher_wind",
+          "phase": "wind",
+          "time": 0.16
+        },
+        {
+          "state": "launcher_active",
+          "phase": "active",
+          "time": 0.13
+        },
+        {
+          "state": "launcher_recover",
+          "phase": "rec",
+          "time": 0.32
+        },
+        {
+          "state": "idleA",
+          "time": 0.3
+        }
+      ],
+      "file": "turbofit/launcher.mp4"
+    },
+    {
+      "hero": "turbofit",
+      "move": "juggle",
+      "frames": 68,
+      "sequence": [
+        {
+          "state": "idleA",
+          "time": 0.2
+        },
+        {
+          "state": "juggle_wind",
+          "phase": "wind",
+          "time": 0.16
+        },
+        {
+          "state": "juggle_active",
+          "phase": "active",
+          "time": 0.13
+        },
+        {
+          "state": "juggle_recover",
+          "phase": "rec",
+          "time": 0.32
+        },
+        {
+          "state": "idleA",
+          "time": 0.3
+        }
+      ],
+      "file": "turbofit/juggle.mp4"
+    },
+    {
+      "hero": "turbofit",
+      "move": "dashAttack",
+      "frames": 68,
+      "sequence": [
+        {
+          "state": "idleA",
+          "time": 0.2
+        },
+        {
+          "state": "dashAttack_wind",
+          "phase": "wind",
+          "time": 0.16
+        },
+        {
+          "state": "dashAttack_active",
+          "phase": "active",
+          "time": 0.13
+        },
+        {
+          "state": "dashAttack_recover",
+          "phase": "rec",
+          "time": 0.32
+        },
+        {
+          "state": "idleA",
+          "time": 0.3
+        }
+      ],
+      "file": "turbofit/dashAttack.mp4"
+    },
+    {
+      "hero": "turbofit",
+      "move": "grab",
+      "frames": 68,
+      "sequence": [
+        {
+          "state": "idleA",
+          "time": 0.2
+        },
+        {
+          "state": "grab_wind",
+          "phase": "wind",
+          "time": 0.16
+        },
+        {
+          "state": "grab_active",
+          "phase": "active",
+          "time": 0.13
+        },
+        {
+          "state": "grab_recover",
+          "phase": "rec",
+          "time": 0.32
+        },
+        {
+          "state": "idleA",
+          "time": 0.3
+        }
+      ],
+      "file": "turbofit/grab.mp4"
+    },
+    {
+      "hero": "turbofit",
+      "move": "grabThrow",
+      "frames": 68,
+      "sequence": [
+        {
+          "state": "idleA",
+          "time": 0.2
+        },
+        {
+          "state": "grabThrow_wind",
+          "phase": "wind",
+          "time": 0.16
+        },
+        {
+          "state": "grabThrow_active",
+          "phase": "active",
+          "time": 0.13
+        },
+        {
+          "state": "grabThrow_recover",
+          "phase": "rec",
+          "time": 0.32
+        },
+        {
+          "state": "idleA",
+          "time": 0.3
+        }
+      ],
+      "file": "turbofit/grabThrow.mp4"
+    },
+    {
+      "hero": "turbofit",
+      "move": "backAttack",
+      "frames": 68,
+      "sequence": [
+        {
+          "state": "idleA",
+          "time": 0.2
+        },
+        {
+          "state": "backAttack_wind",
+          "phase": "wind",
+          "time": 0.16
+        },
+        {
+          "state": "backAttack_active",
+          "phase": "active",
+          "time": 0.13
+        },
+        {
+          "state": "backAttack_recover",
+          "phase": "rec",
+          "time": 0.32
+        },
+        {
+          "state": "idleA",
+          "time": 0.3
+        }
+      ],
+      "file": "turbofit/backAttack.mp4"
+    },
+    {
+      "hero": "turbofit",
+      "move": "hitReact",
+      "frames": 68,
+      "sequence": [
+        {
+          "state": "idleA",
+          "time": 0.2
+        },
+        {
+          "state": "hitReact_wind",
+          "phase": "wind",
+          "time": 0.16
+        },
+        {
+          "state": "hitReact_active",
+          "phase": "active",
+          "time": 0.13
+        },
+        {
+          "state": "hitReact_recover",
+          "phase": "rec",
+          "time": 0.32
+        },
+        {
+          "state": "idleA",
+          "time": 0.3
+        }
+      ],
+      "file": "turbofit/hitReact.mp4"
+    },
+    {
+      "hero": "turbofit",
+      "move": "healthSpecial",
+      "frames": 68,
+      "sequence": [
+        {
+          "state": "idleA",
+          "time": 0.2
+        },
+        {
+          "state": "healthSpecial_wind",
+          "phase": "wind",
+          "time": 0.16
+        },
+        {
+          "state": "healthSpecial_active",
+          "phase": "active",
+          "time": 0.13
+        },
+        {
+          "state": "healthSpecial_recover",
+          "phase": "rec",
+          "time": 0.32
+        },
+        {
+          "state": "idleA",
+          "time": 0.3
+        }
+      ],
+      "file": "turbofit/healthSpecial.mp4"
+    },
+    {
+      "hero": "turbofit",
+      "move": "groundPound",
+      "frames": 68,
+      "sequence": [
+        {
+          "state": "idleA",
+          "time": 0.2
+        },
+        {
+          "state": "groundPound_wind",
+          "phase": "wind",
+          "time": 0.16
+        },
+        {
+          "state": "groundPound_active",
+          "phase": "active",
+          "time": 0.13
+        },
+        {
+          "state": "groundPound_recover",
+          "phase": "rec",
+          "time": 0.32
+        },
+        {
+          "state": "idleA",
+          "time": 0.3
+        }
+      ],
+      "file": "turbofit/groundPound.mp4"
+    },
+    {
+      "hero": "turbofit",
+      "move": "dash",
+      "frames": 68,
+      "sequence": [
+        {
+          "state": "idleA",
+          "time": 0.2
+        },
+        {
+          "state": "dash_wind",
+          "phase": "wind",
+          "time": 0.16
+        },
+        {
+          "state": "dash_active",
+          "phase": "active",
+          "time": 0.13
+        },
+        {
+          "state": "dash_recover",
+          "phase": "rec",
+          "time": 0.32
+        },
+        {
+          "state": "idleA",
+          "time": 0.3
+        }
+      ],
+      "file": "turbofit/dash.mp4"
+    },
+    {
+      "hero": "turbofit",
+      "move": "dodgeRoll",
+      "frames": 68,
+      "sequence": [
+        {
+          "state": "idleA",
+          "time": 0.2
+        },
+        {
+          "state": "dodgeRoll_wind",
+          "phase": "wind",
+          "time": 0.16
+        },
+        {
+          "state": "dodgeRoll_active",
+          "phase": "active",
+          "time": 0.13
+        },
+        {
+          "state": "dodgeRoll_recover",
+          "phase": "rec",
+          "time": 0.32
+        },
+        {
+          "state": "idleA",
+          "time": 0.3
+        }
+      ],
+      "file": "turbofit/dodgeRoll.mp4"
+    },
+    {
+      "hero": "turbofit",
+      "move": "idleA",
+      "frames": 72,
+      "sequence": [
+        {
+          "state": "idleA",
+          "time": 1.2
+        }
+      ],
+      "file": "turbofit/idleA.mp4"
+    },
+    {
+      "hero": "turbofit",
+      "move": "idleB",
+      "frames": 72,
+      "sequence": [
+        {
+          "state": "idleB",
+          "time": 1.2
+        }
+      ],
+      "file": "turbofit/idleB.mp4"
+    },
+    {
+      "hero": "turbofit",
+      "move": "idleC",
+      "frames": 72,
+      "sequence": [
+        {
+          "state": "idleC",
+          "time": 1.2
+        }
+      ],
+      "file": "turbofit/idleC.mp4"
+    },
+    {
+      "hero": "turbofit",
+      "move": "walk",
+      "frames": 72,
+      "sequence": [
+        {
+          "state": "walk",
+          "time": 1.2
+        }
+      ],
+      "file": "turbofit/walk.mp4"
+    },
+    {
+      "hero": "turbofit",
+      "move": "run",
+      "frames": 72,
+      "sequence": [
+        {
+          "state": "run",
+          "time": 1.2
+        }
+      ],
+      "file": "turbofit/run.mp4"
+    },
+    {
+      "hero": "turbofit",
+      "move": "jump",
+      "frames": 72,
+      "sequence": [
+        {
+          "state": "jump",
+          "time": 1.2
+        }
+      ],
+      "file": "turbofit/jump.mp4"
+    },
+    {
+      "hero": "turbofit",
+      "move": "turn",
+      "frames": 72,
+      "sequence": [
+        {
+          "state": "turn",
+          "time": 1.2
+        }
+      ],
+      "file": "turbofit/turn.mp4"
+    },
+    {
+      "hero": "turbofit",
+      "move": "grabHold",
+      "frames": 72,
+      "sequence": [
+        {
+          "state": "grabHold",
+          "time": 1.2
+        }
+      ],
+      "file": "turbofit/grabHold.mp4"
+    },
+    {
+      "hero": "turbofit",
+      "move": "grabbed",
+      "frames": 72,
+      "sequence": [
+        {
+          "state": "grabbed",
+          "time": 1.2
+        }
+      ],
+      "file": "turbofit/grabbed.mp4"
+    },
+    {
+      "hero": "turbofit",
+      "move": "stagger",
+      "frames": 72,
+      "sequence": [
+        {
+          "state": "stagger",
+          "time": 1.2
+        }
+      ],
+      "file": "turbofit/stagger.mp4"
+    },
+    {
+      "hero": "turbofit",
+      "move": "hurt-down-getup",
+      "frames": 72,
+      "sequence": [
+        {
+          "state": "flinch",
+          "time": 0.2
+        },
+        {
+          "state": "down",
+          "time": 0.4
+        },
+        {
+          "state": "wake",
+          "time": 0.3
+        },
+        {
+          "state": "idleA",
+          "time": 0.3
+        }
+      ],
+      "file": "turbofit/hurt-down-getup.mp4"
+    },
+    {
+      "hero": "turbofit",
+      "move": "taunt",
+      "frames": 72,
+      "sequence": [
+        {
+          "state": "taunt",
+          "time": 1.2
+        }
+      ],
+      "file": "turbofit/taunt.mp4"
+    },
+    {
+      "hero": "turbofit",
+      "move": "victory",
+      "frames": 72,
+      "sequence": [
+        {
+          "state": "victory",
+          "time": 1.2
+        }
+      ],
+      "file": "turbofit/victory.mp4"
+    },
+    {
+      "hero": "turbofit",
+      "move": "axeB",
+      "frames": 68,
+      "sequence": [
+        {
+          "state": "idleA",
+          "time": 0.2
+        },
+        {
+          "state": "axeB_wind",
+          "phase": "wind",
+          "time": 0.16
+        },
+        {
+          "state": "axeB_active",
+          "phase": "active",
+          "time": 0.13
+        },
+        {
+          "state": "axeB_recover",
+          "phase": "rec",
+          "time": 0.32
+        },
+        {
+          "state": "idleA",
+          "time": 0.3
+        }
+      ],
+      "file": "turbofit/axeB.mp4"
+    },
+    {
+      "hero": "teknium",
+      "move": "stationary-recovery",
+      "frames": 234,
+      "sequence": [
+        {
+          "state": "flinch",
+          "time": 0.2
+        },
+        {
+          "state": "down",
+          "time": 0.4
+        },
+        {
+          "state": "wake",
+          "time": 0.3
+        },
+        {
+          "state": "idleA",
+          "time": 3
+        }
+      ],
+      "file": "teknium/stationary-recovery.mp4"
+    },
+    {
+      "hero": "nous_girl",
+      "move": "stationary-recovery",
+      "frames": 234,
+      "sequence": [
+        {
+          "state": "flinch",
+          "time": 0.2
+        },
+        {
+          "state": "down",
+          "time": 0.4
+        },
+        {
+          "state": "wake",
+          "time": 0.3
+        },
+        {
+          "state": "idleA",
+          "time": 3
+        }
+      ],
+      "file": "nous_girl/stationary-recovery.mp4"
+    },
+    {
+      "hero": "turbofit",
+      "move": "stationary-recovery",
+      "frames": 234,
+      "sequence": [
+        {
+          "state": "flinch",
+          "time": 0.2
+        },
+        {
+          "state": "down",
+          "time": 0.4
+        },
+        {
+          "state": "wake",
+          "time": 0.3
+        },
+        {
+          "state": "idleA",
+          "time": 3
+        }
+      ],
+      "file": "turbofit/stationary-recovery.mp4"
+    }
+  ]
+}

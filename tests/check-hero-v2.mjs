@@ -17,8 +17,11 @@ const deg = m => Math.atan2(m[1], m[0]) * 180 / Math.PI;
 const wrap = a => ((a + 180) % 360 + 360) % 360 - 180;
 const states = ['idle', 'idleA', 'idleB', 'idleC', 'walk1', 'walk2', 'walk3', 'walk4', 'run1', 'run2', 'run3', 'run4',
   'turn', 'jump', 'taunt', 'victory', 'flinch', 'stagger', 'knockdownAir', 'down', 'downB', 'wake', 'grabHold', 'grabbed'];
-const reachable = h => [...new Set([...states, ...[...Object.keys(HERO_MOVES[h] || {}), ...MECHANICS]
-  .flatMap(m => ['wind', 'active', 'recover', 'follow'].map(p => `${m}_${p}`))].map(p => `${h}_${p}`))].filter(p => POSES[p]);
+// Include authored aliases too: the old move-list-only inventory missed the
+// playable second TurboFit chain hit (axeB) and presentation-specific actions.
+const reachable = h => [...new Set([...Object.keys(POSES).filter(p => p.startsWith(h + '_')),
+  ...[...states, ...[...Object.keys(HERO_MOVES[h] || {}), ...MECHANICS]
+    .flatMap(m => ['wind', 'active', 'recover', 'follow'].map(p => `${m}_${p}`))].map(p => `${h}_${p}`)])].filter(p => POSES[p]);
 const stats = {};
 
 for (const h of heroes) {
@@ -31,7 +34,7 @@ for (const h of heroes) {
     for (const side of s.contacts) {
       const n = side === 'front' ? 'foot' : 'foot_b', f = T[n];
       const heel = apply(s.M[n], f.sole[0] - f.px, f.sole[1] - f.py), toe = apply(s.M[n], f.sole[2] - f.px, f.sole[3] - f.py);
-      if (s.ground[side]?.toeOff) { st.toeOff++; continue; }
+      assert.ok(!s.ground[side]?.toeOff, `${label}: a grounded support must not fall back to its toe`);
       const tilt = Math.abs(wrap(Math.atan2(toe[1] - heel[1], toe[0] - heel[0]) * 180 / Math.PI));
       assert.ok(tilt <= 5, `${label}: planted ${n} tilted ${tilt.toFixed(1)} deg`);
       st.maxTilt = Math.max(st.maxTilt, tilt); st.planted++;

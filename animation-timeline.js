@@ -17,6 +17,8 @@ function mix(a, b, t) {
   // Joint rotations are authored on one continuous arc. Do not wrap hinge
   // angles through 360 degrees (that turns a bent elbow inside out).
   for (const k of KEYS) out[k] = (a[k] || 0) + ((b[k] || 0) - (a[k] || 0)) * t;
+  // Optional v2 articulation channels. Legacy drawings do not acquire new keys.
+  for (const k of ['wrist', 'wrist_b', 'foot', 'foot_b']) if (k in a || k in b) out[k] = (a[k] || 0) + ((b[k] || 0) - (a[k] || 0)) * t;
   return out;
 }
 function target(name, info, t) {
@@ -59,10 +61,14 @@ export function createAnim() {
     dt = Math.max(0, Math.min(0.1, dt));
     const phase = info.phase === 'recover' ? 'rec' : info.phase;
     const goal = target(name, info, t), style = motionFor(name);
+    const polished = /^(teknium|nous_girl|turbofit)_/.test(name);
     let tr = tracks.get(key);
     // Hit stop freezes the actual drawing, including secondary channels and
     // breathing; the game clock may continue while the combat clock is paused.
-    if (tr && dt === 0) return tr.cur;
+    // A contact can enter hit-stop before the render loop observes the phase
+    // change. Commit the designated contact drawing once, then freeze it.
+    const newContact = polished && phase === 'active' && tr && (tr.phase !== phase || tr.name !== name);
+    if (tr && dt === 0 && !newContact) return tr.cur;
     if (!tr) {
       tr = { name, phase, from: { ...goal }, cur: { ...goal }, elapsed: 1, duration: BLEND, history: [] };
       tracks.set(key, tr);
@@ -75,7 +81,7 @@ export function createAnim() {
       tr.history = [];
       tr.duration = style.settle;
       if (phase === 'wind') tr.duration = Math.max(1 / 60, (info.dur || 0.1) * 0.8);
-      else if (phase === 'active') tr.duration = Math.max(1 / 60, Math.min(info.heavy ? 0.075 : 0.05, (info.dur || 0.08) * 0.6));
+      else if (phase === 'active') tr.duration = polished ? 1 / 60 : Math.max(1 / 60, Math.min(info.heavy ? 0.075 : 0.05, (info.dur || 0.08) * 0.6));
       else if (/(^|_)(flinch|grabbed|knockdownAir)$/.test(name)) tr.duration = 0.05;
       else if (/(^|_)stagger$/.test(name)) tr.duration = 0.09;
       else if (/(^|_)wake$/.test(name)) tr.duration = 0.22;
@@ -95,7 +101,7 @@ export function createAnim() {
       else if (tr.elapsed < hold + followTime) pose = mix(tr.from, follow, easeOut(clamp01((tr.elapsed - hold) / followTime)));
       else pose = mix(follow, goal, easeInOut(clamp01((tr.elapsed - hold - followTime) / (duration - hold - followTime))));
     } else {
-      const u = clamp01(tr.elapsed / tr.duration);
+      const u = polished && phase === 'active' ? 1 : clamp01(tr.elapsed / tr.duration);
       pose = mix(tr.from, goal, phase === 'wind' || phase === 'active' ? easeOut(u) : easeInOut(u));
     }
     // Overlap stays at the neck and wrist, never by translating a detached part.
@@ -103,6 +109,7 @@ export function createAnim() {
     const holdingImpact = follow && tr.elapsed <= Math.min(info.heavy ? 2 / 60 : 1 / 60, (info.dur || 0.2) * 0.2);
     if (!holdingImpact && dt > 0) {
       for (const [channel, lag] of [['head', style.headLag], ['weapon', style.weaponLag]]) {
+        if (polished && phase === 'active' && channel === 'weapon') continue;
         const amount = 1 - Math.exp(-dt / lag);
         pose[channel] = tr.cur[channel] + (pose[channel] - tr.cur[channel]) * amount;
       }
@@ -113,6 +120,8 @@ export function createAnim() {
     tr.cur = pose;
     // Metadata is intentionally not interpolated as numeric channels.
     pose.__phase = phase; pose.__pt = tr.elapsed; pose.__pose = name;
+    if (polished && goal.__v) pose.__v = { ...goal.__v };
+    if (polished && Number.isFinite(info.reach)) pose.__reach = info.reach;
     if (newGait && info.walkT != null) pose.__gait = ((info.walkT * (info.walkRate || 8)) % 4 + 4) % 4;
     if (smear) pose.__trail = tr.history;
     return pose;

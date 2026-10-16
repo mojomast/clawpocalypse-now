@@ -11,6 +11,10 @@ import { addRunPoses, addDownPoses } from './hero-motion.js';
 import { constrainHeroAngles, footContacts, limbVectors, plantFeet, solveTwoBone } from './rig-geometry.js';
 import { createSecondary, restWorld, restRope } from './secondary.js';
 import { HERO_SUPPORT } from './hero-support.js';
+import { installNousPolish } from './hero-polish-nous.js';
+import { installTekniumPolish } from './hero-polish-teknium.js';
+import { installTurboFitPolish } from './hero-polish-turbofit.js';
+import { installPolishedActions } from './hero-polish-actions.js';
 
 // `ax/ay` are the attach point in the parent's pixels; `px/py` the local pivot.
 // `_b` (back) limbs reuse the front image with a darker filter and their own
@@ -446,7 +450,7 @@ const FOOT_REST = 10;           // relaxed foot (relative to the shin) when lyin
 const FOOT_RANGE = [-35, 55];   // dorsiflexion .. plantarflexion relative to the shin
 const BODY_ROLES = new Set(['body', 'torso', 'hand', 'foot']);
 // Frames that are not standing on the ground keep the idle offset instead of the plant.
-export const AIR_POSE = /(^|_)(jump|jumpKick(_\w+)?|knockdownAir|down|downB|grabbed|juggle_\w+|vaultKick_\w+|dodgeRoll(_\w+)?|roll_\w+|bassDrop_\w+|slide_(active|follow)|launcher_active|launcher_recover)$/;
+export const AIR_POSE = /(^|_)(jump|jumpKick(_\w+)?|knockdownAir|down|downB|grabbed|juggle_\w+|vaultKick_\w+|dodgeRoll(_\w+)?|roll_\w+|bassDrop_\w+|slide_(active|follow)|dashTravel_(active|follow)|launcher_active|launcher_recover)$/;
 const mul = (a, b) => [a[0] * b[0] + a[2] * b[1], a[1] * b[0] + a[3] * b[1], a[0] * b[2] + a[2] * b[3], a[1] * b[2] + a[3] * b[3], a[0] * b[4] + a[2] * b[5] + a[4], a[1] * b[4] + a[3] * b[5] + a[5]];
 const rot = deg => { const r = (deg || 0) * Math.PI / 180, c = Math.cos(r), s = Math.sin(r); return [c, s, -s, c, 0, 0]; };
 const tr = (x, y) => [1, 0, 0, 1, x, y];
@@ -639,13 +643,37 @@ function twoHandSolve(kind, A, M) {
   return best;
 }
 function lashPoints(table, M, start, n, k, A) {
-  const f = M[table.hand.parent], hand = [M.hand[4], M.hand[5]], elbow = [f[4], f[5]];
-  let dx = hand[0] - elbow[0], dy = hand[1] - elbow[1]; const l = Math.hypot(dx, dy) || 1; dx /= l; dy /= l;
-  const nx = -dy, ny = dx, L = 118 * k, ph = (A.__pt || 0) * 26, wv = 9 * (1 - 0.5 * k), pts = [];
-  for (let i = 0; i <= n; i++) {
-    const s = i / n;
-    pts.push([start[0] + dx * L * s + nx * Math.sin(ph + s * 5) * wv * s, start[1] + dy * L * s + ny * Math.sin(ph + s * 5) * wv * s + 10 * s * s * (1 - k)]);
+  const rope = Object.values(table).find(p => p.role === 'rope');
+  const reach = Number.isFinite(A.__reach) ? A.__reach : 74.4 / 0.7;
+  const end = table.cable_end || table.weapon;
+  const plugPad = Math.hypot(Math.max(end.tip[0], end.w - end.tip[0]), Math.max(end.tip[1], end.h - end.tip[1])) + 0.3;
+  const cordPad = Math.hypot(0.6, rope.h / 2) + 0.3;
+  const advance = Math.min(62, reach - plugPad - start[0]);
+  // Put slack in a returning loop, then lead the free jack toward contact. Only
+  // the endpoint needs the full plug margin: applying that margin to every link
+  // collapses short-range lashes behind the gripping hand.
+  const sample = size => Array.from({ length: 81 }, (_, i) => {
+    const t = i / 80, a = t * Math.PI * 2;
+    return [Math.min(reach - cordPad, start[0] + advance * t + 22 * size * Math.sin(a)),
+      start[1] + 16 * size * (1 - Math.cos(a))];
+  });
+  const length = pts => pts.slice(1).reduce((sum, p, i) => sum + Math.hypot(p[0] - pts[i][0], p[1] - pts[i][1]), 0);
+  const budget = (rope.lash || rope.segs * rope.len) * 0.985;
+  let size = 1, curve = sample(size);
+  for (let i = 0; i < 16 && length(curve) > budget; i++) curve = sample(size *= 0.95);
+  const total = length(curve), pts = [start.slice()];
+  let j = 1, walked = 0;
+  for (let i = 1; i < n; i++) {
+    const distance = total * i / n;
+    let segment = Math.hypot(curve[j][0] - curve[j - 1][0], curve[j][1] - curve[j - 1][1]);
+    while (j < curve.length - 1 && walked + segment < distance) {
+      walked += segment; j++;
+      segment = Math.hypot(curve[j][0] - curve[j - 1][0], curve[j][1] - curve[j - 1][1]);
+    }
+    const t = segment ? (distance - walked) / segment : 0;
+    pts.push(curve[j - 1].map((v, axis) => v + (curve[j][axis] - v) * t));
   }
+  pts.push(curve.at(-1));
   return pts;
 }
 // Secondary inputs (spring parents/attach points, rope start) for the current body.
@@ -659,8 +687,15 @@ export function secondaryInputs(kind, sol) {
       for (const key of ['k', 'c', 'gain']) if (springs[name].spec[key] == null) delete springs[name].spec[key];
     } else if (p.role === 'rope') {
       const q = T[p.parent];
-      ropes[name] = { start: apply(sol.M[p.parent], p.ax - q.px, p.ay - q.py), n: p.segs, len: p.len, lashLen: p.lash || 118, floorY: FOOT_Y,
-        lash: sol.lash > 0 ? sol.lashPts[name] : null, k: sol.lash };
+      // The plug's legacy `tip` landmark is the blue strain-relief/cable end of
+      // this horizontal sprite (x=17); the metal jack is at the opposite end.
+      // Reserve a plug-length margin so its outward tangent cannot cross floor.
+      ropes[name] = { start: apply(sol.M[p.parent], p.ax - q.px, p.ay - q.py), n: p.segs, len: p.len, lashLen: p.lash || p.segs * p.len, floorY: FOOT_Y - Math.hypot(q.w, q.h),
+        lash: sol.lash > 0 ? sol.lashPts[name] : null, k: sol.lash,
+        contact: sol.angles.__phase === 'active' && sol.lash > 0,
+        forwardMax: Number.isFinite(sol.angles.__reach) ? sol.angles.__reach : sol.lash > 0 && !['rec', 'recover'].includes(sol.angles.__phase) ? 74.4 / 0.7 : null,
+        padding: Math.hypot(Math.max(T.cable_end.tip[0], T.cable_end.w - T.cable_end.tip[0]), Math.max(T.cable_end.tip[1], T.cable_end.h - T.cable_end.tip[1])) + 0.3,
+        segmentPadding: Math.hypot(0.6, p.h / 2) + 0.3 };
     }
   }
   return { springs, ropes };
@@ -677,11 +712,19 @@ export function applySecondary(kind, sol, state = {}) {
   for (const [name, inp] of Object.entries(inputs.ropes)) {
     let pts = state.ropes?.[name];
     if (!pts) {
-      pts = restRope(inp.start, inp.n, inp.len, FOOT_Y);
+      pts = restRope(inp.start, inp.n, inp.len, inp.floorY);
       if (sol.lash > 0) pts = pts.map((p, i) => [p[0] + (sol.lashPts[name][i][0] - p[0]) * sol.lash, p[1] + (sol.lashPts[name][i][1] - p[1]) * sol.lash]);
+      const len = inp.len + (inp.lashLen / inp.n - inp.len) * sol.lash;
+      for (let i = 1; i < pts.length; i++) {
+        const a = pts[i - 1], b = pts[i];
+        if (inp.forwardMax != null) b[0] = Math.min(b[0], inp.forwardMax - (i === pts.length - 1 ? inp.padding : inp.segmentPadding));
+        b[1] = Math.min(b[1], Math.max(inp.start[1], inp.floorY - 1));
+        const dx = b[0] - a[0], dy = b[1] - a[1], d = Math.hypot(dx, dy);
+        if (d > len) { b[0] = a[0] + dx * len / d; b[1] = a[1] + dy * len / d; }
+      }
     }
-    sol.ropes[name] = pts.map(p => [p[0], Math.min(p[1], FOOT_Y - 1)]);
-    sol.M[name] = [1, 0, 0, 1, inp.start[0], inp.start[1]]; sol.S[name] = [1, 1];
+    sol.ropes[name] = pts.map(p => p.slice());
+    sol.M[name] = [1, 0, 0, 1, pts[0][0], pts[0][1]]; sol.S[name] = [1, 1];
   }
   // the rope's free-end plug: cable exit on the last rope point, tip pointing outwards
   for (const [name, p] of Object.entries(T)) {
@@ -696,6 +739,9 @@ export function applySecondary(kind, sol, state = {}) {
 function solveV2(kind, input, opts) {
   const table = TABLES[kind], poseName = opts.poseName || '';
   const contacts = opts.contacts || footContacts(poseName, input?.__gait);
+  const polish = kind === 'teknium' || kind === 'turbofit';
+  const gait = polish && /_(walk|run)[1-4]$/.test(poseName);
+  const phase = ((Number.isFinite(input?.__gait) ? input.__gait : Number(poseName.at(-1)) - 1) % 4 + 4) % 4;
   const airborne = !contacts.length || AIR_POSE.test(poseName);
   const A = constrainHeroAngles(input || POSES.idle, { airborne });
   const all = Object.keys(table), ground = soleGround(kind);
@@ -709,13 +755,47 @@ function solveV2(kind, input, opts) {
       legs[side] = { root: [M[thigh][4], M[thigh][5]], vectors: limbVectors(table[thigh], table[shin], S[thigh], S[shin], ankle),
         contactVectors: [[ankle[0] - table[shin].px, ankle[1] - table[shin].py]], parentAngle: deg(M.torso), upper: A[thigh] || 0, joint: A[shin] || 0 };
     }
-    plant = plantFeet({ ...legs, groundY: ground, contacts, targets: opts.footTargets || {}, rootDy: opts.rootDy ?? null, maxHipTravel: opts.rootDy == null ? 30 : 0 });
+    if (gait) {
+      // A locked stance travels equally ahead of and behind the hips. The old
+      // support-endpoint height jumped when the other leg became support, then
+      // rescued its over-long trailing step by standing on an inverted shoe.
+      // Both legs now share one continuous pelvis path; only the stance X is
+      // world-locked. Bones are still rigid, and the swing has an explicit arc.
+      const running = /_run/.test(poseName);
+      const span = input?.__strideSpan || (running ? 64 : 46) / 0.7;
+      const reach = Math.min(...Object.values(legs).map(l => Math.hypot(...l.vectors.upper) + Math.hypot(...l.vectors.lower)));
+      const midY = (legs.front.root[1] + legs.back.root[1]) / 2;
+      const rise = Math.sqrt(Math.max(1, (reach - 1) ** 2 - (span / 2 + 4) ** 2));
+      let root = opts.rootDy ?? (ground - midY - rise + 1.5 * Math.sin(phase * Math.PI) ** 2);
+      // Keep a requested transition height feasible rather than translating the
+      // finished rig away from its contacts or stretching a knee.
+      for (const side of contacts) {
+        const leg = legs[side], local = side === 'front' ? phase : (phase + 2) % 4;
+        const x = opts.footTargets?.[side]?.[0] ?? leg.root[0] + span * (0.5 - local / 2);
+        const len = Math.hypot(...leg.vectors.upper) + Math.hypot(...leg.vectors.lower) - 0.5;
+        root = Math.max(root, ground - leg.root[1] - Math.sqrt(Math.max(1, len ** 2 - (x - leg.root[0]) ** 2)));
+      }
+      plant = { dy: root, contacts, residual: 0, targetX: {}, swingAdjusted: [], polishedGait: true };
+      for (const [side, leg] of Object.entries(legs)) {
+        const local = side === 'front' ? phase : (phase + 2) % 4, support = contacts.includes(side);
+        const t = Math.max(0, Math.min(1, (local - 2) / 2)), ease = t * t * (3 - 2 * t);
+        const target = support ? opts.footTargets?.[side] || [leg.root[0] + span * (0.5 - local / 2), ground]
+          : [leg.root[0] + span * (ease - 0.5), ground - (running ? 18 : 10) * Math.sin(Math.PI * t) ** 2];
+        const r = solveTwoBone({ root: [leg.root[0], leg.root[1] + root], target, vectors: leg.vectors,
+          parentAngle: leg.parentAngle, preferred: [leg.upper, leg.joint] });
+        plant[side] = { ...r, target, contactIndex: 0, soleY: r.point[1], toeOff: false, contactMode: support ? 'flat' : 'swing' };
+        plant.targetX[side] = target[0];
+        if (support) plant.residual = Math.max(plant.residual, r.error);
+      }
+    } else plant = plantFeet({ ...legs, groundY: ground, contacts, targets: opts.footTargets || {}, rootDy: opts.rootDy ?? null, maxHipTravel: opts.rootDy == null ? 30 : 0 });
     // Toe-off: a stance foot that can no longer reach its locked ankle point (the leg trails far
     // behind at the end of a stride) pivots on its toe instead: heel up, toe where the flat
     // foot's toe was, so the contact still does not skate.
     for (const [side, suffix] of [['front', ''], ['back', '_b']]) {
       const r = plant[side];
-      if (!r || !contacts.includes(side) || r.error <= 0.5) continue;
+      // Polished heroes never disguise an unreachable reaction/stance anchor
+      // as an unrequested toe roll either; foot-lock can release a recoil step.
+      if (polish || !r || !contacts.includes(side) || r.error <= 0.5) continue;
       const shin = table['shin' + suffix], foot = table['foot' + suffix], ankle = SOLES[kind][0];
       const toe = [foot.sole[2] - foot.px, foot.sole[3] - foot.py];
       const toeVec = [ankle[0] - shin.px + toe[0], ankle[1] - shin.py + toe[1]];
@@ -740,7 +820,12 @@ function solveV2(kind, input, opts) {
       if (!hull) continue;
       for (const [u, v] of hull) bottom = Math.max(bottom, apply(M[n], u - table[n].px, v - table[n].py)[1]);
     }
-    if (Number.isFinite(bottom)) dy = opts.rootDy ?? (FOOT_Y - bottom);
+    if (Number.isFinite(bottom)) {
+      const contactDy = FOOT_Y - bottom;
+      // Root settling may delay a rise, but cannot bury the rotating fallen
+      // body's real alpha silhouette beneath the floor.
+      dy = polish ? Math.min(opts.rootDy ?? contactDy, contactDy) : opts.rootDy ?? contactDy;
+    }
   } else if (opts.animated) {
     if (idleLift[kind] == null) idleLift[kind] = ground - soleY(kind, chainSolve(kind, POSES[`${kind}_idleA`] || POSES.idle, ['shin', 'shin_b']));
     dy += idleLift[kind];
@@ -752,7 +837,9 @@ function solveV2(kind, input, opts) {
     const foot = 'foot' + suffix, shin = 'shin' + suffix, part = table[foot], shinDeg = deg(M[shin]);
     const toeOff = !!(plant && plant[side]?.toeOff && contacts.includes(side));
     const planted = !toeOff && !!(plant && plant[side] && contacts.includes(side));
-    let rel = toeOff ? 0 : planted ? -shinDeg : Math.max(FOOT_RANGE[0], Math.min(FOOT_RANGE[1], (airborne ? 18 : 6) - shinDeg + (solved[foot] || 0)));
+    const swingPhase = ((side === 'front' ? phase : phase + 2) % 4 - 2) / 2;
+    let rel = toeOff ? 0 : planted ? -shinDeg : gait ? -shinDeg - 8 * Math.sin(Math.PI * swingPhase) ** 2
+      : Math.max(FOOT_RANGE[0], Math.min(FOOT_RANGE[1], (airborne ? 18 : 6) - shinDeg + (solved[foot] || 0)));
     const low = r => { const m = childMatrix(table, M, S, foot, r); return Math.max(apply(m, part.sole[0] - part.px, part.sole[1] - part.py)[1], apply(m, part.sole[2] - part.px, part.sole[3] - part.py)[1]); };
     if (!planted && low(rel) > FOOT_Y + (toeOff ? 0.75 : 0)) {
       // nearest foot angle that clears the floor (kneeling: the foot folds back under the shin),
@@ -772,7 +859,8 @@ function solveV2(kind, input, opts) {
   solved = { ...solved, __feet: feet };
   // the weapon never passes through the floor: bend the wrist inside its window first, and
   // only if that cannot clear it, the elbow too (within the elbow's own limits)
-  let wristFix = 0;
+  let wristFix = 0, elbowFix = 0;
+  const weaponBeforeGuard = table.weapon ? weaponLow(kind, M) : null;
   if (table.weapon && !down && weaponLow(kind, M) > FOOT_Y - 0.5) {
     const w = WRIST[kind], farmName = table.hand.parent, uarmName = table[farmName].parent;
     const base = deg(M.hand) - deg(M[farmName]), farmBase = wrap180(deg(M[farmName]) - deg(M[uarmName]));
@@ -798,6 +886,7 @@ function solveV2(kind, input, opts) {
       if (best.ok) break;
     }
     wristFix = best.d;
+    elbowFix = best.e;
     if (best.d || best.e) {
       const { Mf, Mh } = pose(best.e, best.d);
       M[farmName] = Mf; M.hand = Mh;
@@ -805,13 +894,24 @@ function solveV2(kind, input, opts) {
       for (const n of ['hand_front', 'weapon']) if (table[n]) M[n] = childMatrix(table, M, S, n, n === 'weapon' ? HOLD[kind] : 0);
     }
   }
-  solved = { ...solved, __wristFix: wristFix };
+  solved = { ...solved, __wristFix: wristFix, __elbowFix: elbowFix };
   // two-hand grip: the far arm reaches the weapon's second grip once the weapon is final
-  let twoHand = false;
+  let twoHand = false, supportBlend = 0;
+  const handPolicy = input?.__twoHand || POSES[poseName]?.__twoHand || 'optional';
+  const releaseT = input?.__pt;
+  const releasing = handPolicy === 'off' && Number.isFinite(releaseT) && releaseT < 0.12;
   if (table.weapon?.grip2 && table.hand_b?.variants?.grip_far && !NO_TWO_HAND.test(poseName)) {
-    const r = twoHandSolve(kind, solved, M);
+    const r = handPolicy === 'free' || (handPolicy === 'off' && !releasing) ? null : twoHandSolve(kind, solved, M);
     if (r) {
-      solved = r.angles; twoHand = true;
+      const t = releasing ? Math.max(0, Math.min(1, releaseT / 0.12)) : 0;
+      supportBlend = 1 - t * t * (3 - 2 * t);
+      twoHand = supportBlend >= 1 - 1e-6;
+      if (twoHand) solved = r.angles;
+      else {
+        solved = { ...solved };
+        for (const key of ['uarm_b', 'farm_b', 'wrist_b'])
+          solved[key] = (solved[key] || 0) + wrap180(r.angles[key] - (solved[key] || 0)) * supportBlend;
+      }
       const o = M.uarm_b;
       M.uarm_b = [...rot(deg(M.torso) + solved.uarm_b).slice(0, 4), o[4], o[5]];
       M.farm_b = childMatrix(table, M, S, 'farm_b', solved.farm_b);
@@ -825,19 +925,35 @@ function solveV2(kind, input, opts) {
     if (twoHand) variants.hand_b = 'grip_far';
     else if (OPEN_HAND.test(poseName) && table.hand_b.variants.open) variants.hand_b = 'open';
   }
+  // Only declared drawings may be selected. Authored per-state metadata is
+  // stepped by the pose name, not lost/interpolated by the numeric timeline.
+  for (const [slot, variant] of Object.entries(input?.__variants || POSES[poseName]?.__variants || {})) {
+    if (table[slot]?.variants?.[variant] && !(slot === 'hand_b' && twoHand)) variants[slot] = variant;
+  }
   if (opts.variants) { for (const k of Object.keys(variants)) delete variants[k]; Object.assign(variants, opts.variants); }
   let order = orderFor(kind).filter(n => table[n] && !(n === 'hand_front' && variants.hand));
-  if (twoHand) {
+  if (twoHand || supportBlend > 0) {
     // the far forearm crosses in front of the body, under the near arm; the far hand closes
     // over the guitar neck, so it is drawn after the weapon
     order = order.filter(n => n !== 'farm_b' && n !== 'hand_b');
     order.splice(order.indexOf('uarm'), 0, 'farm_b');
     order.splice(order.indexOf('weapon') + 1, 0, 'hand_b');
+    if (kind === 'turbofit') {
+      // A supporting arm crosses the chest as one chain. Hiding just its upper
+      // arm behind the vest left a detached-looking forearm and shoulder cap.
+      order = order.filter(n => n !== 'uarm_b');
+      order.splice(order.indexOf('farm_b'), 0, 'uarm_b');
+    }
   }
   const parts = {};
   for (const n of order) parts[n] = variants[n] ? { ...table[n], ...table[n].variants[variants[n]], variant: variants[n] } : table[n];
   const lash = kind === 'nous_girl' ? lashAmount(poseName, input || {}) : 0;
   const sol = { M, S, order, contacts, ground: plant, angles: solved, variants, parts, twoHand, ropes: {}, lash, lashPts: {} };
+  if (polish) {
+    sol.guard = { before: weaponBeforeGuard, after: table.weapon ? weaponLow(kind, M) : null, wrist: wristFix, elbow: elbowFix };
+    sol.handPolicy = handPolicy;
+    sol.supportBlend = supportBlend;
+  }
   if (lash > 0) for (const [n, p] of Object.entries(table)) if (p.role === 'rope') {
     const q = table[p.parent], start = apply(M[p.parent], p.ax - q.px, p.ay - q.py);
     sol.lashPts[n] = lashPoints(table, M, start, p.segs, lash, input || {});
@@ -1102,6 +1218,11 @@ for (const [h, st] of Object.entries(HERO_STYLE)) {
   }
 }
 
+installNousPolish(POSES);
+installTekniumPolish(POSES);
+installTurboFitPolish(POSES);
+installPolishedActions(POSES, HERO_CHAIN);
+
 // nous_girl's cable whip: the weapon art is the coiled cable, so on a whip hit the
 // coil is swapped for a cable lashed out from the fist along the forearm line,
 // with a travelling wave and the silver jack plug at the tip.
@@ -1158,7 +1279,11 @@ function v2Live(kind, sol, pose, angles, poseName, x, y, flip, scale, dt) {
     st.variants[slot] = mem;
   }
   if (changed) sol = solve(kind, angles, { poseName, animated: !!pose.__pose, footTargets: pose.__footTargets, rootDy: pose.__rootDy, variants: Object.fromEntries(Object.entries(want).filter(([, v]) => v)) });
-  const res = secondary.step(actor, secondaryInputs(kind, sol), { x, y, flip, scale, dt: d });
+  // The first contact drawing may arrive during hit-stop. Commit its authored
+  // cable once without integrating springs/time; later zero-dt draws freeze.
+  const commitContact = kind === 'nous_girl' && angles.__phase === 'active' && st.contactPose !== poseName;
+  st.contactPose = angles.__phase === 'active' ? poseName : null;
+  const res = secondary.step(actor, secondaryInputs(kind, sol), { x, y, flip, scale, dt: d, commitContact });
   return applySecondary(kind, sol, res);
 }
 
@@ -1275,6 +1400,14 @@ export function createRig() {
     const hero = heroKind(state);
     const chain = HERO_CHAIN[hero] || [];
     const phase = c.phase === 'wind' ? 'wind' : c.phase === 'active' ? 'active' : 'recover';
+    if (HERO_V2[hero]) {
+      const heldAction = c.attack?.grabbed
+        ? c.attack.name === 'grab' ? (c.attack.release ? 'kick_kneeFinal' : 'kick_knee')
+          : hero === 'nous_girl' && c.attack.name === 'grabThrow' ? (c.attack.screen ? 'screenThrow' : 'laneThrow') : null : null;
+      const action = heldAction || (c.attack?.noHit && c.attack.name === 'dash' ? 'dashTravel'
+        : c.attack?.name === 'kick' ? 'kick' : c.attack?.name === 'jumpKick' ? 'jumpKick' : null);
+      if (action && POSES[`${hero}_${action}_${phase}`]) return `${hero}_${action}_${phase}`;
+    }
     // An attack that names its own move (a launcher, a grab, a mechanic from the
     // combat rework) plays that move for this hero; otherwise the chain decides,
     // which is what makes each hit of a 3-hit combo look different.
@@ -1301,7 +1434,7 @@ export function createRig() {
     if (c.down > 0) return K('down');
     if (c.wake > 0) return K('wake');
     if (state.hurtT > 0 || c.stun > 0) return K('flinch');
-    if (c.grab && !c.attack) return K('grabHold');
+    if (c.grab && (!c.attack || (HERO_V2[hero] && c.attack.hold))) return K('grabHold');
     if (c.turnT > 0) return K('turn');
     if (c.airborne) {
       // A jump kick still needs its own wind-up and strike, so an airborne attack

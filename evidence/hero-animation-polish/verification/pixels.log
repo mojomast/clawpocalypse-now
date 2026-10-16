@@ -1,0 +1,44 @@
+
+> test:pixels
+> node tests/check-rig-pixels.mjs
+
+turtle_purple: 252 alpha joints sampled
+turtle_blue: 252 alpha joints sampled
+turtle_red: 252 alpha joints sampled
+turtle_orange: 270 alpha joints sampled
+nous_girl: 572 alpha joints sampled
+teknium: 520 alpha joints sampled
+turbofit: 572 alpha joints sampled
+don_piedro: 252 alpha joints sampled
+DISCONNECTION (>1px): 0
+UNUSUAL OVERLAP (>6px AND >2px deeper than own idle): 1
+  turbofit turbofit_kick_kneeFinal_active right hip: gap=0px overlap-depth=8.99px shared=1113 crop=001-turbofit-turbofit_kick_kneeFinal_active-right-hip.png
+RAW DEEP OVERLAP (>6px, includes intended joint occlusion): 1412
+  turtle_purple turtle_purple_idleA right shoulder: gap=0px overlap-depth=10px shared=1392 crop=010-turtle_purple-turtle_purple_idleA-right-shoulder.png
+  turtle_purple turtle_purple_idleA right shoulder_back: gap=0px overlap-depth=10px shared=1393 crop=011-turtle_purple-turtle_purple_idleA-right-shoulder_back.png
+  turtle_purple turtle_purple_idleA right elbow: gap=0px overlap-depth=6.21px shared=571 crop=012-turtle_purple-turtle_purple_idleA-right-elbow.png
+  turtle_purple turtle_purple_idleA right elbow_back: gap=0px overlap-depth=6.36px shared=574 crop=013-turtle_purple-turtle_purple_idleA-right-elbow_back.png
+  turtle_purple turtle_purple_idleA right hip: gap=0px overlap-depth=7.91px shared=1361 crop=014-turtle_purple-turtle_purple_idleA-right-hip.png
+  turtle_purple turtle_purple_idleA right hip_back: gap=0px overlap-depth=8.74px shared=1442 crop=015-turtle_purple-turtle_purple_idleA-right-hip_back.png
+  turtle_purple turtle_purple_idleA right knee: gap=0px overlap-depth=9px shared=1228 crop=016-turtle_purple-turtle_purple_idleA-right-knee.png
+  turtle_purple turtle_purple_idleA right knee_back: gap=0px overlap-depth=8.91px shared=1241 crop=017-turtle_purple-turtle_purple_idleA-right-knee_back.png
+  turtle_purple turtle_purple_idleA left shoulder: gap=0px overlap-depth=9.9px shared=1369 crop=018-turtle_purple-turtle_purple_idleA-left-shoulder.png
+  turtle_purple turtle_purple_idleA left shoulder_back: gap=0px overlap-depth=9.9px shared=1370 crop=019-turtle_purple-turtle_purple_idleA-left-shoulder_back.png
+  turtle_purple turtle_purple_idleA left elbow: gap=0px overlap-depth=6.21px shared=571 crop=020-turtle_purple-turtle_purple_idleA-left-elbow.png
+  turtle_purple turtle_purple_idleA left elbow_back: gap=0px overlap-depth=6.36px shared=574 crop=021-turtle_purple-turtle_purple_idleA-left-elbow_back.png
+  turtle_purple turtle_purple_idleA left hip: gap=0px overlap-depth=7.91px shared=1346 crop=022-turtle_purple-turtle_purple_idleA-left-hip.png
+  turtle_purple turtle_purple_idleA left hip_back: gap=0px overlap-depth=8.74px shared=1434 crop=023-turtle_purple-turtle_purple_idleA-left-hip_back.png
+  turtle_purple turtle_purple_idleA left knee: gap=0px overlap-depth=9px shared=1225 crop=024-turtle_purple-turtle_purple_idleA-left-knee.png
+  turtle_purple turtle_purple_idleA left knee_back: gap=0px overlap-depth=8.91px shared=1239 crop=025-turtle_purple-turtle_purple_idleA-left-knee_back.png
+  turtle_purple turtle_purple_walk1 right shoulder: gap=0px overlap-depth=10px shared=1389 crop=026-turtle_purple-turtle_purple_walk1-right-shoulder.png
+  turtle_purple turtle_purple_walk1 right shoulder_back: gap=0px overlap-depth=10px shared=1395 crop=027-turtle_purple-turtle_purple_walk1-right-shoulder_back.png
+  turtle_purple turtle_purple_walk1 right elbow: gap=0px overlap-depth=6.16px shared=571 crop=028-turtle_purple-turtle_purple_walk1-right-elbow.png
+  turtle_purple turtle_purple_walk1 right elbow_back: gap=0px overlap-depth=6.41px shared=575 crop=029-turtle_purple-turtle_purple_walk1-right-elbow_back.png
+  turtle_purple turtle_purple_walk1 right hip: gap=0px overlap-depth=7.83px shared=1358 crop=030-turtle_purple-turtle_purple_walk1-right-hip.png
+  turtle_purple turtle_purple_walk1 right hip_back: gap=0px overlap-depth=9.49px shared=1355 crop=031-turtle_purple-turtle_purple_walk1-right-hip_back.png
+  turtle_purple turtle_purple_walk1 right knee: gap=0px overlap-depth=9px shared=1214 crop=032-turtle_purple-turtle_purple_walk1-right-knee.png
+  turtle_purple turtle_purple_walk1 right knee_back: gap=0px overlap-depth=8.99px shared=1225 crop=033-turtle_purple-turtle_purple_walk1-right-knee_back.png
+  turtle_purple turtle_purple_walk1 left shoulder: gap=0px overlap-depth=10px shared=1376 crop=034-turtle_purple-turtle_purple_walk1-left-shoulder.png
+  … 1387 more in /tmp/opencode/rig-pixel-seams/report.json
+NOTE: zero pairwise alpha gaps does not rule out every visible contour seam; raw overlap includes intentional torso/skirt layering.
+2942 actual-alpha joint samples; report and diagnostic crops: /tmp/opencode/rig-pixel-seams

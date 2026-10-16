@@ -118,6 +118,7 @@ export function solveTwoBone({ root, target, vectors, parentAngle = 0,
 // the raised near leg is never mistaken for a second planted foot. World-space
 // foot locks, if desired, are supplied through targets below by the caller.
 export function footContacts(poseName = '', gait = null) {
+  if (/(?:^|_)dashTravel_(?:active|follow)$/.test(poseName)) return [];
   if (/(?:^|_)(?:jump|jumpKick|down|downB|grabbed|knockdownAir|juggle|vaultKick|dodgeRoll|roll|bassDrop)(?:_|$)/i.test(poseName) ||
       /(?:^|_)(?:slide_(?:active|follow)|launcher_(?:active|recover))(?:_|$)/i.test(poseName)) return [];
   if (/(?:^|_)(?:kick|upper)(?:_|$)/i.test(poseName)) return ['back'];

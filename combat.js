@@ -38,6 +38,7 @@ export function snapToLevel(state, body = state.player) {
 // hit-stop seconds; shake feeds the camera. Light hits are short and cancel
 // into the next; heavy hits hold longer and knock down.
 import { heroMove } from './hero-moves.js';
+import { alignContactBox, impactPoint, POLISHED_HEROES } from './polish-contact.js';
 import { GRAB_HOLD, canGrab, grabMove, releaseGrab, stepGrab } from './grab.js'; // MR.INDIA grab/throw
 
 export const MOVES = {
@@ -260,9 +261,11 @@ export function attackBox(state, move) {
   else if (f > 0) { x0 = p.x + body; x1 = p.x + body + reach; }
   else { x0 = p.x - body - reach; x1 = p.x - body; }
   const z = p.z || 0, h = 63 * SZ;
-  return { x0, x1, y: p.y, depth: move.around ? DEPTH * 2 : DEPTH, top: p.y + p.r - h - z - (move.air ? 20 : 0), bot: p.y + p.r - z + (move.air ? 30 : 0) };
+  const broad = { x0, x1, y: p.y, depth: move.around ? DEPTH * 2 : DEPTH, top: p.y + p.r - h - z - (move.air ? 20 : 0), bot: p.y + p.r - z + (move.air ? 30 : 0) };
+  return alignContactBox(state, move, broad);
 }
 export function boxHits(box, n) {
+  if (box.empty) return false;
   const hb = hurtbox(n);
   if (hb.x1 < box.x0 || hb.x0 > box.x1) return false;
   if (Math.abs(n.y - box.y) > box.depth) return false;
@@ -329,7 +332,9 @@ function land(state, move, quiet = false) {
       n.parry = !!(move.heavy || (c.timer <= 0.05));
       if (n.parry) { n.stun = 0.18; n.knock *= 2; }
       if (state.audioCue) state.audioCue(n.parry ? 'pause' : 'block');
-      if (state.fxCue) state.fxCue('hit', { x: n.x, y: n.y, heavy: n.parry, shake: n.parry ? 0.1 : 0.05, blocked: true, parry: n.parry });
+      const blockPoint = POLISHED_HEROES.has(state.hero || state.selectedHero)
+        ? { ...impactPoint(attackBox(state, move), n, hurtbox), facing: c.attackFacing } : { x: n.x, y: n.y };
+      if (state.fxCue) state.fxCue('hit', { ...blockPoint, heavy: n.parry, shake: n.parry ? 0.1 : 0.05, blocked: true, parry: n.parry });
       c.hitStop = Math.max(c.hitStop, n.parry ? 0.06 : 0.04);
       if (n.parry) c.chain += 0;
       continue;
@@ -337,7 +342,11 @@ function land(state, move, quiet = false) {
     hitAny = true;
     damageNinja(state, n, move.dmg, Math.random);
     react(state, n, move.react, c.attackFacing, move.knock * 1.5); // knock/throw distance scaled for 2x bodies
-    if (state.fxCue) state.fxCue('hit', { x: n.x, y: n.y - (n.z || 0), heavy: !!move.heavy, shake: move.shake });
+    const impact = POLISHED_HEROES.has(state.hero || state.selectedHero)
+      ? { ...(move.grabbed ? { x: n.x, y: n.y + n.r - 63 - (n.z || 0) }
+        : impactPoint(attackBox(state, move), n, hurtbox)), facing: c.attackFacing }
+      : { x: n.x, y: n.y - (n.z || 0) };
+    if (state.fxCue) state.fxCue('hit', { ...impact, heavy: !!move.heavy, shake: move.shake });
   }
   if (move.release && c.grab) releaseGrab(state, move);
   else if (move.name === 'grabThrow' && c.grab) { c.grab.n.grabbed = false; c.grab = null; }
